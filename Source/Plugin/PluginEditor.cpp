@@ -4,13 +4,15 @@
 #include "../GUI/PerformancePage.h"
 #include "../GUI/FiltersPage.h"
 #include "../GUI/ContactPage.h"
+#include "../GUI/SympatheticPage.h"
+#include "../GUI/WorkspacePage.h"
 
 using namespace aeriform;
 using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "PLAY", "FILTERS", "PHYSICAL" })
+      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "ADVANCED" })
 {
     setLookAndFeel (&lookAndFeel);
 
@@ -29,12 +31,10 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
 
     pages[0] = std::make_unique<MainPage> (p);
     pages[1] = std::make_unique<ExcitersPage> (p);
-    pages[2] = std::make_unique<NetworkPage> (p);
+    auto network=std::make_unique<WorkspacePage>(p,2);network->addSection("RESONATORS / ROUTING",std::make_unique<NetworkPage>(p));network->addSection("CONTACT / STEREO",std::make_unique<ContactPage>(p));network->addSection("SYMPATHETIC BANK",std::make_unique<SympatheticPage>(p));network->showSection(p.getEditorSection(2));pages[2]=std::move(network);
     pages[3] = std::make_unique<MotionPage> (p);
-    pages[4] = std::make_unique<SpacePage> (p);
+    auto space=std::make_unique<WorkspacePage>(p,4);space->addSection("EFFECTS",std::make_unique<SpacePage>(p));space->addSection("MODULAR FILTERS",std::make_unique<FiltersPage>(p));space->showSection(p.getEditorSection(4));pages[4]=std::move(space);
     pages[5] = std::make_unique<PerformancePage>(p);
-    pages[6] = std::make_unique<FiltersPage>(p);
-    pages[7] = std::make_unique<ContactPage>(p);
     undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
     redoButton.onClick=[this]{processor.getPatchTools().undo.redo();};
     content.addAndMakeVisible(undoButton);content.addAndMakeVisible(redoButton);
@@ -77,6 +77,9 @@ AeriformEditor::~AeriformEditor()
 // ---------------------------------------------------------------------------
 void AeriformEditor::showPage (int index)
 {
+    // Preserve the saved locations from early experimental eight-tab builds.
+    if(index==6){dynamic_cast<WorkspacePage*>(pages[4].get())->showSection(1);index=4;}
+    if(index==7){dynamic_cast<WorkspacePage*>(pages[2].get())->showSection(1);index=2;}
     index = juce::jlimit (0, (int) pages.size() - 1, index);
     if (index == currentPage) return;
     currentPage = index;

@@ -37,7 +37,7 @@ PatchStateManager::PatchStateManager(AeriformProcessor& p):processor(p) {
 int PatchStateManager::indexOf(const juce::String& id) const { for(int i=0;i<kNumParams;++i) if(id==ids::all[i])return i;return -1; }
 bool PatchStateManager::administrative(P p) noexcept {
     const char* id=ids::id(p);
-    return starts(id,"morph_")||starts(id,"random_")||starts(id,"out_")||starts(id,"voice_")||starts(id,"mpe_")||std::strcmp(id,"quality")==0||p==P::bendRange;
+    return p==P::symClear||p==P::symCapture||starts(id,"morph_")||starts(id,"random_")||starts(id,"out_")||starts(id,"voice_")||starts(id,"mpe_")||std::strcmp(id,"quality")==0||p==P::bendRange;
 }
 bool PatchStateManager::protectedRandom(P p) noexcept {
     const char* id=ids::id(p);
@@ -151,10 +151,12 @@ std::unique_ptr<juce::XmlElement> PatchStateManager::toXml() const {
     auto xml=std::make_unique<juce::XmlElement>("PatchTools");xml->setAttribute("version",1);xml->setAttribute("selected",selected.load());xml->setAttribute("seed",juce::String((juce::int64)seed));
     for(int slot=0;slot<2;++slot){auto* snap=xml->createNewChildElement("Snapshot");snap->setAttribute("slot",slot);snap->setAttribute("name",names[(size_t)slot]);const auto values=slot==selected.load()?current():readSnapshot(slot);
         for(int i=0;i<kNumParams;++i){auto* p=snap->createNewChildElement("P");p->setAttribute("id",ids::all[i]);p->setAttribute("value",(double)values[(size_t)i]);}}
+    auto* chord=xml->createNewChildElement("SympatheticChord");const auto notes=processor.getCapturedChord();for(int i=0;i<12;++i)chord->setAttribute("note"+juce::String(i),notes[(size_t)i]);
     auto* lock=xml->createNewChildElement("Locks");for(int i=0;i<kNumParams;++i)if(locks.test((size_t)i)){auto* p=lock->createNewChildElement("P");p->setAttribute("id",ids::all[i]);}return xml;
 }
 void PatchStateManager::fromXml(const juce::XmlElement* xml) {
     restoring=true;
+    SynthEngine::CapturedChord chord;chord.fill(-1);if(xml)if(auto* c=xml->getChildByName("SympatheticChord"))for(int i=0;i<12;++i)chord[(size_t)i]=std::clamp(c->getIntAttribute("note"+juce::String(i),-1),-1,127);processor.setCapturedChord(chord);
     if(!xml){selected.store(0);seed=20260905;locks.reset();for(int i=0;i<kNumParams;++i)locks.set((size_t)i,protectedRandom((P)i));writeSnapshot(0,current());writeSnapshot(1,current());names={"Snapshot A","Snapshot B"};}
     else {
         selected.store(std::clamp(xml->getIntAttribute("selected"),0,1));seed=(uint32_t)xml->getStringAttribute("seed","20260905").getLargeIntValue();

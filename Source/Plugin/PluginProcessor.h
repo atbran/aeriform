@@ -51,10 +51,14 @@ public:
     aeriform::MidiLearn& getMidiLearn() noexcept { return midiLearn; }
     aeriform::VisualizerModel& getVisualizerModel() noexcept { return visualizer; }
 
+    aeriform::SynthEngine::CapturedChord getCapturedChord() const noexcept {return engine.getCapturedChord();}
+    void setCapturedChord(const aeriform::SynthEngine::CapturedChord& c) noexcept {engine.setCapturedChord(c);morphEngine.setCapturedChord(c);}
     aeriform::PatchStateManager& getPatchTools() noexcept { return patchTools; }
 
     float getEditorScale() const noexcept { return editorScale.load(); }
     void setEditorScale (float s) noexcept { editorScale.store (juce::jlimit (0.5f, 3.0f, s)); }
+    int getEditorSection(int page) const noexcept {return editorSections[(size_t)std::clamp(page,0,5)].load();}
+    void setEditorSection(int page,int section) noexcept {editorSections[(size_t)std::clamp(page,0,5)].store(std::clamp(section,0,8));}
     int  getEditorPage() const noexcept { return editorPage.load(); }
     void setEditorPage (int p) noexcept { editorPage.store (juce::jlimit (0, 7, p)); }
 
@@ -90,6 +94,7 @@ private:
     int preparedBlock=512;
     void processMorph(juce::AudioBuffer<float>&,const juce::AudioBuffer<float>*,juce::MidiBuffer&,const juce::AudioPlayHead::PositionInfo&);
     std::atomic<float> editorScale { 1.0f };
+    std::array<std::atomic<int>,6> editorSections{};
     std::atomic<int> editorPage { 5 };
     std::atomic<float> cpuLoad { 0.0f };
     double currentSampleRate = 44100.0;

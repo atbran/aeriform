@@ -38,7 +38,28 @@ def register(F,C,B,I):
  F('stereoWidth','stereo_width','Physical Stereo Width','Network',0,2,1,'%','Percent','Mid/side width. Zero produces identical channels in Physical mode.')
  F('stereoMonoBass','stereo_mono_bass','Mono Bass','Network',20,1000,120,'Hz','Hz','Remove low frequencies from the side channel. Minimum disables convergence.',centre=150)
 
+
+ B('symOn','sym_on','Sympathetic Bank Enabled','Network',False,'One shared bank of twelve tuned modes responds to all voices.')
+ F('symSend','sym_send','Sympathetic Send','Network',0,1,.4,'%','Percent','Voice sum send, normalized by active voice count.')
+ F('symReturn','sym_return','Sympathetic Return','Network',0,2,.4,'%','Percent','Shared bank return level before the global effects.')
+ F('symDamper','sym_damper','Damper Position','Network',0,1,0,'%','Percent','Raises damping to quickly stop sympathetic ringing.')
+ F('symDecay','sym_decay','Sympathetic Decay','Network',100,60000,6000,'ms','Ms','Approximate time for an isolated mode to decay by 60 dB before damping.',centre=6000)
+ F('symDamping','sym_damping','Sympathetic Damping','Network',0,1,.3,'%','Percent','Frequency-dependent decay loss.')
+ F('symBrightness','sym_brightness','Sympathetic Brightness','Network',0,1,.5,'%','Percent','Relative output of the upper tuned modes.')
+ F('symDetune','sym_detune','Sympathetic Detune','Network',-30,30,0,'ct','Cents','Deterministic spread of mode frequencies in cents.')
+ F('symSpread','sym_spread','Sympathetic Spread','Network',0,1,.7,'%','Percent','Stereo placement of the twelve tuned modes.')
+ C('symTuning','sym_tuning','Sympathetic Tuning','Network','SympatheticTunings',1,'Scale, custom intervals, harmonic series, held notes or a captured MIDI chord.')
+ I('symRoot','sym_root','Sympathetic Root','Network',0,127,48,'MIDI','Root note for scale and interval tuning.')
+ I('symCount','sym_count','Active Sympathetic Modes','Network',1,12,12,'','Number of active tuned modes.')
+ F('symThreshold','sym_threshold','Sympathetic Threshold','Network',-96,0,-72,'dB','Db','Ignore excitation below this level.')
+ B('symFreeze','sym_freeze','Sympathetic Hold','Network',False,'Smoothly stop decay and new excitation, retaining stored modal energy.')
+ B('symClear','sym_clear','Clear Sympathetic Energy','Network',False,'Each toggle clears the stored modal energy.')
+ B('symCapture','sym_capture','Capture Sympathetic Chord','Network',False,'Each toggle captures currently held MIDI notes. Captured chord is stored with the patch.')
+ for i,interval in enumerate([0,4,7,12,16,19,24,28,31,36,40,43]):
+  I(f'symInterval{i+1}',f'sym_interval{i+1}',f'Sympathetic Interval {i+1}','Network',-24,48,interval,'st','Custom chord interval relative to the root.')
+
 CHOICES={
+ 'SympatheticTunings':['Chromatic','Major','Minor','Pentatonic','Whole tone','Custom intervals','Harmonic series','Held notes','Captured chord'],
  'PhysicalStereoModes':['Economy','Physical stereo'],
  'ContactNodes':['Res A','Res B','Res C'],
  'FilterPositions':['Exciter A','Exciter B','Combined exciters','Before wavefolder','After wavefolder','Network input','Res A input','Res B input','Res C input','Res A output','Res B output','Res C output','Cross feedback','Energy loop','Res A loop / modal input','Res B loop / modal input','Res C loop / modal input','Post body','Pre effects','Post effects'],

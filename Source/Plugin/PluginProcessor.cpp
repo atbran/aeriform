@@ -160,6 +160,7 @@ std::unique_ptr<juce::XmlElement> AeriformProcessor::createStateXml()
     xml->setAttribute ("presetDirty", presetManager.isDirty());
     xml->setAttribute ("editorScale", (double) editorScale.load());
     xml->setAttribute ("editorPage", editorPage.load());
+    for(int i=0;i<6;++i)xml->setAttribute("editorSection"+juce::String(i),getEditorSection(i));
 
     if (auto params = apvts.copyState().createXml())
         xml->addChildElement (params.release());
@@ -190,6 +191,7 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
     patchTools.fromXml(xml.getChildByName("PatchTools"));
     setEditorScale ((float) xml.getDoubleAttribute ("editorScale", 1.0));
     setEditorPage (xml.getIntAttribute ("editorPage", 0));
+    for(int i=0;i<6;++i)setEditorSection(i,xml.getIntAttribute("editorSection"+juce::String(i),0));
     presetManager.setCurrentName (xml.getStringAttribute ("presetName", "Init"),
                                   xml.getStringAttribute ("presetCategory", "Init"),
                                   ! xml.getBoolAttribute ("presetDirty", false));

@@ -1,5 +1,6 @@
 #include "SynthEngine.h"
 #include "Voice.h"
+#include "SympatheticBank.h"
 #include "Effects/Chorus.h"
 #include "Effects/Delay.h"
 #include "Effects/Reverb.h"
@@ -40,6 +41,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     StereoDelay delay;
     FdnReverb reverb;
     OutputStage output;
+    SympatheticBank sympathetic;
     ModularFilters globalFilters;
     std::vector<ModularFilters::FrameWeights> filterFrames;
     float filterNote=60,filterEnvelope=0;
@@ -120,7 +122,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         chorus.prepare (sr);
         delay.prepare (sr);
         reverb.prepare (sr);
-        output.prepare (sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
+        output.prepare (sr);sympathetic.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
         noteStackSize = 0;
@@ -140,7 +142,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         chorus.reset();
         delay.reset();
         reverb.reset();
-        output.reset();globalFilters.reset();
+        output.reset();sympathetic.reset();globalFilters.reset();
         couplingIn = 0.0f;
     }
 
@@ -450,6 +452,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     // ---------------------------------------------------------------------
     void handleMidi (const juce::MidiMessage& m, MidiLearn* learn)
     {
+        sympathetic.handleMidi(m);
         if(m.isNoteOn())filterNote=(float)m.getNoteNumber();
         if (m.isController())
         {
@@ -511,6 +514,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             sum += v.getLastMono();
         }
         couplingIn = fastTanh (sum);
+        if(sympathetic.active()){const int count=activeVoiceCount();for(int i=0;i<numSamples;++i){float l,r;sympathetic.next(.5f*(L[i]+R[i]),count,l,r);L[i]+=l;R[i]+=r;}}
     }
 
     void prepareSidechain (const juce::AudioBuffer<float>* extIn, int numSamples)
@@ -584,6 +588,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         const double bpm = pos.getBpm().hasValue() ? *pos.getBpm() : 120.0;
         readParams (bpm > 1.0 ? bpm : 120.0);
+        SympatheticParams sp;sp.enabled=params.getb(P::symOn);sp.send=params.get(P::symSend);sp.returnLevel=params.get(P::symReturn);sp.damper=params.get(P::symDamper);sp.decayMs=params.get(P::symDecay);sp.damping=params.get(P::symDamping);sp.brightness=params.get(P::symBrightness);sp.detune=params.get(P::symDetune);sp.spread=params.get(P::symSpread);sp.tuning=params.geti(P::symTuning);sp.root=params.geti(P::symRoot);sp.count=params.geti(P::symCount);sp.thresholdDb=params.get(P::symThreshold);sp.freeze=params.getb(P::symFreeze);sp.clear=params.getb(P::symClear);sp.capture=params.getb(P::symCapture);for(int i=0;i<12;++i)sp.intervals[(size_t)i]=params.geti((P)((int)P::symInterval1+i));sympathetic.update(sp,numSamples);
         noteOnsThisBlock = 0;
 
         prepareSidechain (extIn, numSamples);
@@ -723,6 +728,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             vis.resonatorEnergy[(size_t) r].store (newest != nullptr ? newest->getResonatorEnergy (r) : 0.0f, std::memory_order_relaxed);
             vis.resonatorRunning[(size_t) r].store (newest != nullptr && newest->isResonatorRunning (r) ? 1 : 0, std::memory_order_relaxed);
         }
+        for(int i=0;i<12;++i){vis.sympatheticEnergy[(size_t)i].store(sympathetic.modeEnergy(i),std::memory_order_relaxed);vis.sympatheticFrequency[(size_t)i].store(sympathetic.frequency(i),std::memory_order_relaxed);}
         vis.networkEnergy.store (newest != nullptr ? newest->getNetworkEnergy() : 0.0f, std::memory_order_relaxed);
         vis.governorGain.store (newest != nullptr ? newest->getGovernor() : 1.0f, std::memory_order_relaxed);
         vis.exciterAEnv.store (newest != nullptr ? newest->getExciterEnvelope (0) : 0.0f, std::memory_order_relaxed);
@@ -766,6 +772,9 @@ void SynthEngine::processRange(juce::AudioBuffer<float>& out,const juce::AudioBu
                               const juce::AudioPlayHead::PositionInfo& pos,MidiLearn* learn,bool offline,int offset) {
     impl->process(out,in,midi,pos,learn,offline,offset);
 }
+SynthEngine::CapturedChord SynthEngine::getCapturedChord() const noexcept {return impl->sympathetic.capturedChord();}
+SynthEngine::CapturedChord SynthEngine::getHeldChord() const noexcept {return impl->sympathetic.currentHeldChord();}
+void SynthEngine::setCapturedChord(const CapturedChord& c) noexcept {impl->sympathetic.requestCapturedChord(c);}
 int SynthEngine::getActiveVoiceCount() const noexcept { return impl->activeVoiceCount(); }
 
 dsp::ModConfig SynthEngine::getModConfig() const

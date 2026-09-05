@@ -108,3 +108,11 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - 415 stable parameters. Independent left/right resonators, coupling, excitation/pickup/damping differences, rotation, width and mono bass connected; contextual PHYSICAL page.
 - Five stereo tests: 220685 checks, zero failures. Seven filter regressions: 266281 checks, zero failures. Original source status remains clean.
 - Second network stops in Economy. Comb buffers now reserve oversampled storage only where needed, and unused comb buffers are not cleared on note restart.
+
+## Sympathetic bank and six-tab checkpoint
+
+- 443 stable parameters. Twelve shared modes with nine tuning modes, damper/decay/brightness/detune, normalized voice send, hold/clear, MIDI chord capture and persistent chord memory. Controls and atomic activity display are connected.
+- Six main tabs now match User-Test-Issues.txt; contact/stereo/sympathetic are under NETWORK, filters under SPACE, morph tools under ADVANCED. Saved section navigation and early experimental tab migration tested.
+- Full regression: 107 tests, 2245948 checks, zero failures (build/sympathetic-all-tests.log).
+- User-test reports still to resolve: verify sustained resonator pitch edits with Repipe; improve measurable contact audibility; add explicit/automatic direct resonator bypass; right-click modulation assignment and depth dragging.
+- Original requested room coupling, new effects, FX target, final realtime/performance audit and release verification remain unfinished.

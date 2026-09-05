@@ -157,6 +157,7 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::NetModes:         return choices::netModes();
         case ChoiceList::QualityModes:     return choices::qualityModes();
         case ChoiceList::MorphModes: { static const juce::StringArray v { "Parameter", "Deep" }; return v; }
+        case ChoiceList::SympatheticTunings: { static const juce::StringArray v { "Chromatic", "Major", "Minor", "Pentatonic", "Whole tone", "Custom intervals", "Harmonic series", "Held notes", "Captured chord" }; return v; }
         case ChoiceList::PhysicalStereoModes: { static const juce::StringArray v { "Economy", "Physical stereo" }; return v; }
         case ChoiceList::ContactNodes: { static const juce::StringArray v { "Res A", "Res B", "Res C" }; return v; }
         case ChoiceList::FilterPositions: { static const juce::StringArray v { "Exciter A", "Exciter B", "Combined exciters", "Before wavefolder", "After wavefolder", "Network input", "Res A input", "Res B input", "Res C input", "Res A output", "Res B output", "Res C output", "Cross feedback", "Energy loop", "Res A loop / modal input", "Res B loop / modal input", "Res C loop / modal input", "Post body", "Pre effects", "Post effects" }; return v; }

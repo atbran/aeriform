@@ -422,6 +422,34 @@ enum class P : int
     stereoRotation,
     stereoWidth,
     stereoMonoBass,
+    symOn,
+    symSend,
+    symReturn,
+    symDamper,
+    symDecay,
+    symDamping,
+    symBrightness,
+    symDetune,
+    symSpread,
+    symTuning,
+    symRoot,
+    symCount,
+    symThreshold,
+    symFreeze,
+    symClear,
+    symCapture,
+    symInterval1,
+    symInterval2,
+    symInterval3,
+    symInterval4,
+    symInterval5,
+    symInterval6,
+    symInterval7,
+    symInterval8,
+    symInterval9,
+    symInterval10,
+    symInterval11,
+    symInterval12,
     Count
 };
 
@@ -845,6 +873,34 @@ inline constexpr const char* stereoDamping = "stereo_damping";
 inline constexpr const char* stereoRotation = "stereo_rotation";
 inline constexpr const char* stereoWidth = "stereo_width";
 inline constexpr const char* stereoMonoBass = "stereo_mono_bass";
+inline constexpr const char* symOn = "sym_on";
+inline constexpr const char* symSend = "sym_send";
+inline constexpr const char* symReturn = "sym_return";
+inline constexpr const char* symDamper = "sym_damper";
+inline constexpr const char* symDecay = "sym_decay";
+inline constexpr const char* symDamping = "sym_damping";
+inline constexpr const char* symBrightness = "sym_brightness";
+inline constexpr const char* symDetune = "sym_detune";
+inline constexpr const char* symSpread = "sym_spread";
+inline constexpr const char* symTuning = "sym_tuning";
+inline constexpr const char* symRoot = "sym_root";
+inline constexpr const char* symCount = "sym_count";
+inline constexpr const char* symThreshold = "sym_threshold";
+inline constexpr const char* symFreeze = "sym_freeze";
+inline constexpr const char* symClear = "sym_clear";
+inline constexpr const char* symCapture = "sym_capture";
+inline constexpr const char* symInterval1 = "sym_interval1";
+inline constexpr const char* symInterval2 = "sym_interval2";
+inline constexpr const char* symInterval3 = "sym_interval3";
+inline constexpr const char* symInterval4 = "sym_interval4";
+inline constexpr const char* symInterval5 = "sym_interval5";
+inline constexpr const char* symInterval6 = "sym_interval6";
+inline constexpr const char* symInterval7 = "sym_interval7";
+inline constexpr const char* symInterval8 = "sym_interval8";
+inline constexpr const char* symInterval9 = "sym_interval9";
+inline constexpr const char* symInterval10 = "sym_interval10";
+inline constexpr const char* symInterval11 = "sym_interval11";
+inline constexpr const char* symInterval12 = "sym_interval12";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1262,6 +1318,34 @@ inline constexpr const char* const all[kNumParams] = {
     "stereo_rotation",
     "stereo_width",
     "stereo_mono_bass",
+    "sym_on",
+    "sym_send",
+    "sym_return",
+    "sym_damper",
+    "sym_decay",
+    "sym_damping",
+    "sym_brightness",
+    "sym_detune",
+    "sym_spread",
+    "sym_tuning",
+    "sym_root",
+    "sym_count",
+    "sym_threshold",
+    "sym_freeze",
+    "sym_clear",
+    "sym_capture",
+    "sym_interval1",
+    "sym_interval2",
+    "sym_interval3",
+    "sym_interval4",
+    "sym_interval5",
+    "sym_interval6",
+    "sym_interval7",
+    "sym_interval8",
+    "sym_interval9",
+    "sym_interval10",
+    "sym_interval11",
+    "sym_interval12",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

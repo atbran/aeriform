@@ -481,3 +481,31 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `stereo_rotation` | Stereo Rotation | -100 % .. +100 % | 0 % | Rotate the mid/side field up to 45 degrees, before mono bass. |
 | `stereo_width` | Physical Stereo Width | 0 % .. 200 % | 100 % | Mid/side width. Zero produces identical channels in Physical mode. |
 | `stereo_mono_bass` | Mono Bass | 20.0 Hz .. 1.00 kHz | 120 Hz | Remove low frequencies from the side channel. Minimum disables convergence. |
+| `sym_on` | Sympathetic Bank Enabled | off / on | off | One shared bank of twelve tuned modes responds to all voices. |
+| `sym_send` | Sympathetic Send | 0 % .. 100 % | 40 % | Voice sum send, normalized by active voice count. |
+| `sym_return` | Sympathetic Return | 0 % .. 200 % | 40 % | Shared bank return level before the global effects. |
+| `sym_damper` | Damper Position | 0 % .. 100 % | 0 % | Raises damping to quickly stop sympathetic ringing. |
+| `sym_decay` | Sympathetic Decay | 100 ms .. 60.00 s | 6.00 s | Approximate time for an isolated mode to decay by 60 dB before damping. |
+| `sym_damping` | Sympathetic Damping | 0 % .. 100 % | 30 % | Frequency-dependent decay loss. |
+| `sym_brightness` | Sympathetic Brightness | 0 % .. 100 % | 50 % | Relative output of the upper tuned modes. |
+| `sym_detune` | Sympathetic Detune | -30 ct .. +30 ct | 0 ct | Deterministic spread of mode frequencies in cents. |
+| `sym_spread` | Sympathetic Spread | 0 % .. 100 % | 70 % | Stereo placement of the twelve tuned modes. |
+| `sym_tuning` | Sympathetic Tuning | Chromatic / Major / Minor / Pentatonic / Whole tone / Custom intervals / Harmonic series / Held notes / Captured chord | Major | Scale, custom intervals, harmonic series, held notes or a captured MIDI chord. |
+| `sym_root` | Sympathetic Root | 0 .. 127 | 48 | Root note for scale and interval tuning. |
+| `sym_count` | Active Sympathetic Modes | 1 .. 12 | 12 | Number of active tuned modes. |
+| `sym_threshold` | Sympathetic Threshold | -96.0 dB .. 0.0 dB | -72.0 dB | Ignore excitation below this level. |
+| `sym_freeze` | Sympathetic Hold | off / on | off | Smoothly stop decay and new excitation, retaining stored modal energy. |
+| `sym_clear` | Clear Sympathetic Energy | off / on | off | Each toggle clears the stored modal energy. |
+| `sym_capture` | Capture Sympathetic Chord | off / on | off | Each toggle captures currently held MIDI notes. Captured chord is stored with the patch. |
+| `sym_interval1` | Sympathetic Interval 1 | -24 .. 48 | 0 | Custom chord interval relative to the root. |
+| `sym_interval2` | Sympathetic Interval 2 | -24 .. 48 | 4 | Custom chord interval relative to the root. |
+| `sym_interval3` | Sympathetic Interval 3 | -24 .. 48 | 7 | Custom chord interval relative to the root. |
+| `sym_interval4` | Sympathetic Interval 4 | -24 .. 48 | 12 | Custom chord interval relative to the root. |
+| `sym_interval5` | Sympathetic Interval 5 | -24 .. 48 | 16 | Custom chord interval relative to the root. |
+| `sym_interval6` | Sympathetic Interval 6 | -24 .. 48 | 19 | Custom chord interval relative to the root. |
+| `sym_interval7` | Sympathetic Interval 7 | -24 .. 48 | 24 | Custom chord interval relative to the root. |
+| `sym_interval8` | Sympathetic Interval 8 | -24 .. 48 | 28 | Custom chord interval relative to the root. |
+| `sym_interval9` | Sympathetic Interval 9 | -24 .. 48 | 31 | Custom chord interval relative to the root. |
+| `sym_interval10` | Sympathetic Interval 10 | -24 .. 48 | 36 | Custom chord interval relative to the root. |
+| `sym_interval11` | Sympathetic Interval 11 | -24 .. 48 | 40 | Custom chord interval relative to the root. |
+| `sym_interval12` | Sympathetic Interval 12 | -24 .. 48 | 43 | Custom chord interval relative to the root. |

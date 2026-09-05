@@ -19,3 +19,16 @@ The PHYSICAL page switches between CONTACT and TRUE STEREO controls. Economy pre
 Zero width makes the network channels identical. Later body/pan processing and stereo effects can still alter the final channel relationship. Mono sums retain the mid signal; physical detuning can still produce acoustic beating. Cross coupling is capped and scaled to the smallest active resonator loss. Both networks retain their own collision and filter states; the Energy Loop return averages the two physical networks.
 
 Five focused tests passed with 220685 checks (build/stereo-tests-2.log): bit-exact Economy comparison with the original network, independent energy with finite output at three sample rates, zero-width equality, low-frequency side suppression, mode shutdown, actual host audio changes, state restoration and page rendering. All seven filter regressions also passed after optimizing unused comb resets and reducing unused oversampled lane storage. Screenshot: experimental/stereo.png. Final CPU/memory profiling remains pending.
+
+
+## Shared sympathetic bank
+
+A single twelve-mode bank per engine responds to the summed voices before global effects. Voice send is divided by the active voice count; each mode uses a contracting complex rotation with input coefficient (1 - radius). Output normalizes the active mode weights and maximum brightness gain. Hold smoothly approaches a unit-radius rotation while stopping excitation. No final limiter is needed for the isolated bank's bound. Damper position shortens decay; damping shortens higher modes more strongly. Frequency changes preserve phase and smooth toward their targets.
+
+Tuning includes chromatic, major, minor, pentatonic, whole tone, twelve custom intervals, harmonic series, held MIDI notes (including sustain pedal), and a captured chord. Held-note tuning retains the last nonempty chord for natural ringing after release. Captured notes are common MIDI/chord memory shared by both morph endpoints, saved in PatchTools XML; they are not separately morphed. GUI capture is undoable. Clear and host-automated capture are edge commands and excluded from randomization and endpoint interpolation. Changing count fades mode weights. Preparation/sample-rate changes preserve captured chord requests but clear sound energy.
+
+The complete checkpoint passed 107 tests / 2245948 checks, zero failures (build/sympathetic-all-tests.log). Focused tests measure pitch within 2 cents at three sample rates, known modal decay, damper behavior, frozen-energy retention, clearing, scale frequencies, held-note/pedal/capture behavior, 1/8/16-voice normalized input, audio-path changes, chord/session restoration before prepare, undo/redo, and navigation restoration. Screenshot: experimental/sympathetic.png.
+
+## Navigation after user testing
+
+Six main tabs: MAIN, EXCITERS, NETWORK, MOTION, SPACE, ADVANCED. NETWORK contains resonator routing, contact/stereo and the sympathetic bank. SPACE contains existing effects and modular filters. ADVANCED contains morphing and patch tools. Saved sub-sections restore, and the two removed experimental top-level tabs migrate to their new sections. Existing parameter IDs are unchanged.

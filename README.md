@@ -732,3 +732,5 @@ design, resonator models, network) is original work written for AERIFORM.
 This isolated development branch adds the PLAY snapshot/randomizer page, A/B Parameter and Deep Morph, explicit GUI undo/redo, seeded mutation with locks, and persistent favorite presets. The VST3 is named EXP_Aeriform with an independent identifier. All original factory presets remain present. Experimental user presets use Documents/EXP_Aeriform/Presets.
 
 Read docs/PRESET_MORPH.md and docs/RANDOMIZER.md for behavior and limitations. State format 3 loads earlier states and preserves all original parameter IDs. The requested network, modular filters, advanced effects and FX target are subsequent implementation phases; they are not yet present in this checkpoint.
+
+Experimental checkpoint: the six-tab interface now groups contact, true stereo and a shared twelve-mode sympathetic bank under NETWORK, modular filters under SPACE, and A/B morph/patch tools under ADVANCED. The remaining room/effects/FX work and realtime audit are still in progress; see TASKS.md.

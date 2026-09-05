@@ -38,7 +38,7 @@ class Page : public juce::Component
 {
 public:
     ~Page() override = default;
-    std::vector<ParamPanel*> getPanels()
+    virtual std::vector<ParamPanel*> getPanels()
     {
         std::vector<ParamPanel*> out;
         for (auto* p : panels) p->collectPanels (out);
