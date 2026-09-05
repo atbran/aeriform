@@ -83,6 +83,7 @@ public:
     void setStartOrder (unsigned o) noexcept { startOrder = o; }
 
     float getEnergy() const noexcept { return network.energy (0) + network.energy (1) + network.energy (2); }
+    float getResonatorTargetHz(int i) const noexcept {return netParams.res[std::clamp(i,0,2)].freqHz;}
     float getResonatorEnergy (int i) const noexcept { return network.energy (i); }
     float getStereoLeftEnergy() const noexcept {return network.leftEnergy();}
     float getStereoRightEnergy() const noexcept {return network.rightEnergy();}

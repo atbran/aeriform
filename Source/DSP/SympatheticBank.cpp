@@ -41,7 +41,7 @@ void SympatheticBank::handleMidi(const juce::MidiMessage& m) noexcept {
     const int ch=std::clamp(m.getChannel()-1,0,15);
     if(m.isNoteOn())held[(size_t)(ch*128+m.getNoteNumber())]=1;
     else if(m.isNoteOff()){auto& h=held[(size_t)(ch*128+m.getNoteNumber())];h=sustain[(size_t)ch]?2:0;}
-    else if(m.isController()){int cc=m.getControllerNumber(),value=m.getControllerValue();if(cc==64){sustain[(size_t)ch]=value>=64;if(value<64)for(int n=0;n<128;++n){auto& h=held[(size_t)(ch*128+n)];if(h==2)h=0;}}else if(cc==120||cc==123){for(int n=0;n<128;++n)held[(size_t)(ch*128+n)]=0;sustain[(size_t)ch]=false;}}
+    else if(m.isController()){int cc=m.getControllerNumber(),value=m.getControllerValue();if(cc==64){sustain[(size_t)ch]=value>=64;if(value<64)for(int n=0;n<128;++n){auto& h=held[(size_t)(ch*128+n)];if(h==2)h=0;}}else if(cc==120||cc==123){if(cc==120)clearEnergy();for(int n=0;n<128;++n)held[(size_t)(ch*128+n)]=0;sustain[(size_t)ch]=false;}}
     auto chord=heldChord();for(int i=0;i<12;++i)publishedHeld[(size_t)i].store(chord[(size_t)i],std::memory_order_relaxed);if(chord[0]>=0)lastHeld=chord;if(p.tuning==7)tune();
 }
 void SympatheticBank::next(float input,int voiceCount,float& left,float& right) noexcept {

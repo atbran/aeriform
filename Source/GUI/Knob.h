@@ -43,6 +43,9 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    void mouseDown(const juce::MouseEvent&) override;
+    void mouseDrag(const juce::MouseEvent&) override;
+    void mouseUp(const juce::MouseEvent&) override;
 
 private:
     class KnobSlider : public juce::Slider
@@ -69,6 +72,12 @@ private:
     juce::Label label;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
 
+    int selectedModSlot=-1,modulationDragSlot=-1,modulationDragY=0;
+    float modulationDragStart=0;
+    int activeModSlot() const;
+    bool beginModulationDrag(const juce::MouseEvent&);
+    void dragModulation(const juce::MouseEvent&);
+    void endModulationDrag();
     bool showingValue = false;
     float modDepthNorm = 0.0f;   // normalised half-width of the ring
     float modLiveNorm = 0.0f;    // normalised live offset from the knob value

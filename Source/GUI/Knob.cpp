@@ -1,6 +1,7 @@
 #include "Knob.h"
 #include "Theme.h"
 #include "GuiDiagnostics.h"
+#include "KnobModulation.h"
 
 namespace aeriform
 {
@@ -41,6 +42,7 @@ Knob::Knob (AeriformProcessor& p, const juce::String& id, ModMapping m, int diam
 
 Knob::~Knob()
 {
+    endModulationDrag();
     slider.removeListener (this);
     attachment.reset();
 }
@@ -84,6 +86,7 @@ void Knob::KnobSlider::mouseDown (const juce::MouseEvent& e)
         owner.showContextMenu();
         return;
     }
+    if(owner.beginModulationDrag(e.getEventRelativeTo(&owner)))return;
     // Shift = fine adjustment (8x more travel per value change). Ctrl toggles velocity mode (JUCE built-in).
     setMouseDragSensitivity (e.mods.isShiftDown() ? 1800 : 220);
     juce::Slider::mouseDown (e);
@@ -92,17 +95,41 @@ void Knob::KnobSlider::mouseDown (const juce::MouseEvent& e)
 void Knob::KnobSlider::mouseDrag (const juce::MouseEvent& e)
 {
     if (e.mods.isPopupMenu()) return;
+    if(owner.modulationDragSlot>0){owner.dragModulation(e);return;}
     juce::Slider::mouseDrag (e);
 }
 
 void Knob::KnobSlider::mouseUp (const juce::MouseEvent& e)
 {
     if (e.mods.isPopupMenu()) return;
+    if(owner.modulationDragSlot>0){owner.endModulationDrag();return;}
     juce::Slider::mouseUp (e);
 }
 
 void Knob::KnobSlider::mouseDoubleClick(const juce::MouseEvent& e) {owner.processor.getPatchTools().begin("Edit "+owner.paramID);juce::Slider::mouseDoubleClick(e);owner.processor.getPatchTools().end();}
 void Knob::KnobSlider::mouseWheelMove(const juce::MouseEvent& e,const juce::MouseWheelDetails& d) {owner.processor.getPatchTools().begin("Edit "+owner.paramID);juce::Slider::mouseWheelMove(e,d);owner.processor.getPatchTools().end();}
+
+int Knob::activeModSlot() const {
+    if(mapping.dest==ModDest::None)return -1;
+    if(selectedModSlot>0&&(int)KnobModulation::value(processor,selectedModSlot,ids::ModField::Dst)==(int)mapping.dest&&KnobModulation::value(processor,selectedModSlot,ids::ModField::Src)>0)return selectedModSlot;
+    return KnobModulation::find(processor,mapping.dest);
+}
+bool Knob::beginModulationDrag(const juce::MouseEvent& e) {
+    if(e.mods.isPopupMenu())return false;const int slot=activeModSlot();if(slot<0)return false;
+    const auto bounds=slider.getBounds().toFloat();const float radius=e.position.getDistanceFrom(bounds.getCentre());
+    if(!e.mods.isAltDown()&&(radius<bounds.getWidth()*.5f-5||radius>bounds.getWidth()*.5f+9))return false;
+    selectedModSlot=modulationDragSlot=slot;modulationDragY=e.getScreenY();modulationDragStart=KnobModulation::value(processor,slot,ids::ModField::Depth);
+    processor.getPatchTools().begin("Modulation depth");processor.getAPVTS().getParameter(ids::id(ids::modP(slot,ids::ModField::Depth)))->beginChangeGesture();stopTimer();dragModulation(e);return true;
+}
+void Knob::dragModulation(const juce::MouseEvent& e) {
+    if(modulationDragSlot<0)return;float depth=std::clamp(modulationDragStart+(modulationDragY-e.getScreenY())/(e.mods.isShiftDown()?1200.0f:150.0f),-1.0f,1.0f);
+    auto* parameter=processor.getAPVTS().getParameter(ids::id(ids::modP(modulationDragSlot,ids::ModField::Depth)));parameter->setValueNotifyingHost(parameter->convertTo0to1(depth));
+    const int source=(int)KnobModulation::value(processor,modulationDragSlot,ids::ModField::Src);label.setText(choices::modSources()[source]+" "+juce::String((int)std::round(depth*100))+"%",juce::dontSendNotification);label.setColour(juce::Label::textColourId,tealBright);repaint();
+}
+void Knob::endModulationDrag(){if(modulationDragSlot<0)return;processor.getAPVTS().getParameter(ids::id(ids::modP(modulationDragSlot,ids::ModField::Depth)))->endChangeGesture();modulationDragSlot=-1;processor.getPatchTools().end();startTimer(900);}
+void Knob::mouseDown(const juce::MouseEvent& e){if(e.mods.isPopupMenu())showContextMenu();else beginModulationDrag(e);}
+void Knob::mouseDrag(const juce::MouseEvent& e){dragModulation(e);}
+void Knob::mouseUp(const juce::MouseEvent&){endModulationDrag();}
 
 void Knob::showContextMenu()
 {
@@ -118,11 +145,21 @@ void Knob::showContextMenu()
     menu.addItem (3, "Reset to default");
     menu.addItem (5, "Lock for randomization",true,processor.getPatchTools().isLocked(paramID));
     if (learning) menu.addItem (4, "Cancel learn");
+    menu.addSeparator();
+    if(mapping.dest!=ModDest::None){
+        juce::PopupMenu sources;const auto& names=choices::modSources();
+        for(int i=1;i<(int)ModSource::Count;++i){const bool assigned=KnobModulation::find(processor,mapping.dest,(ModSource)i)>0;sources.addItem(100+i,names[i],assigned||KnobModulation::empty(processor)>0,assigned);}menu.addSubMenu("Assign modulation source",sources);
+        for(int slot=1;slot<=ids::numModSlots;++slot)if((int)KnobModulation::value(processor,slot,ids::ModField::Dst)==(int)mapping.dest&&KnobModulation::value(processor,slot,ids::ModField::Src)>0){const auto name=names[(int)KnobModulation::value(processor,slot,ids::ModField::Src)];menu.addItem(3000+slot,"Edit depth: "+name,true,activeModSlot()==slot);menu.addItem(2000+slot,"Remove: "+name);}
+        menu.addItem(6,"Drag the teal ring to set depth; Alt-drag also works",false);
+    }else menu.addItem(6,"This control has no matrix destination",false);
 
     juce::Component::SafePointer<Knob> safe (this);
     menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [safe] (int result)
     {
         if (safe == nullptr) return;
+        if(result>100&&result<100+(int)ModSource::Count){safe->selectedModSlot=KnobModulation::assign(safe->processor,safe->mapping.dest,(ModSource)(result-100));safe->repaint();return;}
+        if(result>2000&&result<=2000+ids::numModSlots){KnobModulation::remove(safe->processor,result-2000);safe->repaint();return;}
+        if(result>3000&&result<=3000+ids::numModSlots){safe->selectedModSlot=result-3000;safe->repaint();return;}
         auto& l = safe->processor.getMidiLearn();
         switch (result)
         {
@@ -210,7 +247,7 @@ void Knob::paint (juce::Graphics& g)
     const float radius = sb.getWidth() * 0.5f + 1.5f;
     const float start = juce::MathConstants<float>::pi * 1.2f, end = juce::MathConstants<float>::pi * 2.8f;
 
-    if (hasMod && param != nullptr)
+    if ((hasMod||activeModSlot()>0) && param != nullptr)
     {
         const float norm = param->getValue();
         const float a0 = start + juce::jlimit (0.0f, 1.0f, norm - modDepthNorm) * (end - start);

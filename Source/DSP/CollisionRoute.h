@@ -32,7 +32,7 @@ public:
         const float penetration=std::max(0.0f,std::abs(source)-gap);
         if(penetration<=0)return 0;
         const float hardness=std::clamp(p.hardness,1.0f,4.0f);
-        const float activation=1-std::exp(-32*clamp01(p.stiffness)*std::pow(std::min(penetration,4.0f),hardness));
+        const float activation=1-std::exp(-512*clamp01(p.stiffness)*std::pow(std::min(penetration,4.0f),hardness));
         const float buzz=1-clamp01(p.friction)*(.5f+.5f*std::cos(80*penetration));
         const float alpha=.45f*clamp01(p.amount)*std::min(1.0f,activation*(1+clamp01(p.damping)))*buzz;
         const float relative=source-p.polarity*destination;

@@ -13,8 +13,8 @@ PerformancePage::ToolsPanel::ToolsPanel(AeriformProcessor& p):ParamPanel(p,"PLAY
     }
     enabled=control<Toggle>(p,ids::morphOn,"A/B MORPH");engine=control<ChoiceBox>(p,ids::morphMode,"Engine");morph=control<HSlider>(p,ids::morphPosition,true);
     wild=control<Toggle>(p,ids::randomWild,"WILD");mutation=knob(ids::randomMutation,"Mutation",{},72);
-    repipe=knob(ids::netRepipe,"Repipe",{},72);coupling=knob(ids::artCoupling,"Coupling",{},72);feedback=knob(ids::netFeedback,"Network feedback",{},72);
-    folder=knob(ids::wfFold,"Fold",{},72);brightness=knob(ids::resBrightness,"Brightness",{},72);width=knob(ids::netWidth,"Width",{},72);room=knob(ids::reverbMix,"Reverb",{},72);
+    repipe=knob(ids::netRepipe,"Repipe",additive(ModDest::Repipe),72);coupling=knob(ids::artCoupling,"Coupling",{},72);feedback=knob(ids::netFeedback,"Network feedback",additive(ModDest::NetFeedback),72);
+    folder=knob(ids::wfFold,"Fold",additive(ModDest::Fold),72);brightness=knob(ids::resBrightness,"Brightness",additive(ModDest::Brightness),72);width=knob(ids::netWidth,"Width",additive(ModDest::NetWidth),72);room=knob(ids::reverbMix,"Reverb",additive(ModDest::ReverbMix),72);
     for(auto* c:std::initializer_list<juce::Component*>{&randomize,&mutate,&newSeed,&lockAll,&unlockAll,&lockSection,&unlockSection,&commit,&seed,&scope,&section,&help})addAndMakeVisible(c);
     seed.setInputRestrictions(10,"0123456789");seed.setTooltip("32-bit seed. Repeat from the same starting patch for identical mutations.");seed.setText(juce::String((juce::int64)p.getPatchTools().getSeed()),false);
     seed.onFocusLost=[this]{processor.getPatchTools().setSeed((uint32_t)seed.getText().getLargeIntValue());};seed.onReturnKey=seed.onFocusLost;

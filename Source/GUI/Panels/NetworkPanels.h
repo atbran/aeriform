@@ -33,7 +33,7 @@ private:
     Knob *repipe, *feedback, *damping, *width, *mix, *fbDelay, *fbFilter, *fbDrive;
     juce::Label *routesCaption, *loopCaption;
     Knob *ab, *ba, *bc, *cb, *ca, *ac, *sendAB, *sendBC, *injectB, *injectC;
-    Toggle* loopOn;
+    Toggle *loopOn,*bypass;
     ChoiceBox *loopSource, *loopDest, *loopPolarity;
     Knob *loopAmount, *loopFilter, *loopDelay, *loopSat;
 };

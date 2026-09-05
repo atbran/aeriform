@@ -116,3 +116,11 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - Full regression: 107 tests, 2245948 checks, zero failures (build/sympathetic-all-tests.log).
 - User-test reports still to resolve: verify sustained resonator pitch edits with Repipe; improve measurable contact audibility; add explicit/automatic direct resonator bypass; right-click modulation assignment and depth dragging.
 - Original requested room coupling, new effects, FX target, final realtime/performance audit and release verification remain unfinished.
+
+## User testing checkpoint
+
+- Explicit and automatic resonator bypass added (444 parameters). Contact response strengthened and measured against bypass; direct-network bounds and alias suppression still pass.
+- Right-click modulation assignment/removal and teal-ring/Alt depth dragging implemented for existing matrix destinations; preserves occupied slots and groups each gesture for undo.
+- Repipe pitch-reset report not reproduced at parameter or DSP-target level; independent slot/exciter pitch can affect the perceived fundamental. Test and limits documented.
+- Full regression: 111 tests, 2266122 checks, zero failures (build/user-feedback-all-tests.log).
+- Remaining original work: shared room feedback, resonant delay/shimmer/spectral freeze/multiband saturation, FX target, demonstrator presets, realtime allocation/lock fixes, final performance matrix/validators/docs.

@@ -509,3 +509,4 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `sym_interval10` | Sympathetic Interval 10 | -24 .. 48 | 36 | Custom chord interval relative to the root. |
 | `sym_interval11` | Sympathetic Interval 11 | -24 .. 48 | 40 | Custom chord interval relative to the root. |
 | `sym_interval12` | Sympathetic Interval 12 | -24 .. 48 | 43 | Custom chord interval relative to the root. |
+| `net_bypass` | Bypass Resonators | off / on | off | Route excitation directly past the resonators. Also happens automatically when no resonator is enabled. Overrides Repipe while bypassed. |

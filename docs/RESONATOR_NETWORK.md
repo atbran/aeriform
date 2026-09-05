@@ -7,7 +7,7 @@ The CONTACT page connects one selected source to one selected destination among 
 
 Source displacement must exceed a polarity-dependent gap. A bounded penetration curve controls scattering of the relative source/destination displacement. The undelayed instantaneous map applies equal source reaction and signed destination transfer; its coefficient never exceeds 0.45, so it cannot increase the sum of squared displacements. Contact damping increases dissipative equalization; friction adds a bounded corrugated surface response. This is a musical scattering model, not a calibrated mechanical simulation.
 
-Interpolation/decimation adds memory, so the instantaneous proof alone does not prove energy conservation of the complete delayed network. Injection is therefore independently capped and scaled by 0.15 times the destination's actual resonator loss (a small floor at maximum feedback, conservative fixed loss for modal slots). The existing network saturators and governor remain active. The master output limiter is not needed for contact bounds. Continuous controls are smoothed; source, destination, polarity and quality changes use two states with a 12 ms crossfade.
+Interpolation/decimation adds memory, so the instantaneous proof alone does not prove energy conservation of the complete delayed network. Injection is therefore independently capped and scaled by 0.9 times the destination's actual resonator loss (a small floor at maximum feedback, conservative fixed loss for modal slots). The existing network saturators and governor remain active. The master output limiter is not needed for contact bounds. Continuous controls are smoothed; source, destination, polarity and quality changes use two states with a 12 ms crossfade.
 
 Five focused tests passed with 486787 checks: randomized instantaneous energy contraction, gap/bound checks, alias suppression, direct-network extreme settings without the master output stage at 44.1/48/96 kHz, smooth route/quality/bypass transitions, real host-audio changes, state restoration and page rendering. One coherent high-frequency test measured 101.55 dB reduction of the folded third harmonic from 1x to 4x. That is a single-bin measurement, not a broadband alias-rejection specification; Eco remains deliberately alias-prone. See build/contact-tests.log and experimental/contact.png.
 
@@ -32,3 +32,14 @@ The complete checkpoint passed 107 tests / 2245948 checks, zero failures (build/
 ## Navigation after user testing
 
 Six main tabs: MAIN, EXCITERS, NETWORK, MOTION, SPACE, ADVANCED. NETWORK contains resonator routing, contact/stereo and the sympathetic bank. SPACE contains existing effects and modular filters. ADVANCED contains morphing and patch tools. Saved sub-sections restore, and the two removed experimental top-level tabs migrate to their new sections. Existing parameter IDs are unchanged.
+
+
+## User-test corrections
+
+Explicit Bypass Resonators now routes excitation directly through the network input/output path. Turning off every resonator does the same and overrides Repipe's automatic slot engagement. Bypass uses the existing gain smoothing and stops the Energy Loop return. Defaults preserve enabled-resonator presets.
+
+Contact stiffness now reaches its bounded response at musically useful displacements and uses a larger loss-normalized send. The reference patch's enabled-minus-bypassed difference is -27.73 dB RMS relative to its output (about 4.1%). The updated coherent folded-third-harmonic test measures 77.62 dB suppression at 4x. Energy and extreme direct-network tests still pass; these numbers do not promise a large change for every gap or tuning combination.
+
+The reported Repipe pitch reset was not reproduced in a two-second control/DSP-target test: A/B/C coarse edits all retained their values and target frequencies. Repipe enables additional resonators at their independent tunings; a pitched exciter and the other slots can still dominate the perceived fundamental. The test verifies retained tuning targets, not a guarantee that one audible spectral peak follows a single slot in a coupled network.
+
+For knobs with existing matrix destinations, right-click Assign modulation source adds a route in an empty matrix slot. Existing routes are never silently replaced. Select a source to edit when several are assigned, then drag the teal ring (or Alt-drag the knob) to set signed depth. Shift-drag is finer. A complete depth drag is one undo action, and the base parameter is unchanged. Knobs without a matrix destination report that limitation in the menu; MIDI learn remains separate.

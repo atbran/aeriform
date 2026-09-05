@@ -305,6 +305,7 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
 {
     auto mod = [this] (ModDest d) { return modValues[(size_t) d]; };
     auto& n = netParams;
+    n.bypass=p.getb(P::netBypass);
     n.mode = p.getEnum (P::netMode, NetMode::Count);
     n.feedback = clamp01 (p.get (P::netFeedback) + mod (ModDest::NetFeedback));
     n.ab = p.get (P::netAB); n.ba = p.get (P::netBA); n.bc = p.get (P::netBC);

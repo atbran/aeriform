@@ -58,6 +58,8 @@ def register(F,C,B,I):
  for i,interval in enumerate([0,4,7,12,16,19,24,28,31,36,40,43]):
   I(f'symInterval{i+1}',f'sym_interval{i+1}',f'Sympathetic Interval {i+1}','Network',-24,48,interval,'st','Custom chord interval relative to the root.')
 
+ B('netBypass','net_bypass','Bypass Resonators','Network',False,'Route excitation directly past the resonators. Also happens automatically when no resonator is enabled. Overrides Repipe while bypassed.')
+
 CHOICES={
  'SympatheticTunings':['Chromatic','Major','Minor','Pentatonic','Whole tone','Custom intervals','Harmonic series','Held notes','Captured chord'],
  'PhysicalStereoModes':['Economy','Physical stereo'],

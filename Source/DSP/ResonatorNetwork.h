@@ -11,6 +11,7 @@ namespace aeriform::dsp
 {
 struct NetworkParams
 {
+    bool bypass=false;
     ContactParams contact;
     NetMode mode = NetMode::Single;
     float feedback = 0.5f;

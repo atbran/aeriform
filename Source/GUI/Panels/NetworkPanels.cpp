@@ -89,6 +89,7 @@ NetworkControlsPanel::NetworkControlsPanel (AeriformProcessor& p) : ParamPanel (
     routing  = control<ChoiceBox> (processor, netMode, "Routing");
     inject   = control<ChoiceBox> (processor, netInject, "Inject");
     tap      = control<ChoiceBox> (processor, netTap, "Output Tap");
+    bypass=control<Toggle>(processor,netBypass,"BYPASS RESONATORS");
     polarity = control<ChoiceBox> (processor, netPolarity, "FB Polarity");
     repipe   = knob (netRepipe, "REPIPE", additive (ModDest::Repipe), theme::knobSizeLarge);
     feedback = knob (netFeedback, "Feedback", additive (ModDest::NetFeedback));
@@ -120,6 +121,7 @@ void NetworkControlsPanel::resized()
 {
     auto r = getContentArea();
     auto head = r.removeFromTop (40);
+    bypass->setBounds(head.removeFromRight(210).withTrimmedTop(14));
     layoutFixed (head, { routing, inject, tap, polarity }, 150, 8);
     r.removeFromTop (4);
     knobRow (r.removeFromTop (78), { repipe, feedback, damping, width, mix, fbDelay, fbFilter, fbDrive });

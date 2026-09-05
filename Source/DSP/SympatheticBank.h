@@ -16,6 +16,7 @@ public:
     using Chord=std::array<int,12>; // -1 means unused; absolute MIDI notes otherwise.
     void prepare(float sampleRate) noexcept;
     void reset() noexcept;
+    void allNotesOff() noexcept {held.fill(0);sustain.fill(false);for(auto& n:publishedHeld)n.store(-1,std::memory_order_relaxed);}
     void update(SympatheticParams,int samples=32) noexcept;
     void handleMidi(const juce::MidiMessage&) noexcept;
     void next(float mono,int voiceCount,float& left,float& right) noexcept;

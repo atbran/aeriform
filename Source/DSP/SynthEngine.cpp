@@ -148,6 +148,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
     void allNotesOff()
     {
+        sympathetic.allNotesOff();
         mpe.releaseAllNotes();   // triggers noteReleased for every note -> voices go into release
         for (auto& p : pending) p.active = false;
         noteStackSize = 0;
@@ -725,6 +726,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         for (int r = 0; r < 3; ++r)
         {
+            vis.resonatorTargetHz[(size_t)r].store(newest?newest->getResonatorTargetHz(r):0,std::memory_order_relaxed);
             vis.resonatorEnergy[(size_t) r].store (newest != nullptr ? newest->getResonatorEnergy (r) : 0.0f, std::memory_order_relaxed);
             vis.resonatorRunning[(size_t) r].store (newest != nullptr && newest->isResonatorRunning (r) ? 1 : 0, std::memory_order_relaxed);
         }

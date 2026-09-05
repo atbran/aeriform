@@ -32,7 +32,7 @@ AERIFORM_TEST(collision_routes_switch_smoothly_and_remain_bounded_without_output
 }
 AERIFORM_TEST(collision_host_controls_change_audio_and_restore_state) {
     auto render=[](bool on){TestHost h;h.set(ids::netMode,(float)NetMode::Parallel);h.set(ids::rbOn,1);h.set(ids::contactOn,on?1:0);h.set(ids::contactGap,0);h.set(ids::contactAmount,1);h.set(ids::contactStiffness,1);h.set(ids::rbCoarse,7);h.noteOn(60);std::vector<float> x;h.render(.4,&x);return x;};
-    auto a=render(false),b=render(true);double difference=0;for(size_t i=0;i<a.size();++i)difference+=std::pow(a[i]-b[i],2);CHECK(difference>1e-8);
+    auto a=render(false),b=render(true);double difference=0;for(size_t i=0;i<a.size();++i)difference+=std::pow(a[i]-b[i],2);double reference=0;for(float v:a)reference+=v*v;std::printf("    contact audio difference relative to bypass: %.2f dB\n",10*std::log10(difference/reference));CHECK(difference/reference>.001);
     TestHost h;h.set(ids::contactOn,1);h.set(ids::contactFriction,.73f);juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost restored;restored.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK_NEAR(restored.get(ids::contactFriction),.73f,1e-5);CHECK(restored.get(ids::contactOn)>.5f);
 }
 AERIFORM_TEST(collision_page_renders) {

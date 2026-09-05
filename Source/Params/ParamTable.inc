@@ -444,4 +444,5 @@ static const ParamDef kParamDefs[kNumParams] = {
     { P::symInterval10, "sym_interval10", "Sympathetic Interval 10", ParamSection::Network, ParamKind::Int, -24.0f, 48.0f, 36.0f, 0.0f, 1.0f, "st", Fmt::Plain, ChoiceList::None, "Custom chord interval relative to the root." },
     { P::symInterval11, "sym_interval11", "Sympathetic Interval 11", ParamSection::Network, ParamKind::Int, -24.0f, 48.0f, 40.0f, 0.0f, 1.0f, "st", Fmt::Plain, ChoiceList::None, "Custom chord interval relative to the root." },
     { P::symInterval12, "sym_interval12", "Sympathetic Interval 12", ParamSection::Network, ParamKind::Int, -24.0f, 48.0f, 43.0f, 0.0f, 1.0f, "st", Fmt::Plain, ChoiceList::None, "Custom chord interval relative to the root." },
+    { P::netBypass, "net_bypass", "Bypass Resonators", ParamSection::Network, ParamKind::Bool, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::None, "Route excitation directly past the resonators. Also happens automatically when no resonator is enabled. Overrides Repipe while bypassed." },
 };

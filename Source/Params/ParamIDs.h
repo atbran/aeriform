@@ -450,6 +450,7 @@ enum class P : int
     symInterval10,
     symInterval11,
     symInterval12,
+    netBypass,
     Count
 };
 
@@ -901,6 +902,7 @@ inline constexpr const char* symInterval9 = "sym_interval9";
 inline constexpr const char* symInterval10 = "sym_interval10";
 inline constexpr const char* symInterval11 = "sym_interval11";
 inline constexpr const char* symInterval12 = "sym_interval12";
+inline constexpr const char* netBypass = "net_bypass";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1346,6 +1348,7 @@ inline constexpr const char* const all[kNumParams] = {
     "sym_interval10",
     "sym_interval11",
     "sym_interval12",
+    "net_bypass",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }
