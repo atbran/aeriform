@@ -2,6 +2,7 @@
 
 #include "Plugin/PluginProcessor.h"
 #include "DSP/DspUtils.h"
+#include "DSP/VoiceParams.h"
 #include <cmath>
 #include <vector>
 #include <functional>
@@ -169,4 +170,13 @@ inline double estimateFrequency (const std::vector<float>& xIn, double sampleRat
 }
 
 inline double centsBetween (double a, double b) { return 1200.0 * std::log2 (a / b); }
+
+/** VoiceParams loaded with every parameter's default value. */
+inline dsp::VoiceParams defaultVoiceParams()
+{
+    dsp::VoiceParams p;
+    for (int i = 0; i < kNumParams; ++i) p.v[(size_t) i] = paramDef ((P) i).defaultValue;
+    p.derive();
+    return p;
+}
 } // namespace aeriform::test

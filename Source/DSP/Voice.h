@@ -3,44 +3,18 @@
 #include "DspUtils.h"
 #include "Envelope.h"
 #include "LFO.h"
-#include "Exciter.h"
-#include "Resonator.h"
+#include "VoiceParams.h"
+#include "Exciters/ExciterSlot.h"
+#include "Interaction.h"
+#include "PreShaper.h"
+#include "Wavefolder.h"
+#include "Oversampler.h"
+#include "ResonatorNetwork.h"
 #include "ModMatrix.h"
+#include "../Visualization/VisualizerModel.h"
 
 namespace aeriform::dsp
 {
-struct LfoParams
-{
-    LfoShape shape = LfoShape::Sine;
-    float rateHz = 1.0f;
-    bool sync = false;
-    int division = 7;
-    LfoMode mode = LfoMode::Free;
-    float fadeMs = 0.0f;
-    float phaseDeg = 0.0f;
-};
-
-/** Block-rate snapshot of every parameter a voice needs (plain floats, copied
-    from the atomics once per block by the engine). */
-struct VoiceParams
-{
-    ExciterParams exciter;
-    ResonatorParams resonator;
-    float pressure = 0.5f;
-    float reed = 0.0f;
-    float envAttackMs = 25.0f, envDecayMs = 300.0f, envSustain = 0.8f, envReleaseMs = 250.0f;
-    float velToPressure = 0.6f;
-    float flowPitch = 0.15f, instability = 0.1f, variation = 0.2f, coupling = 0.0f;
-    float menvAttackMs = 100.0f, menvDecayMs = 600.0f, menvSustain = 0.2f, menvReleaseMs = 400.0f;
-    LfoParams lfo[ids::numLFOs];
-    ModConfig mod;
-    float coarse = 0.0f, fine = 0.0f, length = 1.0f, keyTrack = 1.0f;
-    float unisonDetuneCents = 12.0f, unisonSpread = 0.6f;
-    float glideMs = 0.0f;
-    double tempoBpm = 120.0;
-    float lfoGlobalPhase[ids::numLFOs] { 0.0f, 0.0f, 0.0f };
-};
-
 /** Output fader: unity while the note plays, exponential release / kill afterwards. */
 class Fader
 {
@@ -67,13 +41,15 @@ private:
 };
 
 /**
-    One polyphonic voice: exciter -> tube -> body -> VCA -> pan, with its own
-    envelopes, LFOs and modulation evaluation. All processing is allocation-free.
+    One polyphonic voice:
+    Exciter A/B -> Interaction -> Pre-shaper -> Wavefolder (oversampled) -> Dynamics
+    -> Resonator network (A/B/C, routing, cross-feedback, energy loop) -> Body -> Fader -> Pan,
+    with its own envelopes, LFOs and modulation evaluation. All processing is allocation-free.
 */
 class Voice
 {
 public:
-    static constexpr int kControlInterval = 32;
+    static constexpr int kMaxControlInterval = 64;
 
     void prepare (double sampleRate, int voiceIndex);
     void reset();
@@ -88,36 +64,59 @@ public:
     void setBend (float semitones) noexcept { bendSemitones = semitones; }
     void setPressure (float p) noexcept { notePressure = clamp01 (p); }
     void setSlide (float s) noexcept { noteSlide = clamp01 (s); }
+    void setAlternate (float a) noexcept { alternateNote = a; }
+    /** The engine points the newest voice at the visualiser so its exciter / folder scopes are fed. */
+    void setScopeTarget (VisualizerModel* target) noexcept { scope = target; }
 
+    /** externalIn: base-rate sidechain samples (or nullptr), sharedNoise: engine noise at the oversampled rate
+        (numSamples * osFactor samples), couplingIn: sympathetic coupling input. */
     void render (float* left, float* right, int numSamples, const VoiceParams& p,
-                 const ModSources& globalSources, const float* externalIn, float couplingIn);
+                 const ModSources& globalSources, const float* externalIn, const float* sharedNoise, float couplingIn);
 
     bool isActive() const noexcept { return active; }
     bool isReleasing() const noexcept { return fader.isReleasing(); }
     int  getNote() const noexcept { return currentNote; }
     int  getNoteId() const noexcept { return noteId; }
     int  getUnisonIndex() const noexcept { return unisonIndex; }
-    /** Mono/legato: the voice now sounds a different held note (id follows it). */
     void adoptNoteId (int id) noexcept { noteId = id; }
     unsigned getStartOrder() const noexcept { return startOrder; }
     void setStartOrder (unsigned o) noexcept { startOrder = o; }
 
-    float getEnergy() const noexcept { return resonator.getEnergy(); }
+    float getEnergy() const noexcept { return network.energy (0) + network.energy (1) + network.energy (2); }
+    float getResonatorEnergy (int i) const noexcept { return network.energy (i); }
+    float getNetworkEnergy() const noexcept { return network.netEnergy(); }
+    float getGovernor() const noexcept { return network.governor(); }
+    bool  isResonatorRunning (int i) const noexcept { return network.slotRunning (i); }
+    float getExciterEnvelope (int slot) const noexcept { return slot == 0 ? exA.getEnvelope() : exB.getEnvelope(); }
     float getPressureLevel() const noexcept { return lastPressure; }
     float getFreqHz() const noexcept { return lastFreq; }
     float getLastMono() const noexcept { return lastMono; }
     float getEnvLevel() const noexcept { return ampEnv.getLevel(); }
+    float getLastExciterA() const noexcept { return exA.getLastOutput(); }
+    float getLastExciterB() const noexcept { return exB.getLastOutput(); }
+    float getLastFolded() const noexcept { return lastFolded; }
     const ModValues& getLastMod() const noexcept { return modValues; }
 
 private:
     double sampleRate = 44100.0;
     int voiceIndex = 0;
-    Exciter exciter;
-    Resonator resonator;
+    int osFactor = 2;
+
+    // ---- exciter chain (oversampled) ----
+    ExciterSlot exA, exB;
+    Interaction interaction;
+    PreShaper preShaper;
+    Wavefolder folder;
+    Oversampler decimator, extUp, loopUp;
+    OnePole dynEnv;
+    // ---- resonator network + body ----
+    ResonatorNetwork network;
+    SVF bodyL, bodyR;
+    // ---- modulation ----
     ADSR ampEnv, modEnv;
     Fader fader;
     LFO lfos[ids::numLFOs];
-    SlowRandom instabilityRnd;
+    SlowRandom instabilityRnd, smoothRnd;
     Noise rng;
     ModSources sources {};
     ModValues modValues {};
@@ -127,23 +126,33 @@ private:
     unsigned startOrder = 0;
     float velocity = 1.0f;
     float bendSemitones = 0.0f, notePressure = 0.0f, noteSlide = 0.0f;
-    float noteRandom = 0.0f;
+    float noteRandom = 0.0f, alternateNote = 1.0f, sampleHoldValue = 0.0f, lastLfo1Phase = 0.0f;
+    float henonX = 0.1f, henonY = 0.1f;
+    long noteAgeSamples = 0;
 
-    // glide (in semitones, control-rate linear ramp)
     float glideNote = 60.0f, glideTarget = 60.0f, glideStepPerSample = 0.0f;
-
-    // per-voice component variation (fixed random offsets in [-1, 1])
     float varTune = 0.0f, varDamp = 0.0f, varBright = 0.0f, varShape = 0.0f;
 
     // control-rate state
-    float lastFreq = 440.0f, lastPressure = 0.0f, lastMono = 0.0f;
-    float pressureScale = 0.0f, breathScale = 1.0f, ampGain = 0.5f, panL = 0.707f, panR = 0.707f;
+    float lastFreq = 440.0f, lastPressure = 0.0f, lastMono = 0.0f, lastFolded = 0.0f;
+    float pressureScale = 0.0f, breathScale = 1.0f, envAmount = 1.0f, ampGain = 0.5f;
     float gainRampL = 0.0f, gainRampR = 0.0f, gainStepL = 0.0f, gainStepR = 0.0f;
-    bool  snapNextLength = true;
-    ExciterParams exciterParams;
-    ResonatorParams resonatorParams;
+    float dynAmount = 0.0f, loopRet = 0.0f;
+    bool  snapNextLength = true, syncBtoA = false;
+    InteractionMode interactionMode = InteractionMode::Crossfade;
+    LoopDest loopDest = LoopDest::FolderIn;
+    ShaperOrder shaperOrder = ShaperOrder::ShapeThenFold;
+    float b2a = 0.0f, interactionAmount = 0.5f;
+    float bodyK = 1.0f, bodyGain = 0.0f, bodyMix = 0.0f;
+
+    ExciterSlot::Params exParamsA, exParamsB;
+    NetworkParams netParams;
+    VisualizerModel* scope = nullptr;
 
     void updateControl (int numSamples, const VoiceParams& p, const ModSources& globalSources);
+    void buildExciterParams (ExciterSlot::Params& out, const VoiceParams& p, bool slotA, float pitchSemis) const;
+    void buildNetworkParams (const VoiceParams& p, float baseNote);
     float lfoRate (const LfoParams& lp, double bpm, float rateMod) const noexcept;
+    void configureOversampling (int factor);
 };
 } // namespace aeriform::dsp

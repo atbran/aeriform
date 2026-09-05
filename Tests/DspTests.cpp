@@ -89,8 +89,7 @@ namespace
         p.shape = 0.5f;
         p.reflection = 0.3f;
         p.saturation = 0.1f;
-        p.mode = mode;
-        p.bodyMix = 0.0f;
+        p.type = mode;
         r.update (p, true);
 
         const int n = (int) (sampleRate * 0.5f);
@@ -101,7 +100,8 @@ namespace
         for (int i = 0; i < n; ++i)
         {
             const float ex = (i < 8) ? 0.5f : 0.0f;   // short impulse
-            const float y = r.next (ex, 0.0f);
+            float tap2 = 0.0f;
+            const float y = r.next (ex, 0.0f, tap2);
             if (! std::isfinite (y) && firstBad < 0) firstBad = i;
             if (i > start) out.push_back (y);
         }
@@ -146,15 +146,14 @@ AERIFORM_TEST (resonator_tuning_is_accurate_across_range_and_sample_rates)
 AERIFORM_TEST (resonator_stays_finite_and_bounded_under_extreme_settings)
 {
     for (float sr : { 44100.0f, 96000.0f })
-        for (int mode = 0; mode < (int) ResMode::Count; ++mode)
+        for (int mode = 0; mode < (int) ResMode::ModalBank; ++mode)   // waveguide family
         {
             Resonator r;
             r.prepare (sr);
             ResonatorParams p;
             p.freqHz = midiNoteToHz (110.0f);
             p.feedback = 1.0f; p.damping = 0.0f; p.brightness = 1.0f; p.dispersion = 1.0f; p.shape = 1.0f;
-            p.reflection = 0.0f; p.saturation = 1.0f; p.mode = (ResMode) mode; p.bodyFreqHz = 8000.0f; p.bodyRes = 1.0f;
-            p.bodyMix = 1.0f; p.reed = 1.0f; p.pressure = 1.0f;
+            p.reflection = 0.0f; p.saturation = 1.0f; p.type = (ResMode) mode; p.reed = 1.0f; p.pressure = 1.0f; p.pickup = 1.0f;
             r.update (p, true);
             Noise rng; rng.seed (77);
             float peak = 0.0f;
@@ -162,8 +161,9 @@ AERIFORM_TEST (resonator_stays_finite_and_bounded_under_extreme_settings)
             for (int i = 0; i < (int) (sr * 2.0f); ++i)
             {
                 if (i % 4000 == 0) { p.freqHz = midiNoteToHz (20.0f + (float) (i % 100)); r.update (p, false); }
-                const float y = r.next (rng.next() * 2.0f, 1.0f);
-                if (! std::isfinite (y)) { finite = false; break; }
+                float tap2 = 0.0f;
+                const float y = r.next (rng.next() * 2.0f, 1.0f, tap2);
+                if (! std::isfinite (y) || ! std::isfinite (tap2)) { finite = false; break; }
                 peak = std::max (peak, std::fabs (y));
             }
             CHECK (finite);
@@ -175,19 +175,19 @@ AERIFORM_TEST (voice_is_silent_after_release)
 {
     Voice v;
     v.prepare (48000.0, 0);
-    VoiceParams p;
-    p.envReleaseMs = 100.0f;
-    p.exciter.releaseNoise = 0.0f;
+    VoiceParams p = defaultVoiceParams();
+    p.v[(size_t) P::envRelease] = 100.0f;
+    p.v[(size_t) P::excReleaseNoise] = 0.0f;
     v.startNote (60, 0.9f, 60.0f, false, 0, 1, 1, p);
     ModSources gs {};
     std::vector<float> l (256), r (256);
-    for (int b = 0; b < 40; ++b) { std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f); v.render (l.data(), r.data(), 256, p, gs, nullptr, 0.0f); }
+    for (int b = 0; b < 40; ++b) { std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f); v.render (l.data(), r.data(), 256, p, gs, nullptr, nullptr, 0.0f); }
     CHECK (v.isActive());
     v.stopNote (p);
-    for (int b = 0; b < 400 && v.isActive(); ++b) { std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f); v.render (l.data(), r.data(), 256, p, gs, nullptr, 0.0f); }
+    for (int b = 0; b < 400 && v.isActive(); ++b) { std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f); v.render (l.data(), r.data(), 256, p, gs, nullptr, nullptr, 0.0f); }
     CHECK (! v.isActive());
     std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
-    v.render (l.data(), r.data(), 256, p, gs, nullptr, 0.0f);
+    v.render (l.data(), r.data(), 256, p, gs, nullptr, nullptr, 0.0f);
     float peak = 0.0f;
     for (float s : l) peak = std::max (peak, std::fabs (s));
     CHECK (peak == 0.0f);

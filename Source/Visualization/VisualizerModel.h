@@ -7,17 +7,49 @@
 
 namespace aeriform
 {
+/** Single-producer lock-free ring buffer of decimated samples for a GUI scope. */
+class ScopeBuffer
+{
+public:
+    static constexpr int kSize = 512;
+
+    void push (float v, int decimation) noexcept
+    {
+        if (++counter < decimation) return;
+        counter = 0;
+        const int w = writePos.load (std::memory_order_relaxed);
+        data[(size_t) w].store (v, std::memory_order_relaxed);
+        writePos.store ((w + 1) % kSize, std::memory_order_release);
+    }
+
+    /** Copies the most recent `count` samples (oldest first). */
+    void read (float* dest, int count) const noexcept
+    {
+        const int w = writePos.load (std::memory_order_acquire);
+        for (int i = 0; i < count; ++i)
+        {
+            const int idx = ((w - count + i) % kSize + kSize) % kSize;
+            dest[i] = data[(size_t) idx].load (std::memory_order_relaxed);
+        }
+    }
+
+private:
+    std::array<std::atomic<float>, kSize> data {};
+    std::atomic<int> writePos { 0 };
+    int counter = 0;
+};
+
 /**
     Lock-free bridge between the audio engine and the GUI visualiser.
 
-    The audio thread only writes relaxed atomics and a single-producer ring
-    buffer; the GUI thread polls at frame rate. No allocation, no locks.
+    The audio thread only writes relaxed atomics and single-producer ring
+    buffers; the GUI thread polls at frame rate. No allocation, no locks.
 */
 class VisualizerModel
 {
 public:
     static constexpr int kMaxVoices   = 16;
-    static constexpr int kScopeSize   = 512;   // decimated output samples kept for the ribbon scope
+    static constexpr int kScopeSize   = ScopeBuffer::kSize;
     static constexpr int kDecimation  = 8;
 
     struct VoiceSnapshot
@@ -36,6 +68,15 @@ public:
     std::atomic<int>   activeVoices    { 0 };
     std::atomic<int>   midiActivity    { 0 };
 
+    // v0.2: per-resonator energies, network feedback energy, governor, exciter levels (newest voice)
+    std::array<std::atomic<float>, 3> resonatorEnergy {};
+    std::atomic<float> networkEnergy { 0.0f };
+    std::atomic<float> governorGain  { 1.0f };
+    std::atomic<float> exciterAEnv   { 0.0f };
+    std::atomic<float> exciterBEnv   { 0.0f };
+    std::atomic<float> sidechainEnv  { 0.0f };
+    std::array<std::atomic<int>, 3> resonatorRunning {};
+
     /** Live modulation amounts (per destination) of the most recently started voice, for the GUI mod rings. */
     std::array<std::atomic<float>, (size_t) ModDest::Count> liveMod {};
 
@@ -44,30 +85,13 @@ public:
         for (size_t i = 0; i < dest.size(); ++i) dest[i] = liveMod[i].load (std::memory_order_relaxed);
     }
 
-    // ---- output scope ring buffer (audio thread writes, GUI reads) --------
-    void pushScopeSample (float mono) noexcept
-    {
-        if (++decimCounter < kDecimation) return;
-        decimCounter = 0;
-        const int w = writePos.load (std::memory_order_relaxed);
-        scope[(size_t) w].store (mono, std::memory_order_relaxed);
-        writePos.store ((w + 1) % kScopeSize, std::memory_order_release);
-    }
+    // ---- scopes (audio thread writes, GUI reads) ---------------------------
+    ScopeBuffer outputScope;     // stereo mix
+    ScopeBuffer exciterAScope;   // newest voice, exciter A output
+    ScopeBuffer exciterBScope;   // newest voice, exciter B output
+    ScopeBuffer foldScope;       // newest voice, after the wavefolder (network input)
 
-    /** Copies the most recent samples (oldest first) into dest. */
-    void readScope (float* dest, int count) const noexcept
-    {
-        const int w = writePos.load (std::memory_order_acquire);
-        for (int i = 0; i < count; ++i)
-        {
-            const int idx = ((w - count + i) % kScopeSize + kScopeSize) % kScopeSize;
-            dest[i] = scope[(size_t) idx].load (std::memory_order_relaxed);
-        }
-    }
-
-private:
-    std::array<std::atomic<float>, kScopeSize> scope {};
-    std::atomic<int> writePos { 0 };
-    int decimCounter = 0;
+    void pushScopeSample (float mono) noexcept { outputScope.push (mono, kDecimation); }
+    void readScope (float* dest, int count) const noexcept { outputScope.read (dest, count); }
 };
 } // namespace aeriform

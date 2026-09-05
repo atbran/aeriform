@@ -2,26 +2,27 @@
 
 #include "DspUtils.h"
 #include "FractionalDelay.h"
+#include "ModalResonator.h"
 #include "../Params/ParameterLayout.h"
 
 namespace aeriform::dsp
 {
 struct ResonatorParams
 {
+    ResMode type = ResMode::OpenPipe;
     float freqHz = 440.0f;       // target fundamental (already includes tuning, bend, glide, modulation)
     float feedback = 0.9f;       // 0..1
     float damping = 0.35f;       // 0..1
     float brightness = 0.5f;     // 0..1
     float dispersion = 0.0f;     // 0..1
+    float inharm = 0.0f;         // 0..1 (modal models)
     float shape = 0.5f;          // 0..1 excitation position / bore shape
     float reflection = 0.3f;     // 0..1 end reflection (hard -> open)
     float saturation = 0.25f;    // 0..1
-    ResMode mode = ResMode::OpenPipe;
-    float bodyFreqHz = 900.0f;
-    float bodyRes = 0.4f;
-    float bodyMix = 0.3f;
     float reed = 0.0f;           // 0..1 reed / jet non-linearity at the junction
-    float pressure = 0.0f;       // mouth pressure driving the reed (0..~1.2)
+    float pressure = 0.0f;       // mouth pressure driving the reed (0..1)
+    float size = 0.5f;           // 0..1 body size (modal models)
+    float pickup = 0.5f;         // 0..1 second pickup position (Width)
     float variationDamping = 0.0f;   // per-voice offsets (added by the voice)
     float variationBright = 0.0f;
 };
@@ -31,6 +32,7 @@ struct ResonatorParams
     damping, dispersion allpasses, DC blocking, saturation and an optional reed
     non-linearity at the excitation junction. The loop length is compensated
     for the phase delay of every in-loop filter so the tube stays in tune.
+    Types: Open Pipe, Closed Pipe, String, Comb, Dispersive Tube.
 
     Stability: the linear loop gain never exceeds 1.0 and every in-loop filter is
     passive, the loop signal passes through a bounded saturator and the injected
@@ -39,7 +41,7 @@ struct ResonatorParams
 class Resonator
 {
 public:
-    static constexpr int kNumDispersionStages = 4;
+    static constexpr int kMaxDispersionStages = 8;
 
     void prepare (float sampleRate);
     void reset();
@@ -47,40 +49,40 @@ public:
     /** Control-rate update (once per sub-block). */
     void update (const ResonatorParams& p, bool snapLength);
 
-    /** Runs one sample. excitation = exciter output (already filtered); pressureNow = breath pressure 0..1. Returns the tube output (pre-VCA). */
-    inline float next (float excitation, float pressureNow) noexcept
+    /** Runs one sample. excitation = input (already filtered); pressureNow = breath pressure 0..1.
+        Returns the main output and writes the second pickup tap to tap2. */
+    inline float next (float excitation, float pressureNow, float& tap2) noexcept
     {
-        // smooth the loop length towards its target (pitch glide / modulation without zipper noise)
         delayLen += (targetLen - delayLen) * lenSmooth;
 
-        // ---- read the returning wave and apply in-loop losses ----------------
         float d = delay.readLagrange (delayLen);
-
-        const float lp2 = reflLP.process (d);          // end reflection: HF radiated out of the open end
-        d = lp2 + reflHF * (d - lp2);
-        d = dampLP.process (d);                        // frequency-dependent damping
-        if (ksBlend > 0.0f)                            // string: two-point average (extra HF loss)
+        if (! combMode)
+        {
+            const float lp2 = reflLP.process (d);
+            d = lp2 + reflHF * (d - lp2);
+        }
+        d = dampLP.process (d);
+        if (ksBlend > 0.0f)
         {
             const float avg = 0.5f * (d + ksPrev);
             ksPrev = d;
             d = lerp (d, avg, ksBlend);
         }
-        if (dispersionActive)
-            for (auto& ap : dispersion) d = ap.process (d);
+        for (int i = 0; i < activeDispersion; ++i) d = dispersion[i].process (d);
         d = dcBlock.process (d);
 
-        // saturation with pressure-dependent bias (asymmetry -> even harmonics under pressure)
         const float sat = (fastTanh (d * drive + satBias) - satBiasOut) * invDrive;
         const float reflected = sat * loopGain;
 
-        // ---- excitation shaping: brightness tilt + position comb -----------
         const float tl = tiltLP.process (excitation);
         float in = tl + tiltHF * (excitation - tl);
-        exciteDelay.push (in);
-        in -= 0.85f * exciteDelay.readLinear (combDelay);
-        in = fastTanh (in * 0.5f) * 2.0f;              // the mouth cannot inject unbounded pressure
+        if (! combMode)
+        {
+            exciteDelay.push (in);
+            in -= 0.85f * exciteDelay.readLinear (combDelay);
+        }
+        in = fastTanh (in * 0.5f) * 2.0f;
 
-        // ---- junction: linear injection blended with a reed non-linearity ---
         float x;
         if (reedAmount > 0.0f)
         {
@@ -98,11 +100,9 @@ public:
         delay.push (x);
         energy += 0.002f * (std::fabs (x) - energy);
 
-        // ---- output tap + body filter ---------------------------------------
+        tap2 = delay.readLinear (pickupDelay) * outputComp;
         const float tap = stringMode ? d : x;
-        const float bp = bodySVF.bandpass (tap) * bodyK;
-        const float out = tap * (1.0f - 0.7f * bodyMix) + bp * bodyGain;
-        lastOut = out * outputComp;
+        lastOut = tap * outputComp;
         return lastOut;
     }
 
@@ -115,19 +115,54 @@ private:
     float sampleRate = 44100.0f;
     FractionalDelay delay, exciteDelay;
     OnePole dampLP, reflLP, tiltLP;
-    Allpass1 dispersion[kNumDispersionStages];
+    Allpass1 dispersion[kMaxDispersionStages];
     DcBlocker dcBlock;
-    SVF bodySVF;
 
     float delayLen = 100.0f, targetLen = 100.0f, lenSmooth = 0.01f;
     float reflHF = 1.0f, tiltHF = 1.0f, ksBlend = 0.0f, ksPrev = 0.0f;
-    bool dispersionActive = false, stringMode = false;
+    int activeDispersion = 0;
+    bool stringMode = false, combMode = false;
     float drive = 1.0f, invDrive = 1.0f, satBias = 0.0f, satBiasOut = 0.0f;
     float loopGain = 0.9f, reedAmount = 0.0f;
-    float combDelay = 20.0f;
-    float bodyK = 1.0f, bodyGain = 0.0f, bodyMix = 0.0f, outputComp = 1.0f;
+    float combDelay = 20.0f, pickupDelay = 20.0f;
+    float outputComp = 1.0f;
     float energy = 0.0f, lastOut = 0.0f;
 
     float loopPhaseDelay (float omega) const noexcept;
+};
+
+/**
+    A resonator slot: selects the waveguide or the modal engine by type and
+    presents one interface to the network. Switching engines resets the state of
+    the newly selected engine (never the running one) so it is click-free apart
+    from the natural onset of the new model.
+*/
+class ResonatorSlot
+{
+public:
+    void prepare (float sampleRate);
+    void reset();
+    void update (const ResonatorParams& p, bool snapLength);
+
+    inline float next (float in, float pressureNow, float& tap2) noexcept
+    {
+        if (modal) return bank.next (in, tap2);
+        return waveguide.next (in, pressureNow, tap2);
+    }
+
+    float getEnergy() const noexcept { return modal ? bank.getEnergy() : waveguide.getEnergy(); }
+    bool  isFinite() const noexcept { return modal ? bank.isFinite() : waveguide.isFinite(); }
+    bool  isModal() const noexcept { return modal; }
+
+    static bool isModalType (ResMode t) noexcept
+    {
+        return t == ResMode::ModalBank || t == ResMode::MetallicBar || t == ResMode::Membrane || t == ResMode::FormantBody;
+    }
+
+private:
+    Resonator waveguide;
+    ModalBank bank;
+    bool modal = false;
+    ResMode lastType = ResMode::OpenPipe;
 };
 } // namespace aeriform::dsp

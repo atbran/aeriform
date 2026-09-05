@@ -23,15 +23,23 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     std::array<Voice, kMaxVoices> voices;
     juce::MPEInstrument mpe;
     juce::AudioBuffer<float> mixBuffer, extBuffer;
+    std::vector<float> sharedNoise;          // engine-wide noise stream at the oversampled rate
+    std::vector<float> captureRing;          // last 250 ms of sidechain input for Freeze
+    int captureWrite = 0, freezeStart = 0, freezeLen = 0, freezePos = 0;
+    bool frozen = false;
+    Noise sharedRng;
+
     VoiceParams params;
+    std::array<std::atomic<float>*, (size_t) kNumParams> atomics {};
     ModSources globalSources {};
     ModValues globalMod {};
-    ModConfig modConfig;
     LFO globalLfo[ids::numLFOs];
     Chorus chorus;
     StereoDelay delay;
     FdnReverb reverb;
     OutputStage output;
+    OnePole sidechainFollower;
+    float sidechainEnv = 0.0f;
 
     unsigned startCounter = 0;
     int activeVoiceLimit = 8;
@@ -41,6 +49,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     bool mpeMode = false;
     int bendRange = 2;
     bool midiConfigured = false;
+    float alternate = 1.0f;
 
     // performance controllers
     float modWheel = 0.0f, breathCC = 0.0f, expressionCC = 1.0f, globalBend = 0.0f;
@@ -64,77 +73,25 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     };
     std::array<Pending, kMaxVoices> pending {};
 
-    // ---- parameter atomics -------------------------------------------------
-    struct AtomicRef
-    {
-        std::atomic<float>* p = nullptr;
-        float get() const noexcept { return p != nullptr ? p->load (std::memory_order_relaxed) : 0.0f; }
-    };
-    AtomicRef excNoise, excNoiseColor, excPressure, excPluck, excPluckLen, excLP, excHP, excTurb, excVel, excExt, excKeyTrack,
-              excClick, excRelNoise, excBreathRnd, excReed;
-    AtomicRef envA, envD, envS, envR, envVelPress, artPressBright, artFlowPitch, artInstab, artVariation, artCoupling;
-    AtomicRef resCoarse, resFine, resLength, resKeyTrack, resFeedback, resDamping, resBrightness, resDispersion, resShape,
-              resReflect, resSat, resMode, resBodyFreq, resBodyRes, resBodyMix, resBodyTrack;
-    AtomicRef lfoShape[ids::numLFOs], lfoRate[ids::numLFOs], lfoSync[ids::numLFOs], lfoDiv[ids::numLFOs],
-              lfoMode[ids::numLFOs], lfoFade[ids::numLFOs], lfoPhase[ids::numLFOs];
-    AtomicRef menvA, menvD, menvS, menvR;
-    AtomicRef modSrc[ids::numModSlots], modDst[ids::numModSlots], modDepth[ids::numModSlots];
-    AtomicRef chorusMix, chorusRate, chorusDepth, chorusWidth;
-    AtomicRef delayMix, delayTime, delaySync, delayDiv, delayFeedback, delayTone, delayPingPong;
-    AtomicRef revMix, revSize, revDecay, revDamp, revPre, revWidth, revMod;
-    AtomicRef voiceModeP, voiceCountP, glideTimeP, glideLegatoP, unisonVoicesP, unisonDetuneP, unisonSpreadP, bendRangeP,
-              mpeEnabledP, outGainP, outHpP, limiterOnP;
-
-    AtomicRef ref (const juce::String& id)
-    {
-        AtomicRef r;
-        r.p = apvts.getRawParameterValue (id);
-        jassert (r.p != nullptr);
-        return r;
-    }
-
     // ---------------------------------------------------------------------
     Impl (juce::AudioProcessorValueTreeState& s, VisualizerModel& v) : apvts (s), vis (v)
     {
-        using namespace ids;
-        excNoise = ref (ids::excNoise); excNoiseColor = ref (ids::excNoiseColor); excPressure = ref (ids::excPressure);
-        excPluck = ref (ids::excPluck); excPluckLen = ref (excPluckLength); excLP = ref (excLowpass); excHP = ref (excHighpass);
-        excTurb = ref (excTurbulence); excVel = ref (excVelocity); excExt = ref (excExternalIn); excKeyTrack = ref (ids::excKeyTrack);
-        excClick = ref (excAttackClick); excRelNoise = ref (excReleaseNoise); excBreathRnd = ref (excBreathRandom); excReed = ref (ids::excReed);
-        envA = ref (envAttack); envD = ref (envDecay); envS = ref (envSustain); envR = ref (envRelease); envVelPress = ref (envVelToPressure);
-        artPressBright = ref (ids::artPressBright); artFlowPitch = ref (ids::artFlowPitch); artInstab = ref (artInstability);
-        artVariation = ref (ids::artVariation); artCoupling = ref (ids::artCoupling);
-        resCoarse = ref (ids::resCoarse); resFine = ref (ids::resFine); resLength = ref (ids::resLength); resKeyTrack = ref (ids::resKeyTrack);
-        resFeedback = ref (ids::resFeedback); resDamping = ref (ids::resDamping); resBrightness = ref (ids::resBrightness);
-        resDispersion = ref (ids::resDispersion); resShape = ref (ids::resShape); resReflect = ref (resReflection); resSat = ref (resSaturation);
-        resMode = ref (ids::resMode); resBodyFreq = ref (ids::resBodyFreq); resBodyRes = ref (ids::resBodyRes); resBodyMix = ref (ids::resBodyMix);
-        resBodyTrack = ref (ids::resBodyTrack);
-        for (int i = 0; i < numLFOs; ++i)
+        for (int i = 0; i < kNumParams; ++i)
         {
-            lfoShape[i] = ref (lfoParam (i + 1, lfoShapeSuffix)); lfoRate[i] = ref (lfoParam (i + 1, lfoRateSuffix));
-            lfoSync[i] = ref (lfoParam (i + 1, lfoSyncSuffix)); lfoDiv[i] = ref (lfoParam (i + 1, lfoDivSuffix));
-            lfoMode[i] = ref (lfoParam (i + 1, lfoModeSuffix)); lfoFade[i] = ref (lfoParam (i + 1, lfoFadeSuffix));
-            lfoPhase[i] = ref (lfoParam (i + 1, lfoPhaseSuffix));
+            atomics[(size_t) i] = apvts.getRawParameterValue (ids::all[i]);
+            jassert (atomics[(size_t) i] != nullptr);
         }
-        menvA = ref (menvAttack); menvD = ref (menvDecay); menvS = ref (menvSustain); menvR = ref (menvRelease);
-        for (int i = 0; i < numModSlots; ++i)
-        {
-            modSrc[i] = ref (modParam (i + 1, modSrcSuffix)); modDst[i] = ref (modParam (i + 1, modDstSuffix));
-            modDepth[i] = ref (modParam (i + 1, modDepthSuffix));
-        }
-        chorusMix = ref (ids::chorusMix); chorusRate = ref (ids::chorusRate); chorusDepth = ref (ids::chorusDepth); chorusWidth = ref (ids::chorusWidth);
-        delayMix = ref (ids::delayMix); delayTime = ref (ids::delayTime); delaySync = ref (ids::delaySync); delayDiv = ref (ids::delayDiv);
-        delayFeedback = ref (ids::delayFeedback); delayTone = ref (ids::delayTone); delayPingPong = ref (ids::delayPingPong);
-        revMix = ref (reverbMix); revSize = ref (reverbSize); revDecay = ref (reverbDecay); revDamp = ref (reverbDamping);
-        revPre = ref (reverbPreDelay); revWidth = ref (reverbWidth); revMod = ref (reverbModulation);
-        voiceModeP = ref (ids::voiceMode); voiceCountP = ref (voiceCount); glideTimeP = ref (glideTime); glideLegatoP = ref (ids::glideLegatoOnly);
-        unisonVoicesP = ref (unisonVoices); unisonDetuneP = ref (unisonDetune); unisonSpreadP = ref (unisonSpread); bendRangeP = ref (ids::bendRange);
-        mpeEnabledP = ref (mpeEnabled); outGainP = ref (outGain); outHpP = ref (outHighpass); limiterOnP = ref (limiterOn);
-
+        sharedRng.seed (0xC0FFEE42u);
         mpe.addListener (this);
     }
 
     ~Impl() override { mpe.removeListener (this); }
+
+    float raw (P p) const noexcept
+    {
+        auto* a = atomics[(size_t) p];
+        return a != nullptr ? a->load (std::memory_order_relaxed) : 0.0f;
+    }
 
     // ---------------------------------------------------------------------
     void prepare (double sr, int block)
@@ -143,6 +100,9 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         maxBlock = juce::jmax (1, block);
         mixBuffer.setSize (2, maxBlock, false, true, true);
         extBuffer.setSize (1, maxBlock, false, true, true);
+        sharedNoise.assign ((size_t) maxBlock * (size_t) Oversampler::kMaxFactor, 0.0f);
+        captureRing.assign ((size_t) (sr * 0.25) + 16, 0.0f);
+        captureWrite = 0; frozen = false;
         for (int i = 0; i < kMaxVoices; ++i)
             voices[(size_t) i].prepare (sr, i);
         for (int i = 0; i < ids::numLFOs; ++i)
@@ -155,6 +115,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         delay.prepare (sr);
         reverb.prepare (sr);
         output.prepare (sr);
+        sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
         noteStackSize = 0;
         monoNoteId = -1;
@@ -192,8 +153,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
     void configureMidi()
     {
-        const bool wantMpe = mpeEnabledP.get() > 0.5f;
-        bendRange = juce::jlimit (1, 24, (int) std::lround (bendRangeP.get()));
+        const bool wantMpe = raw (P::mpeEnabled) > 0.5f;
+        bendRange = juce::jlimit (1, 24, (int) std::lround (raw (P::bendRange)));
         if (midiConfigured && wantMpe == mpeMode) return;
 
         mpeMode = wantMpe;
@@ -218,52 +179,15 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
     void readParams (double bpm)
     {
-        auto& e = params.exciter;
-        e.noise = excNoise.get(); e.noiseColor = excNoiseColor.get(); e.pluck = excPluck.get(); e.pluckLengthMs = excPluckLen.get();
-        e.lowpassHz = excLP.get(); e.highpassHz = excHP.get(); e.turbulence = excTurb.get(); e.velocityAmount = excVel.get();
-        e.externalIn = excExt.get(); e.keyTrack = excKeyTrack.get(); e.attackClick = excClick.get(); e.releaseNoise = excRelNoise.get();
-        e.breathRandom = excBreathRnd.get(); e.pressureBright = artPressBright.get();
-        params.pressure = excPressure.get();
-        params.reed = excReed.get();
-
-        params.envAttackMs = envA.get(); params.envDecayMs = envD.get(); params.envSustain = envS.get(); params.envReleaseMs = envR.get();
-        params.velToPressure = envVelPress.get();
-        params.flowPitch = artFlowPitch.get(); params.instability = artInstab.get(); params.variation = artVariation.get();
-        params.coupling = artCoupling.get();
-
-        auto& r = params.resonator;
-        r.feedback = resFeedback.get(); r.damping = resDamping.get(); r.brightness = resBrightness.get(); r.dispersion = resDispersion.get();
-        r.shape = resShape.get(); r.reflection = resReflect.get(); r.saturation = resSat.get();
-        r.mode = (ResMode) juce::jlimit (0, (int) ResMode::Count - 1, (int) std::lround (resMode.get()));
-        r.bodyFreqHz = resBodyFreq.get(); r.bodyRes = resBodyRes.get(); r.bodyMix = resBodyMix.get();
-        params.coarse = resCoarse.get(); params.fine = resFine.get(); params.length = resLength.get(); params.keyTrack = resKeyTrack.get();
-
-        for (int i = 0; i < ids::numLFOs; ++i)
-        {
-            auto& l = params.lfo[i];
-            l.shape = (LfoShape) juce::jlimit (0, (int) LfoShape::Count - 1, (int) std::lround (lfoShape[i].get()));
-            l.rateHz = lfoRate[i].get(); l.sync = lfoSync[i].get() > 0.5f; l.division = (int) std::lround (lfoDiv[i].get());
-            l.mode = (LfoMode) juce::jlimit (0, (int) LfoMode::Count - 1, (int) std::lround (lfoMode[i].get()));
-            l.fadeMs = lfoFade[i].get(); l.phaseDeg = lfoPhase[i].get();
-        }
-        params.menvAttackMs = menvA.get(); params.menvDecayMs = menvD.get(); params.menvSustain = menvS.get(); params.menvReleaseMs = menvR.get();
-
-        for (int i = 0; i < ids::numModSlots; ++i)
-        {
-            auto& s = modConfig.slots[(size_t) i];
-            s.source = (ModSource) juce::jlimit (0, (int) ModSource::Count - 1, (int) std::lround (modSrc[i].get()));
-            s.dest = (ModDest) juce::jlimit (0, (int) ModDest::Count - 1, (int) std::lround (modDst[i].get()));
-            s.depth = modDepth[i].get();
-        }
-        params.mod = modConfig;
-
-        params.unisonDetuneCents = unisonDetuneP.get(); params.unisonSpread = unisonSpreadP.get();
-        params.glideMs = glideTimeP.get();
+        for (int i = 0; i < kNumParams; ++i)
+            params.v[(size_t) i] = atomics[(size_t) i]->load (std::memory_order_relaxed);
         params.tempoBpm = bpm;
-        glideLegatoOnly = glideLegatoP.get() > 0.5f;
-        voiceMode = (VoiceMode) juce::jlimit (0, (int) VoiceMode::Count - 1, (int) std::lround (voiceModeP.get()));
-        activeVoiceLimit = juce::jlimit (1, kMaxVoices, (int) std::lround (voiceCountP.get()));
-        unisonCount = juce::jlimit (1, 4, (int) std::lround (unisonVoicesP.get()));
+        params.derive();
+
+        glideLegatoOnly = params.getb (P::glideLegatoOnly);
+        voiceMode = params.getEnum (P::voiceMode, VoiceMode::Count);
+        activeVoiceLimit = juce::jlimit (1, kMaxVoices, params.geti (P::voiceCount));
+        unisonCount = juce::jlimit (1, 4, params.geti (P::unisonVoices));
 
         // keep global (free-running) LFOs aligned with the voice LFO settings
         for (int i = 0; i < ids::numLFOs; ++i)
@@ -283,11 +207,9 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     int findVoiceToUse (bool& needsSteal)
     {
         needsSteal = false;
-        // 1) free voice
         for (int i = 0; i < activeVoiceLimit; ++i)
             if (! voices[(size_t) i].isActive() && ! isVoicePending (i)) return i;
 
-        // 2) oldest releasing voice
         int best = -1; unsigned bestOrder = 0xFFFFFFFFu;
         for (int i = 0; i < activeVoiceLimit; ++i)
         {
@@ -297,7 +219,6 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                 best = i; bestOrder = v.getStartOrder();
             }
         }
-        // 3) oldest playing voice
         if (best < 0)
             for (int i = 0; i < activeVoiceLimit; ++i)
             {
@@ -320,7 +241,11 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     {
         auto& v = voices[(size_t) voiceIndex];
         v.setStartOrder (++startCounter);
+        v.setAlternate (alternate);
         v.startNote (note, velocity, glideFrom, legato, uIndex, uCount, noteId, params);
+        // only the newest voice feeds the exciter / folder scopes
+        for (auto& other : voices) other.setScopeTarget (nullptr);
+        v.setScopeTarget (&vis);
     }
 
     void queueOrStart (int voiceIndex, bool steal, int note, float velocity, int noteId, int uIndex, int uCount, float glideFrom, bool legato)
@@ -331,7 +256,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             return;
         }
         voices[(size_t) voiceIndex].kill (3.0f);
-        voices[(size_t) voiceIndex].setStartOrder (++startCounter);   // stolen voice counts as newest
+        voices[(size_t) voiceIndex].setStartOrder (++startCounter);
         for (auto& p : pending)
         {
             if (p.active) continue;
@@ -356,6 +281,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     void noteAdded (juce::MPENote note) override
     {
         ++noteOnsThisBlock;
+        alternate = -alternate;
         const float velocity = note.noteOnVelocity.asUnsignedFloat();
         const int midiNote = note.initialNote;
 
@@ -377,7 +303,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         pushHeld (midiNote, velocity, note.noteID);
         const bool legatoTransition = anyHeld;
         const bool retrigger = voiceMode == VoiceMode::Mono || ! legatoTransition;
-        const bool glide = params.glideMs > 0.0f && (! glideLegatoOnly || legatoTransition);
+        const bool glide = params.get (P::glideTime) > 0.0f && (! glideLegatoOnly || legatoTransition);
         const int count = juce::jmin (unisonCount, activeVoiceLimit);
 
         bool monoVoicesActive = false;
@@ -392,7 +318,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                 if (v.isActive() && v.getNoteId() == monoNoteId)
                 {
                     VoiceParams p = params;
-                    if (! glide) p.glideMs = 0.0f;
+                    if (! glide) p.v[(size_t) P::glideTime] = 0.0f;
                     v.changeNote (midiNote, velocity, retrigger, p);
                     v.adoptNoteId (note.noteID);
                     v.setStartOrder (++startCounter);
@@ -435,13 +361,12 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         removeHeld (note.noteID);
         if (note.noteID != monoNoteId)
-            return;   // a note that is not the sounding one was released: nothing audible changes
+            return;
 
         if (noteStackSize > 0)
         {
-            // return to the most recent still-held note
             const auto& prev = noteStack[(size_t) noteStackSize - 1];
-            const bool glide = params.glideMs > 0.0f;
+            const bool glide = params.get (P::glideTime) > 0.0f;
             const int count = juce::jmin (unisonCount, activeVoiceLimit);
             for (int u = 0; u < count; ++u)
             {
@@ -449,11 +374,10 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                 if (v.isActive() && v.getNoteId() == monoNoteId)
                 {
                     VoiceParams p = params;
-                    if (! glide) p.glideMs = 0.0f;
+                    if (! glide) p.v[(size_t) P::glideTime] = 0.0f;
                     v.changeNote (prev.note, prev.velocity, voiceMode == VoiceMode::Mono, p);
                 }
             }
-            // the returning note takes over the id so later releases match
             monoNoteId = prev.noteId;
             lastMonoNote = (float) prev.note;
             for (auto& v : voices)
@@ -525,25 +449,22 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             const int cc = m.getControllerNumber();
             const int value = m.getControllerValue();
             if (learn != nullptr && learn->handleController (cc, value))
-                return;   // consumed by a MIDI-learn mapping (or captured while learning)
+                return;
 
             switch (cc)
             {
                 case 1:  modWheel = (float) value / 127.0f; break;
                 case 2:  breathCC = (float) value / 127.0f; break;
                 case 11: expressionCC = (float) value / 127.0f; break;
-                case 120: for (auto& v : voices) v.kill (3.0f); break;   // all sound off
+                case 120: for (auto& v : voices) v.kill (3.0f); break;
                 default: break;
             }
-            mpe.processNextMidiEvent (m);   // sustain, sostenuto, timbre (74), all notes off (123), MPE config
+            mpe.processNextMidiEvent (m);
             return;
         }
 
         if (m.isPitchWheel())
-        {
-            // remember the master bend as a modulation source (per-note bends are applied via MPENote)
             globalBend = (float) (m.getPitchWheelValue() - 8192) / 8192.0f;
-        }
         mpe.processNextMidiEvent (m);
     }
 
@@ -560,6 +481,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         globalSources[(size_t) ModSource::BreathCC]     = breathCC;
         globalSources[(size_t) ModSource::ExpressionCC] = expressionCC;
         globalSources[(size_t) ModSource::PitchBend]    = globalBend;
+        globalSources[(size_t) ModSource::SidechainEnv] = std::min (1.0f, sidechainEnv * 3.0f);
     }
 
     void renderSegment (int start, int numSamples)
@@ -571,17 +493,66 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         float* L = mixBuffer.getWritePointer (0) + start;
         float* R = mixBuffer.getWritePointer (1) + start;
         const float* ext = extBuffer.getReadPointer (0) + start;
+        const float* noise = sharedNoise.data() + (size_t) start * (size_t) params.osFactor;
 
-        // sympathetic coupling: a little of the previous segment's total goes into every tube
-        const float couple = params.coupling * 0.25f * couplingIn;
+        const float couple = params.get (P::artCoupling) * 0.25f * couplingIn;
         float sum = 0.0f;
         for (auto& v : voices)
         {
             if (! v.isActive()) continue;
-            v.render (L, R, numSamples, params, globalSources, ext, couple);
+            v.render (L, R, numSamples, params, globalSources, ext, noise, couple);
             sum += v.getLastMono();
         }
         couplingIn = fastTanh (sum);
+    }
+
+    void prepareSidechain (const juce::AudioBuffer<float>* extIn, int numSamples)
+    {
+        float* extMono = extBuffer.getWritePointer (0);
+        const bool wantFreeze = raw (P::exaScFreeze) > 0.5f || raw (P::exbScFreeze) > 0.5f;
+        const int ringSize = (int) captureRing.size();
+
+        if (extIn != nullptr && extIn->getNumChannels() > 0)
+        {
+            const int chans = extIn->getNumChannels();
+            for (int i = 0; i < numSamples; ++i)
+            {
+                float s = 0.0f;
+                for (int c = 0; c < chans; ++c) s += extIn->getReadPointer (c)[i];
+                extMono[i] = s / (float) chans;
+            }
+        }
+        else
+        {
+            juce::FloatVectorOperations::clear (extMono, numSamples);
+        }
+
+        if (wantFreeze && ! frozen)
+        {
+            frozen = true;
+            freezeLen = juce::jmax (1, ringSize - 16);
+            freezeStart = (captureWrite - freezeLen + ringSize) % ringSize;
+            freezePos = 0;
+        }
+        else if (! wantFreeze)
+        {
+            frozen = false;
+        }
+
+        for (int i = 0; i < numSamples; ++i)
+        {
+            if (frozen)
+            {
+                extMono[i] = captureRing[(size_t) ((freezeStart + freezePos) % ringSize)];
+                freezePos = (freezePos + 1) % freezeLen;
+            }
+            else
+            {
+                captureRing[(size_t) captureWrite] = extMono[i];
+                captureWrite = (captureWrite + 1) % ringSize;
+            }
+            sidechainEnv = sidechainFollower.process (std::fabs (extMono[i]));
+        }
     }
 
     void process (juce::AudioBuffer<float>& out, const juce::AudioBuffer<float>* extIn, juce::MidiBuffer& midi,
@@ -591,7 +562,6 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         if (! prepared || numSamples <= 0) { out.clear(); return; }
         if (numSamples > maxBlock)
         {
-            // hosts should never exceed the prepared size; render in chunks if one does
             for (int start = 0; start < numSamples; start += maxBlock)
             {
                 const int n = juce::jmin (maxBlock, numSamples - start);
@@ -609,27 +579,17 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         readParams (bpm > 1.0 ? bpm : 120.0);
         noteOnsThisBlock = 0;
 
-        // external input -> mono excitation buffer (copied first: hosts may process in place)
-        float* extMono = extBuffer.getWritePointer (0);
-        if (extIn != nullptr && extIn->getNumChannels() > 0 && params.exciter.externalIn > 0.0001f)
+        prepareSidechain (extIn, numSamples);
+
+        // shared noise stream (oversampled rate) for the Correlation control
         {
-            const int chans = extIn->getNumChannels();
-            for (int i = 0; i < numSamples; ++i)
-            {
-                float s = 0.0f;
-                for (int c = 0; c < chans; ++c) s += extIn->getReadPointer (c)[i];
-                extMono[i] = s / (float) chans;
-            }
-        }
-        else
-        {
-            juce::FloatVectorOperations::clear (extMono, numSamples);
+            const int n = numSamples * params.osFactor;
+            for (int i = 0; i < n; ++i) sharedNoise[(size_t) i] = sharedRng.next();
         }
 
         mixBuffer.clear (0, 0, numSamples);
         mixBuffer.clear (1, 0, numSamples);
 
-        // sample-accurate MIDI: render up to each event, then apply it
         int cursor = 0;
         for (const auto meta : midi)
         {
@@ -648,31 +608,32 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                 if (v.isActive() && (newest == nullptr || v.getStartOrder() > newest->getStartOrder())) newest = &v;
             if (newest != nullptr)
             {
-                const auto& vs = newest->getLastMod();
-                juce::ignoreUnused (vs);
                 gs[(size_t) ModSource::AmpEnv] = newest->getEnvLevel();
                 gs[(size_t) ModSource::Aftertouch] = newest->getPressureLevel();
             }
-            ModMatrix::evaluate (modConfig, gs, globalMod);
+            ModMatrix::evaluate (params.mod, gs, globalMod);
         }
 
         float* L = mixBuffer.getWritePointer (0);
         float* R = mixBuffer.getWritePointer (1);
 
-        chorus.setParams (clamp01 (chorusMix.get() + globalMod[(size_t) ModDest::ChorusMix]), chorusRate.get(), chorusDepth.get(), chorusWidth.get());
+        chorus.setParams (clamp01 (params.get (P::chorusMix) + globalMod[(size_t) ModDest::ChorusMix]), params.get (P::chorusRate),
+                          params.get (P::chorusDepth), params.get (P::chorusWidth));
         chorus.process (L, R, numSamples);
 
-        float delayMs = delayTime.get();
-        if (delaySync.get() > 0.5f)
-            delayMs = (float) (60000.0 / (bpm > 1.0 ? bpm : 120.0) * choices::syncDivisionBeats ((int) std::lround (delayDiv.get())));
-        delay.setParams (clamp01 (delayMix.get() + globalMod[(size_t) ModDest::DelayMix]), delayMs, delayFeedback.get(), delayTone.get(), delayPingPong.get() > 0.5f);
+        float delayMs = params.get (P::delayTime);
+        if (params.getb (P::delaySync))
+            delayMs = (float) (60000.0 / (bpm > 1.0 ? bpm : 120.0) * choices::syncDivisionBeats (params.geti (P::delayDiv)));
+        delay.setParams (clamp01 (params.get (P::delayMix) + globalMod[(size_t) ModDest::DelayMix]), delayMs, params.get (P::delayFeedback),
+                         params.get (P::delayTone), params.getb (P::delayPingPong));
         delay.process (L, R, numSamples);
 
-        reverb.setParams (clamp01 (revMix.get() + globalMod[(size_t) ModDest::ReverbMix]), revSize.get(), revDecay.get(), revDamp.get(),
-                          revPre.get(), revWidth.get(), revMod.get());
+        reverb.setParams (clamp01 (params.get (P::reverbMix) + globalMod[(size_t) ModDest::ReverbMix]), params.get (P::reverbSize),
+                          params.get (P::reverbDecay), params.get (P::reverbDamping), params.get (P::reverbPreDelay),
+                          params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);
 
-        output.setParams (outGainP.get(), outHpP.get(), limiterOnP.get() > 0.5f);
+        output.setParams (params.get (P::outGain), params.get (P::outHighpass), params.getb (P::limiterOn));
         output.process (L, R, numSamples);
 
         // ---- numerical safety net -------------------------------------------------------
@@ -681,7 +642,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         for (int i = 0; i < numSamples; ++i)
         {
             const float a = std::fabs (L[i]), b = std::fabs (R[i]);
-            if (! (a <= 8.0f && b <= 8.0f)) { finite = false; break; }   // NaN fails the comparison too
+            if (! (a <= 8.0f && b <= 8.0f)) { finite = false; break; }
             peak = std::max (peak, std::max (a, b));
             vis.pushScopeSample (0.5f * (L[i] + R[i]));
         }
@@ -692,7 +653,6 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             peak = 0.0f;
         }
 
-        // ---- write to the host buffer --------------------------------------------------
         const int outChans = out.getNumChannels();
         if (outChans >= 2)
         {
@@ -714,6 +674,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     {
         int active = 0;
         float pressureSum = 0.0f, energySum = 0.0f;
+        const Voice* newest = nullptr;
         for (int i = 0; i < kMaxVoices; ++i)
         {
             const auto& v = voices[(size_t) i];
@@ -723,19 +684,30 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             s.energy.store (on ? v.getEnergy() : 0.0f, std::memory_order_relaxed);
             s.pressure.store (on ? v.getPressureLevel() : 0.0f, std::memory_order_relaxed);
             s.pitchHz.store (on ? v.getFreqHz() : 0.0f, std::memory_order_relaxed);
-            if (on) { ++active; pressureSum += v.getPressureLevel(); energySum += v.getEnergy(); }
+            if (on)
+            {
+                ++active; pressureSum += v.getPressureLevel(); energySum += v.getEnergy();
+                if (newest == nullptr || v.getStartOrder() > newest->getStartOrder()) newest = &v;
+            }
         }
         vis.activeVoices.store (active, std::memory_order_relaxed);
         vis.masterPeak.store (peak, std::memory_order_relaxed);
         vis.masterPressure.store (active > 0 ? pressureSum / (float) active : 0.0f, std::memory_order_relaxed);
         vis.masterEnergy.store (active > 0 ? energySum / (float) active : 0.0f, std::memory_order_relaxed);
         vis.limiterGain.store (output.getLimiterGain(), std::memory_order_relaxed);
+        vis.sidechainEnv.store (sidechainEnv, std::memory_order_relaxed);
         if (noteOnsThisBlock > 0) vis.midiActivity.fetch_add (noteOnsThisBlock, std::memory_order_relaxed);
 
-        // live modulation of the newest voice (global-only destinations come from the global evaluation)
-        const Voice* newest = nullptr;
-        for (const auto& v : voices)
-            if (v.isActive() && (newest == nullptr || v.getStartOrder() > newest->getStartOrder())) newest = &v;
+        for (int r = 0; r < 3; ++r)
+        {
+            vis.resonatorEnergy[(size_t) r].store (newest != nullptr ? newest->getResonatorEnergy (r) : 0.0f, std::memory_order_relaxed);
+            vis.resonatorRunning[(size_t) r].store (newest != nullptr && newest->isResonatorRunning (r) ? 1 : 0, std::memory_order_relaxed);
+        }
+        vis.networkEnergy.store (newest != nullptr ? newest->getNetworkEnergy() : 0.0f, std::memory_order_relaxed);
+        vis.governorGain.store (newest != nullptr ? newest->getGovernor() : 1.0f, std::memory_order_relaxed);
+        vis.exciterAEnv.store (newest != nullptr ? newest->getExciterEnvelope (0) : 0.0f, std::memory_order_relaxed);
+        vis.exciterBEnv.store (newest != nullptr ? newest->getExciterEnvelope (1) : 0.0f, std::memory_order_relaxed);
+
         for (size_t d = 0; d < (size_t) ModDest::Count; ++d)
         {
             float value = globalMod[d];
@@ -777,9 +749,9 @@ dsp::ModConfig SynthEngine::getModConfig() const
     for (int i = 0; i < ids::numModSlots; ++i)
     {
         auto& s = cfg.slots[(size_t) i];
-        s.source = (ModSource) juce::jlimit (0, (int) ModSource::Count - 1, (int) std::lround (impl->modSrc[i].get()));
-        s.dest = (ModDest) juce::jlimit (0, (int) ModDest::Count - 1, (int) std::lround (impl->modDst[i].get()));
-        s.depth = impl->modDepth[i].get();
+        s.source = (ModSource) juce::jlimit (0, (int) ModSource::Count - 1, (int) std::lround (impl->raw (ids::modP (i + 1, ids::ModField::Src))));
+        s.dest = (ModDest) juce::jlimit (0, (int) ModDest::Count - 1, (int) std::lround (impl->raw (ids::modP (i + 1, ids::ModField::Dst))));
+        s.depth = impl->raw (ids::modP (i + 1, ids::ModField::Depth));
     }
     return cfg;
 }

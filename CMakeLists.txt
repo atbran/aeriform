@@ -64,7 +64,9 @@ set(AERIFORM_SOURCES
     Source/DSP/SynthEngine.cpp
     Source/DSP/Voice.cpp
     Source/DSP/Exciter.cpp
+    Source/DSP/Exciters/ExciterSlot.cpp
     Source/DSP/Resonator.cpp
+    Source/DSP/ResonatorNetwork.cpp
     Source/DSP/ModMatrix.cpp
     Source/DSP/Effects/Chorus.cpp
     Source/DSP/Effects/Delay.cpp
