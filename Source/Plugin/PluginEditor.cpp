@@ -115,20 +115,20 @@ void AeriformEditor::layoutContent()
 {
     auto r = juce::Rectangle<int> (0, 0, editorWidth, editorHeight).reduced (10);
 
-    // ---- top bar -----------------------------------------------------------
-    auto top = r.removeFromTop (44);
-    auto titleArea = top.removeFromLeft (250);
-    titleLabel.setBounds (titleArea.removeFromTop (26));
-    subtitleLabel.setBounds (titleArea);
-    scaleButton.setBounds (top.removeFromRight (64).reduced (0, 9));
-    top.removeFromRight (8);
-    statusLabel.setBounds (top.removeFromRight (190).reduced (0, 8));
-    top.removeFromRight (12);
-    auto tabArea = top.removeFromRight (390).reduced (0, 8);
-    top.removeFromRight (12);
-    tabs.setBounds (tabArea);
-    presetBar.setBounds (top.reduced (0, 7));
-    r.removeFromTop (8);
+    // ---- top bar: row 1 = title, page tabs, status, size; row 2 = subtitle + the full-width preset browser
+    auto top = r.removeFromTop (56);
+    auto row1 = top.removeFromTop (28);
+    titleLabel.setBounds (row1.removeFromLeft (250));
+    scaleButton.setBounds (row1.removeFromRight (64).reduced (0, 1));
+    row1.removeFromRight (8);
+    statusLabel.setBounds (row1.removeFromRight (200));
+    row1.removeFromRight (12);
+    tabs.setBounds (row1.removeFromRight (400).reduced (0, 1));
+    top.removeFromTop (2);
+    auto row2 = top.removeFromTop (26);
+    subtitleLabel.setBounds (row2.removeFromLeft (250));
+    presetBar.setBounds (row2.reduced (0, 1));
+    r.removeFromTop (6);
 
     for (auto& page : pages) page->setBounds (r);
 }
