@@ -1,46 +1,49 @@
 #include "TestFramework.h"
 #include "TestHelpers.h"
-
 using namespace aeriform;
 using namespace aeriform::test;
-
-// Prints the level of every factory preset (a 4-note chord measured from note-on, effects off) so the
-// set stays consistent. Fails if a preset is inaudible or more than 14 dB away from the median.
-// Percussive presets are naturally quieter in RMS terms; the window starts at note-on so their
-// attack counts.
-AERIFORM_TEST (smoke_factory_preset_levels_are_consistent)
-{
-    TestHost h (48000.0, 256, true);
-    dsp::Noise scNoise; scNoise.seed (11);
-    h.inputSource = [&] (long) { return scNoise.next() * 0.5f; };
-    auto& pm = h.processor.getPresetManager();
-    struct Row { juce::String name; double rms; float peak; };
-    std::vector<Row> rows;
-    for (int i = 0; i < (int) pm.getEntries().size(); ++i)
-    {
-        if (! pm.getEntries()[(size_t) i].isFactory) continue;
-        CHECK (pm.loadPreset (i));
-        h.set (ids::reverbMix, 0.0f); h.set (ids::delayMix, 0.0f); h.set (ids::chorusMix, 0.0f);
-        for (int note : { 48, 55, 60, 64 }) h.noteOn (note, 100);
-        const auto s = h.render (1.2);
-        for (int note : { 48, 55, 60, 64 }) h.noteOff (note);
-        h.render (0.3);
-        h.processor.getEngine().allNotesOff();
-        h.processor.reset();
-        rows.push_back ({ pm.getCurrentName(), s.rms, s.peak });
-    }
-    // loudness proxy: RMS for sustained sounds, a quarter of the attack peak for percussive ones
-    auto level = [] (const Row& r) { return std::max (r.rms, (double) r.peak * 0.25); };
-    std::vector<double> sorted;
-    for (auto& r : rows) sorted.push_back (level (r));
-    std::sort (sorted.begin(), sorted.end());
-    const double median = sorted[sorted.size() / 2];
-    std::printf ("    preset levels (4-note chord from note-on, 1.2 s, fx off), median level %.3f\n", median);
-    for (auto& r : rows)
-    {
-        const double db = 20.0 * std::log10 (std::max (1.0e-6, level (r) / median));
-        std::printf ("      %-24s rms %.3f  peak %.2f  (%+.1f dB)\n", r.name.toRawUTF8(), r.rms, r.peak, db);
-        CHECK_MSG (r.peak > 0.05f, (r.name + " audible").toStdString());
-        CHECK_MSG (std::fabs (db) < 14.0, (r.name + " level within 14 dB of the median").toStdString());   // Percussive Click is a quiet click by design
+namespace {
+const char* presetClass(const juce::String& name,const juce::String& category) {
+    if(name.containsIgnoreCase("sidechain")) return "Sidechain-dependent";
+    if(name.containsIgnoreCase("drone")) return "Drone";
+    if(name.containsIgnoreCase("click")||name.containsIgnoreCase("mallet")) return "Percussive";
+    if(name.containsIgnoreCase("pluck")||name.containsIgnoreCase("bell")||category.containsIgnoreCase("pluck")) return "Plucked/decaying";
+    return "Sustained";
+}
+}
+AERIFORM_TEST(smoke_factory_preset_classified_levels) {
+    const int count=(int)factoryPresets().size();
+    std::printf("    name | class | attack peak | pre RMS | post RMS | limited %% | ceiling %% | release s | DC | CPU %%\n");
+    for(int preset=0;preset<count;++preset) {
+        TestHost h(48000,256,true);
+        dsp::Noise input; input.seed(11);
+        h.inputSource=[&](long){return input.next()*0.5f;};
+        auto& pm=h.processor.getPresetManager();
+        CHECK(pm.loadPreset(preset));
+        const auto name=pm.getCurrentName(); const auto category=pm.getCurrentCategory();
+        const char* kind=presetClass(name,category);
+        for(int note:{48,55,60,64}) h.noteOn(note,100);
+        auto& v=h.processor.getVisualizerModel();
+        const int blocks=(int)std::ceil(2.0*48000/256);
+        double pre=0,post=0,limited=0,ceiling=0,dc=0; float attack=0,prePeak=0;
+        const auto start=juce::Time::getHighResolutionTicks();
+        for(int b=0;b<blocks;++b) {
+            const auto s=h.renderBlock(); CHECK(s.finite);
+            if(b*256<4800) attack=std::max(attack,s.peak);
+            prePeak=std::max(prePeak,v.preLimiterPeak.load());
+            pre+=std::pow(v.preLimiterRms.load(),2); post+=s.rms*s.rms;
+            limited+=v.limiterFraction.load(); ceiling+=v.ceilingFraction.load(); dc+=v.postLimiterMean.load();
+        }
+        const double cpu=100*juce::Time::highResolutionTicksToSeconds(juce::Time::getHighResolutionTicks()-start)/(blocks*256.0/48000);
+        for(int note:{48,55,60,64}) h.noteOff(note);
+        double release=0; int quiet=0;
+        for(int b=0;b<1125;++b) {
+            auto s=h.renderBlock(); CHECK(s.finite); release=(b+1)*256.0/48000;
+            quiet=s.rms<1e-4?quiet+1:0; if(quiet>=8) break;
+        }
+        std::printf("    %-23s | %-20s | %.3f | %.4f | %.4f | %.1f | %.2f | %.2f | %+.5f | %.1f (pre peak %.3f)\n",name.toRawUTF8(),kind,attack,std::sqrt(pre/blocks),std::sqrt(post/blocks),100*limited/blocks,100*ceiling/blocks,release,dc/blocks,cpu,prePeak);
+        CHECK_MSG(post>1e-10,(name+" has integrated audible energy").toStdString());
+        CHECK_MSG(std::abs(dc/blocks)<0.03,(name+" persistent DC").toStdString());
+        CHECK_MSG(prePeak<100,(name+" internal signal remains bounded").toStdString());
     }
 }

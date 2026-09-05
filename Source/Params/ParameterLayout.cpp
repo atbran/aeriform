@@ -169,9 +169,25 @@ const juce::StringArray& choiceStrings (ChoiceList list)
 
 namespace
 {
-    std::vector<ParamInfo>& infoStore()
+    const std::vector<ParamInfo>& infoStore()
     {
-        static std::vector<ParamInfo> infos;
+        static const std::vector<ParamInfo> infos = []
+        {
+            std::vector<ParamInfo> result;
+            result.reserve ((size_t) kNumParams);
+            for (const auto& d : kParamDefs)
+            {
+                ParamInfo info;
+                info.id=d.id; info.name=d.name; info.unit=d.unit; info.tooltip=d.tooltip;
+                info.section=d.section; info.defaultValue=d.defaultValue;
+                info.minValue=d.minValue; info.maxValue=d.maxValue;
+                info.isChoice=d.kind==ParamKind::Choice;
+                info.isBool=d.kind==ParamKind::Bool; info.isInt=d.kind==ParamKind::Int;
+                if (info.isChoice) info.maxValue=(float)(choiceStrings(d.choices).size()-1);
+                result.push_back (std::move(info));
+            }
+            return result;
+        }();
         return infos;
     }
 
@@ -251,9 +267,7 @@ const ParamDef& paramDef (P p)
 
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
-    auto& infos = infoStore();
-    infos.clear();
-    infos.reserve ((size_t) kNumParams);
+    (void) infoStore();
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     for (int i = 0; i < kNumParams; ++i)
@@ -297,7 +311,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
                 break;
             }
         }
-        infos.push_back (info);
+
     }
     return layout;
 }

@@ -47,14 +47,14 @@ Knob::~Knob()
 
 void Knob::setDisplayName (const juce::String& name)
 {
-    if (info != nullptr) const_cast<ParamInfo*> (info)->name = name;
+    displayName = name;
     showName();
 }
 
 void Knob::showName()
 {
     showingValue = false;
-    label.setText (info != nullptr ? info->name : paramID, juce::dontSendNotification);
+    label.setText (displayName.isNotEmpty() ? displayName : (info != nullptr ? info->name : paramID), juce::dontSendNotification);
     label.setColour (juce::Label::textColourId, textSecondary);
 }
 

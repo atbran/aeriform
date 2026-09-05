@@ -38,6 +38,7 @@ public:
     juce::String getCurrentCategory() const { return currentCategory; }
     bool isDirty() const noexcept { return dirty; }
     void rescan();
+    void pollChanges() { if (pendingNotify.exchange(false) && onPresetChanged) onPresetChanged(); }
 
     // ---- loading --------------------------------------------------------
     bool loadPreset (int index);
@@ -72,8 +73,7 @@ private:
     int currentIndex = 0;
     juce::String currentName { "Init" };
     juce::String currentCategory { "Init" };
-    bool dirty = false;
-    bool applying = false;
+    std::atomic<bool> dirty {false}, applying {false}, pendingNotify {false};
 
     void parameterChanged (const juce::String& parameterID, float newValue) override;
     void resetAllToDefaults();

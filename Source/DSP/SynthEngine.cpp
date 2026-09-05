@@ -556,7 +556,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     }
 
     void process (juce::AudioBuffer<float>& out, const juce::AudioBuffer<float>* extIn, juce::MidiBuffer& midi,
-                  const juce::AudioPlayHead::PositionInfo& pos, MidiLearn* learn, bool)
+                  const juce::AudioPlayHead::PositionInfo& pos, MidiLearn* learn, bool, int midiOffset = 0)
     {
         const int numSamples = out.getNumSamples();
         if (! prepared || numSamples <= 0) { out.clear(); return; }
@@ -566,11 +566,11 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             {
                 const int n = juce::jmin (maxBlock, numSamples - start);
                 juce::AudioBuffer<float> sub (out.getArrayOfWritePointers(), out.getNumChannels(), start, n);
-                juce::MidiBuffer subMidi;
-                for (const auto meta : midi)
-                    if (meta.samplePosition >= start && meta.samplePosition < start + n)
-                        subMidi.addEvent (meta.getMessage(), meta.samplePosition - start);
-                process (sub, nullptr, subMidi, pos, learn, false);
+                float* inputChannels[2] {};
+                const int inputCount = extIn != nullptr ? std::min(2,extIn->getNumChannels()) : 0;
+                for (int c=0;c<inputCount;++c) inputChannels[c]=const_cast<float*>(extIn->getReadPointer(c))+start;
+                juce::AudioBuffer<float> inputView(inputChannels,inputCount,n);
+                process (sub, inputCount > 0 ? &inputView : nullptr, midi, pos, learn, false, midiOffset+start);
             }
             return;
         }
@@ -593,7 +593,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         int cursor = 0;
         for (const auto meta : midi)
         {
-            const int t = juce::jlimit (0, numSamples, meta.samplePosition);
+            if (meta.samplePosition < midiOffset || meta.samplePosition >= midiOffset+numSamples || meta.numBytes > 3) continue;
+            const int t = meta.samplePosition-midiOffset;
             renderSegment (cursor, t - cursor);
             cursor = t;
             handleMidi (meta.getMessage(), learn);
@@ -635,6 +636,10 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         output.setParams (params.get (P::outGain), params.get (P::outHighpass), params.getb (P::limiterOn));
         output.process (L, R, numSamples);
+        const auto& meter=output.getMeter();
+        vis.preLimiterPeak.store(meter.prePeak); vis.preLimiterRms.store(meter.preRms); vis.preLimiterMean.store(meter.preMean);
+        vis.postLimiterRms.store(meter.postRms); vis.postLimiterMean.store(meter.postMean);
+        vis.limiterFraction.store(meter.limitedFraction); vis.ceilingFraction.store(meter.ceilingFraction);
 
         // ---- numerical safety net -------------------------------------------------------
         bool finite = true;

@@ -38,12 +38,17 @@ void OutputStage::setParams (float gainDb, float highpassHz, bool limiterOn) noe
 
 void OutputStage::process (float* left, float* right, int numSamples) noexcept
 {
+    meter = {};
+    double preEnergy=0, postEnergy=0, preSum=0, postSum=0;
+    int limited=0, ceiling=0;
     for (int i = 0; i < numSamples; ++i)
     {
         const float g = gainSmooth.process (gainTarget);
         float l = hpL.highpass (sanitize (left[i])) * g;
         float r = hpR.highpass (sanitize (right[i])) * g;
 
+        meter.prePeak=std::max(meter.prePeak,std::max(std::abs(l),std::abs(r)));
+        preEnergy+=(double)l*l+(double)r*r; preSum+=l+r;
         if (limiter)
         {
             // peak follower: instant attack, slow release
@@ -51,6 +56,7 @@ void OutputStage::process (float* left, float* right, int numSamples) noexcept
             if (peak > envelope) envelope = peak;
             else                 envelope += releaseCoef * (peak - envelope);
             limiterGain = envelope > kThreshold ? kThreshold / envelope : 1.0f;
+            if(limiterGain<0.98f) ++limited;
             l *= limiterGain;
             r *= limiterGain;
             // gentle safety saturation for anything that still overshoots (attack transients)
@@ -63,8 +69,16 @@ void OutputStage::process (float* left, float* right, int numSamples) noexcept
             l = std::clamp (l, -4.0f, 4.0f);
             r = std::clamp (r, -4.0f, 4.0f);
         }
+        meter.postPeak=std::max(meter.postPeak,std::max(std::abs(l),std::abs(r)));
+        postEnergy+=(double)l*l+(double)r*r; postSum+=l+r;
+        if(std::max(std::abs(l),std::abs(r))>0.76f) ++ceiling;
         left[i] = l;
         right[i] = r;
     }
+    const double count=std::max(1,2*numSamples);
+    meter.preRms=(float)std::sqrt(preEnergy/count); meter.postRms=(float)std::sqrt(postEnergy/count);
+    meter.preMean=(float)(preSum/count); meter.postMean=(float)(postSum/count);
+    meter.limitedFraction=(float)limited/(float)std::max(1,numSamples);
+    meter.ceilingFraction=(float)ceiling/(float)std::max(1,numSamples);
 }
 } // namespace aeriform::dsp

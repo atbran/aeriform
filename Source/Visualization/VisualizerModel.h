@@ -64,6 +64,8 @@ public:
     std::atomic<float> masterPeak      { 0.0f };
     std::atomic<float> masterPressure  { 0.0f };
     std::atomic<float> masterEnergy    { 0.0f };
+    std::atomic<float> preLimiterPeak{0}, preLimiterRms{0}, preLimiterMean{0};
+    std::atomic<float> postLimiterRms{0}, postLimiterMean{0}, limiterFraction{0}, ceilingFraction{0};
     std::atomic<float> limiterGain     { 1.0f };
     std::atomic<int>   activeVoices    { 0 };
     std::atomic<int>   midiActivity    { 0 };

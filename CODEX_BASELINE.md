@@ -48,3 +48,9 @@ Existing preset test uses max(RMS, peak/4) compared with a shared median, measur
 - JUCE/MinGW warnings: GDI text fallback (no DirectWrite), deprecated tzname and large translation-unit indentation analysis. No baseline build failures.
 
 This is a tested source checkpoint, not a claim that the requested expansion or the new diagnostic matrix is finished.
+
+## Diagnostic checkpoint after baseline
+
+Fresh-instance class-aware measurements now include pre/post-limiter RMS/peak/DC, attack, limiter occupancy, ceiling occupancy, release observation (capped at six seconds) and CPU. Normal effects are preserved. This differs from the old shared-instance, effects-disabled test; their level values are not directly comparable. Orbit Crossmod, Metallic Steam, Mallet Triad and Serial Bodies had zero limiter occupancy in this two-second chord probe. Resonator Cloud had 8.1% gain-reduction occupancy and .06% near-ceiling occupancy, pre peak 1.227. No evidence here justifies changing the original factory presets. More parameter extremes and listening remain necessary.
+
+Reliability checkpoint: 75 tests, 51896 checks, zero failures. Immutable metadata and per-control labels, atomic preset dirty polling, allocation-free oversized-block subdivision with preserved input/MIDI timing, and output telemetry regression tests pass. No saturation correction applied. See build/reliability-tests.log.

@@ -57,7 +57,7 @@ private:
     };
 
     AeriformProcessor& processor;
-    juce::String paramID;
+    juce::String paramID, displayName;
     juce::RangedAudioParameter* param = nullptr;
     const ParamInfo* info = nullptr;
     ModMapping mapping;

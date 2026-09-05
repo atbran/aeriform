@@ -198,6 +198,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/EditorTests.cpp
         Tests/ProfileTests.cpp
         Tests/PresetLevelTests.cpp
+        Tests/ReliabilityTests.cpp
         Tests/SmokeTests.cpp)
     target_include_directories(AeriformTests PRIVATE
         Source Tests

@@ -75,16 +75,13 @@ void PresetManager::rescan()
 void PresetManager::parameterChanged (const juce::String&, float)
 {
     if (applying) return;
-    if (! dirty)
-    {
-        dirty = true;
-        juce::MessageManager::callAsync ([this] { notify(); });
-    }
+    if (! dirty.exchange (true, std::memory_order_relaxed))
+        pendingNotify.store (true, std::memory_order_release);
 }
 
 void PresetManager::notify()
 {
-    if (onPresetChanged) onPresetChanged();
+    pendingNotify.store (true, std::memory_order_release);
 }
 
 void PresetManager::setParamValue (const juce::String& id, float dspValue)

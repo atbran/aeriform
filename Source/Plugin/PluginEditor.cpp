@@ -165,6 +165,8 @@ void AeriformEditor::timerCallback()
     if (processor.getMidiLearn().pollLearn())
         repaint();
 
+    processor.getPresetManager().pollChanges();
+
     // preset name / dirty state
     if (presetDirtyFlag)
     {
