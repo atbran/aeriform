@@ -2,38 +2,56 @@
 
 Living document. Updated as work progresses.
 
+## v0.2 overhaul: dual exciters, wavefolder, resonator network
+
+### Baseline (recorded 2026-09-04 before any v0.2 change)
+- Build: OK (GCC 14.2 MinGW-w64, Release, `D:\dev\build\aeriform\mingw-release`)
+- `AeriformTests --all`: 38 tests, 3690 checks, 0 failures
+- `AeriformHostCheck ... AERIFORM.vst3`: PASSED; pluginval strictness 10: SUCCESS
+- CPU: 8 voices + effects @ 48 kHz / 256 = 3.7 % real time; 16 voices (unison 2) = 6.3 %
+- 122 parameters, state version 1, 20 factory presets
+- Git: repository initialised at this baseline (commit "Checkpoint: AERIFORM v0.1.0 baseline")
+
+### Architectural plan
+Per-voice chain becomes:
+```
+Exciter A --+                                                        +-- Resonator A --+
+            +-- Interaction -- Pre-shaper -- Wavefolder(2x/4x) -- Dyn --+-- Resonator B --+-- Body -- Fader -- Pan
+Exciter B --+        ^                                                  +-- Resonator C --+
+                     +---------------- Energy loop (optional) -------------------+
+```
+- Exciter chain runs at the oversampled rate (2x Normal/Eco, 4x High) and is decimated with a polyphase halfband before the network, so oscillators, PM/FM interaction and the folder are all band-limited by the same filter.
+- Exciter slot models: Off, Breath (the v0.1 exciter, unchanged behaviour), Wave (PolyBLEP morph, PW, sub, phase distortion, sync), Complex (original coupled phase-feedback "orbit" oscillator with bounded chaotic map), 12 noise models, 8 physical exciters (reed, lip, bow, jet, mallet, pluck, scrape, impact), Sidechain.
+- Interaction: 13 modes with a central INTERACTION control, balance, depth, B->A / A->B, DC block, normaliser, drive.
+- Pre-shaper: the existing exciter LP/HP/key-track parameters plus band-pass, resonance, drive, bias, slew, transient emphasis, envelope amount, before/after folder order.
+- Wavefolder: 7 original fold modes, drive, symmetry, bias, 1-4 stages, shape, mix, compensation, post LP; polyphase IIR halfband oversampling.
+- Resonator network: three slots (A keeps every existing `res_*` ID), 9 resonator types (waveguide family + comb + modal family + formant), Single / Serial / Parallel / Hybrid routing, 6 cross-feedback routes with shared delay / filter / drive / polarity, injection point, output tap, wet/dry, Repipe macro, energy governor.
+- Energy loop: off by default, tanh-bounded, filtered, delayed, governed.
+- Matrix: 16 slots, +15 sources, +29 destinations.
+- Parameters: all 122 existing IDs preserved with identical meaning (`exc_lp` / `exc_hp` / `exc_keytrack` keep their place as the pre-shaper filter; `exc_reed` / `exc_pressure` stay Resonator A's reed junction; `res_mode` list is only appended). State version 2 with a migration hook; old presets / sessions load unchanged because every new parameter defaults to the v0.1 behaviour (Exciter A = Breath, B = Off, folder off, Single routing, loop off).
+
+### Parameter inventory
+- Preserved as-is (122): all `exc_*`, `env_*`, `art_*`, `res_*`, `lfo*`, `menv_*`, `mod1..8_*`, `chorus_*`, `delay_*`, `rev_*`, `voice_*`, `glide_*`, `unison_*`, `bend_range`, `mpe_enable`, `out_*`, `limiter_on`.
+- Aliased / re-homed in the GUI only (no ID change): `exc_lp`, `exc_hp`, `exc_keytrack` -> PRE-SHAPER filter; `exc_reed`, `exc_pressure` -> Resonator A reed junction + Breath model; `exc_pluck`, `exc_pluck_len`, `exc_attack_click`, `exc_release_noise` -> Breath model one-shots.
+- New (see docs/PARAMETERS.md after generation): `exa_*` / `exb_*` exciter slots, `mix_*` interaction, `pre_*` shaper, `wf_*` folder, `dyn_*`, `res_on/input/output/pan/width/pickup/inharm/size`, `rb_*`, `rc_*`, `net_*`, `loop_*`, `mod9..16_*`, `quality`.
+
 ## Completed
-- Environment: no compiler was present; installed portable WinLibs GCC 14.2 (POSIX/UCRT) + Ninja 1.12 + CMake 3.31 to `D:\dev\tools\mingw64` (user scope, no admin)
-- JUCE 7.0.12 vendored in `external/JUCE` (last JUCE line with MinGW support; JUCE 8 needs MSVC/clang-cl)
-- Phase 1 foundation: CMake project (VST3 + Standalone, AU on macOS), presets file, build scripts, stable parameter IDs (122 parameters), APVTS state with version field, MIDI-learn/editor-scale/preset-name in state, malformed-state tolerance
-- Phase 2 voice: exciter (white/pink noise, turbulence, pluck bursts, tongue transient, release puff, key-tracked LP/HP, sidechain input), waveguide resonator (4-point Lagrange fractional delay, end-reflection shelf, damping LP, dispersion allpass chain, DC blocker, bounded saturator with pressure bias, reed junction, position comb, body SVF), phase-delay-compensated tuning, click-free ADSR + output fader
-- Phase 3 polyphony: 16-voice pool (1..16 selectable, 8 default), oldest-releasing/oldest-playing stealing with 3 ms fade-then-retrigger, MPEInstrument-based MIDI (legacy + MPE lower zone), sustain/sostenuto, velocity, per-note pressure/slide/bend, bend range without note drops, mono/legato with note stack, glide, unison 1-4 with detune/spread
-- Phase 4 modulation/effects: 3 LFOs (7 shapes, sync, retrigger/free, fade, phase), mod envelope, 8-slot matrix (15 sources, 23 destinations), ensemble chorus, ping-pong tempo delay, 8-line FDN reverb, output HP + soft limiter, NaN safety net
-- Phase 5 GUI: custom look-and-feel, five regions (BREATH / RESONATOR / MOTION / SPACE / MASTER), airflow-tube visualizer, knobs with value readout, double-click reset, shift fine-adjust, right-click MIDI learn, tooltips, teal modulation rings with live value, preset bar (prev/next/menu/save/save-as/init/import/export), uniform scaling 60-200 %
-- Phase 6: 20 factory presets, 33 unit tests + 5 smoke/stress tests + 2 sidechain tests, VST3 host-load checker (scan, instantiate x2, 3 sample rates x 3 block sizes, state round trip, editor open/close x3 with audio running), CPU measurement, pluginval installed to `D:\dev\tools\pluginval`
-- Sidechain: "Sidechain" input bus declared as VST3 aux input (`getPluginHasMainInput() = false`), audio is injected into every playing note's exciter and rings the tuned tubes (note-gated)
+- (v0.1) Everything listed in the baseline above
+- v0.2 plan, inventory and git checkpoint
 
 ## Current
-- Done. Remaining items are optional follow-ups.
+- v0.2 implementation: parameter table refactor -> DSP -> tests -> GUI -> presets -> profiling -> docs
 
 ## Remaining
-- Optional: macOS/Linux/AU build verification (untested here: no such machine), MSVC build verification, a 'sidechain always on' (non-gated) input mode, oversampling of the reed junction
+- See "Current"; optional follow-ups after v0.2: macOS/Linux/AU verification, MSVC verification
 
 ## Known issues / limitations
-- Build directory must not contain `^` (cmd.exe escape) because of JUCE's post-build steps under Ninja; the scripts automatically build under `D:\dev\build\aeriform` when the source path contains `^`
-- MinGW build has no DirectWrite: JUCE falls back to GDI text rendering (slightly softer fonts than an MSVC build)
-- Resonator tuning is exact for the fundamental; the autocorrelation-measured pitch is up to ~5 cents flat at C2 and below because the in-loop damping filter stretches upper partials slightly (physically plausible, like a real pipe)
-- Notes above ~5 kHz with maximum dispersion cannot be tuned exactly (allpass chain delay exceeds the loop length); this is clamped safely
-- Linear loop gain is capped at exactly 1.0; sustained self-oscillation is produced by the reed junction (Reed + Pressure), not by over-unity feedback
-- MPEInstrument allocates a small note array on first use (JUCE behaviour); no allocation after the first few notes
-- Sidechain audio only sounds while notes are held (the resonators are note-gated by design)
-- AU target is declared for macOS but has not been built or tested on a Mac
+- Build directory must not contain `^` (cmd.exe escape) because of JUCE's post-build steps under Ninja; the scripts build under `D:\dev\build\aeriform` when the source path contains `^`
+- MinGW build has no DirectWrite: JUCE falls back to GDI text rendering
+- Resonator tuning is exact for the fundamental; autocorrelation-measured pitch is up to ~5 cents flat at C2 (partial stretch)
+- Notes above ~5 kHz with maximum dispersion cannot be tuned exactly (clamped safely)
+- Sidechain audio only sounds while notes are held (note-gated by design)
+- AU target declared for macOS but not built here
 
-## Build and test status (Windows, GCC 14.2 / MinGW-w64, Release)
-- `cmake --preset mingw-release -B D:/dev/build/aeriform/mingw-release && cmake --build D:/dev/build/aeriform/mingw-release --parallel`: OK
-- `AeriformTests`: 33 tests, 0 failures
-- `AeriformTests --smoke`: 5 tests, 0 failures; 8 voices + all effects @ 48 kHz / 256 = 4.0 % of real time; 16 voices (unison 2) = 6.7 %
-- `AeriformHostCheck AERIFORM.vst3 --editor`: PASSED
-- `pluginval --strictness-level 5`: SUCCESS (scan, open cold/warm, info, programs, editor, editor whilst processing, audio processing at 44.1/48/96 kHz x 64..1024, state, automation, editor automation, automatable parameters, buses)
-- `pluginval --strictness-level 10`: SUCCESS (adds non-releasing processing, state restoration, parameters, background-thread state, parameter thread safety, parameter fuzzing) - 25 test groups, 0 failures
-- Steinberg's own `validator` was not run: it is not bundled with JUCE's VST3 SDK subset and pluginval skips it unless given a path
+## Build and test status
+- Baseline above; v0.2 status is appended as phases complete
