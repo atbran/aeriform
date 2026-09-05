@@ -2,7 +2,7 @@
 #include "../DSP/CollisionRoute.h"
 namespace aeriform {
 using namespace theme;
-ContactPage::ContactPage(AeriformProcessor& p):processor(p){controls=add<Controls>(p);startTimerHz(30);}
+ContactPage::ContactPage(AeriformProcessor& p):processor(p){controls=add<Controls>(p);stereoControls=add<StereoControls>(p);stereoControls->setVisible(false);addAndMakeVisible(switchView);switchView.onClick=[this]{showStereo(!stereoVisible);};startTimerHz(30);}
 ContactPage::Controls::Controls(AeriformProcessor& p):ParamPanel(p,"CONTACT / COLLISION",copper){
     enabled=control<Toggle>(p,ids::contactOn,"ENABLED");source=control<ChoiceBox>(p,ids::contactSource,"Source");destination=control<ChoiceBox>(p,ids::contactDestination,"Destination");
     gap=knob(ids::contactGap,"Gap");stiffness=knob(ids::contactStiffness,"Stiffness");hardness=knob(ids::contactHardness,"Hardness");damping=knob(ids::contactDamping,"Damping");friction=knob(ids::contactFriction,"Friction / buzz");asymmetry=knob(ids::contactAsymmetry,"Asymmetry");amount=knob(ids::contactAmount,"Route amount");
@@ -12,8 +12,20 @@ void ContactPage::Controls::resized(){auto r=getContentArea().reduced(12);enable
     knobRow(r.removeFromTop(108),{gap,stiffness,hardness},12);r.removeFromTop(24);knobRow(r.removeFromTop(108),{damping,friction,asymmetry},12);r.removeFromTop(24);
     auto bottom=r.removeFromTop(112);amount->setBounds(bottom.removeFromLeft(bottom.getWidth()/3));bottom.removeFromLeft(16);quality->setBounds(bottom.removeFromTop(46));bottom.removeFromTop(12);polarity->setBounds(bottom.removeFromTop(46));
 }
-void ContactPage::resized(){controls->setBounds(getLocalBounds().removeFromLeft(getWidth()/2-6));}
-void ContactPage::paint(juce::Graphics& g){auto r=getLocalBounds().withTrimmedLeft(getWidth()/2+6).reduced(20);g.setColour(textPrimary);g.setFont(titleFont(19));g.drawText("PREPARED RESONATORS",r.removeFromTop(40),juce::Justification::centredLeft);
+void ContactPage::showStereo(bool on){stereoVisible=on;controls->setVisible(!on);stereoControls->setVisible(on);switchView.setButtonText(on?"EDIT CONTACT / COLLISION":"EDIT PHYSICAL STEREO");repaint();}
+ContactPage::StereoControls::StereoControls(AeriformProcessor& p):ParamPanel(p,"TRUE STEREO NETWORK",teal){
+    mode=control<ChoiceBox>(p,ids::stereoMode,"Network mode");divergence=knob(ids::stereoDivergence,"Length divergence");coupling=knob(ids::stereoCoupling,"Cross coupling");exciter=knob(ids::stereoExciterSpread,"Exciter spread");pickup=knob(ids::stereoPickupSpread,"Pickup spread");damping=knob(ids::stereoDamping,"Damping divergence");rotation=knob(ids::stereoRotation,"Rotation");width=knob(ids::stereoWidth,"Width");bass=knob(ids::stereoMonoBass,"Mono bass");
+}
+void ContactPage::StereoControls::resized(){auto r=getContentArea().reduced(12);mode->setBounds(r.removeFromTop(48));r.removeFromTop(38);knobRow(r.removeFromTop(110),{divergence,coupling,exciter},12);r.removeFromTop(34);knobRow(r.removeFromTop(110),{pickup,damping,rotation},12);r.removeFromTop(34);knobRow(r.removeFromTop(110),{width,bass},24);}
+void ContactPage::resized(){auto left=getLocalBounds().removeFromLeft(getWidth()/2-6);controls->setBounds(left);stereoControls->setBounds(left);switchView.setBounds(getWidth()/2+26,getHeight()-56,getWidth()/2-52,32);}
+void ContactPage::paint(juce::Graphics& g){auto r=getLocalBounds().withTrimmedLeft(getWidth()/2+6).reduced(20);g.setColour(textPrimary);g.setFont(titleFont(19));g.drawText(stereoVisible?"TWO PHYSICAL NETWORKS":"PREPARED RESONATORS",r.removeFromTop(40),juce::Justification::centredLeft);
+    if(stereoVisible){
+        auto& vis=processor.getVisualizerModel();float energy[2]={vis.stereoLeftEnergy.load(),vis.stereoRightEnergy.load()};
+        auto field=r.removeFromTop(230);for(int i=0;i<2;++i){float cx=field.getX()+field.getWidth()*(i?.75f:.25f),cy=(float)field.getCentreY();auto colour=i?teal:copper;g.setColour(colour.withAlpha(.08f+std::min(.3f,energy[i])));g.fillEllipse(cx-80,cy-80,160,160);g.setColour(colour);g.drawEllipse(cx-52,cy-52,104,104,2);g.setColour(textPrimary);g.drawText(i?"RIGHT":"LEFT",(int)cx-50,(int)cy-18,100,36,juce::Justification::centred);g.setColour(colour);g.fillRect(cx-70,cy+90,std::min(140.0f,energy[i]*280),5.0f);}
+        g.setColour(textSecondary);g.setFont(font(14));g.drawFittedText("Independent resonators carry each side. Length, pickup and damping differences change their physical response. Cross coupling exchanges a bounded amount of motion.",r.removeFromTop(110),juce::Justification::centredLeft,5,1.0f);
+        r.removeFromTop(20);g.setColour(textPrimary);g.drawText("MONO COMPATIBILITY",r.removeFromTop(30),juce::Justification::centredLeft);g.setColour(textSecondary);g.setFont(font(13));g.drawFittedText("Width changes the side signal while preserving the mid signal. Mono bass converges low frequencies. At zero width the network channels match. Effects may add stereo afterward. Rotation changes the balance before bass convergence.",r.removeFromTop(110),juce::Justification::centredLeft,5,1.0f);
+        r.removeFromTop(16);g.setColour(textDim);g.drawFittedText("Economy uses the original network and stops the second network after a short fade. Physical stereo adds resonator processing; it does not change the selected exciter oversampling or voice count.",r.removeFromTop(110),juce::Justification::centredLeft,5,1.0f);return;
+    }
     auto value=[&](const char* id){return processor.getAPVTS().getRawParameterValue(id)->load();};int src=(int)value(ids::contactSource),dst=(int)value(ids::contactDestination);
     float activity=processor.getVisualizerModel().collisionActivity.load();auto nodes=r.removeFromTop(130);const float cy=(float)nodes.getCentreY(),spacing=nodes.getWidth()/3.0f;float x[3];
     for(int i=0;i<3;++i)x[i]=nodes.getX()+spacing*(i+.5f);

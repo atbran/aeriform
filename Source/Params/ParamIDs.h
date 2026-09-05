@@ -413,6 +413,15 @@ enum class P : int
     contactAmount,
     contactPolarity,
     contactQuality,
+    stereoMode,
+    stereoDivergence,
+    stereoCoupling,
+    stereoExciterSpread,
+    stereoPickupSpread,
+    stereoDamping,
+    stereoRotation,
+    stereoWidth,
+    stereoMonoBass,
     Count
 };
 
@@ -827,6 +836,15 @@ inline constexpr const char* contactAsymmetry = "contact_asymmetry";
 inline constexpr const char* contactAmount = "contact_amount";
 inline constexpr const char* contactPolarity = "contact_polarity";
 inline constexpr const char* contactQuality = "contact_quality";
+inline constexpr const char* stereoMode = "stereo_mode";
+inline constexpr const char* stereoDivergence = "stereo_divergence";
+inline constexpr const char* stereoCoupling = "stereo_coupling";
+inline constexpr const char* stereoExciterSpread = "stereo_exciter_spread";
+inline constexpr const char* stereoPickupSpread = "stereo_pickup_spread";
+inline constexpr const char* stereoDamping = "stereo_damping";
+inline constexpr const char* stereoRotation = "stereo_rotation";
+inline constexpr const char* stereoWidth = "stereo_width";
+inline constexpr const char* stereoMonoBass = "stereo_mono_bass";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1235,6 +1253,15 @@ inline constexpr const char* const all[kNumParams] = {
     "contact_amount",
     "contact_polarity",
     "contact_quality",
+    "stereo_mode",
+    "stereo_divergence",
+    "stereo_coupling",
+    "stereo_exciter_spread",
+    "stereo_pickup_spread",
+    "stereo_damping",
+    "stereo_rotation",
+    "stereo_width",
+    "stereo_mono_bass",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

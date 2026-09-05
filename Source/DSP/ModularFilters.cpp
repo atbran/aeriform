@@ -7,8 +7,8 @@ float logCosh(float x){float a=std::abs(x);return a+std::log1p(std::exp(-2*a))-0
 float antialiasedDrive(float x,float& previous,float gain){float delta=x-previous;float y=std::abs(delta)>1e-4f?(logCosh(gain*x)-logCosh(gain*previous))/(gain*gain*delta):std::tanh(gain*.5f*(x+previous))/gain;previous=x;return y;}
 constexpr float vowels[5][3]={{800,1150,2900},{400,1600,2700},{350,1700,2700},{450,800,2830},{325,700,2530}};
 }
-void ModularFilters::Lane::reset() noexcept {for(auto& f:svf)f.reset();for(auto& f:formants)f.reset();for(auto& f:ladder)f.reset();comb.clear();previous=ladderOut=0;delay=100;}
-void ModularFilters::prepare(float rate){sr=rate;step=1/(.012f*sr);for(auto& b:blocks)for(auto& e:b.engine)for(auto& l:e.lane)l.comb.prepare((int)(sr*4/20)+8);reset();}
+void ModularFilters::Lane::reset() noexcept {for(auto& f:svf)f.reset();for(auto& f:formants)f.reset();for(auto& f:ladder)f.reset();if(combUsed)comb.clear();combUsed=false;previous=ladderOut=0;delay=100;}
+void ModularFilters::prepare(float rate){sr=rate;step=1/(.012f*sr);for(auto& b:blocks)for(auto& e:b.engine)for(int i=0;i<lanes;++i)e.lane[(size_t)i].comb.prepare((int)(sr*(i==0?4:1)/20)+8);reset();}
 void ModularFilters::reset() noexcept {for(auto& b:blocks){for(auto& e:b.engine)e.reset();b.current=0;b.initialized=false;b.transition=false;b.fade=1;b.wet=0;b.targetWet=0;}anyActive=false;}
 void ModularFilters::Engine::configure(MovableFilterParams settings,float rate) {
     p=settings;sr=rate;p.cutoff=std::clamp(p.cutoff,20.0f,.44f*sr);q=.5f+11.5f*clamp01(p.resonance);
@@ -25,6 +25,7 @@ float ModularFilters::Engine::next(float input,int channel) noexcept {
     if(driveGain>1.001f)x=antialiasedDrive(x,s.previous,driveGain);
     float y=x;
     if(p.model==FilterModel::Comb) {
+        s.combUsed=true;
         s.delay+=(sr/p.cutoff-s.delay)*.005f;
         const float fb=(p.morph*2-1)*p.resonance*.97f;
         const float delayed=s.comb.readLinear(s.delay);s.comb.push(x+delayed*fb);

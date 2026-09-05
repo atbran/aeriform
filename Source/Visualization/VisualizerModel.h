@@ -76,7 +76,7 @@ public:
     std::atomic<float> governorGain  { 1.0f };
     std::atomic<float> exciterAEnv   { 0.0f };
     std::atomic<float> exciterBEnv   { 0.0f };
-    std::atomic<float> collisionActivity{0};
+    std::atomic<float> collisionActivity{0},stereoLeftEnergy{0},stereoRightEnergy{0};
     std::atomic<float> sidechainEnv  { 0.0f };
     std::array<std::atomic<int>, 3> resonatorRunning {};
 

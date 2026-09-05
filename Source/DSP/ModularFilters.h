@@ -33,7 +33,7 @@ public:
 private:
     struct Lane {
         SVF svf[2],formants[3];OnePole ladder[4];FractionalDelay comb;
-        float previous=0,ladderOut=0,delay=100;
+        float previous=0,ladderOut=0,delay=100;bool combUsed=false;
         void reset() noexcept;
     };
     struct Engine {

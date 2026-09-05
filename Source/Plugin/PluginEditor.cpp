@@ -10,7 +10,7 @@ using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "PLAY", "FILTERS", "CONTACT" })
+      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "PLAY", "FILTERS", "PHYSICAL" })
 {
     setLookAndFeel (&lookAndFeel);
 

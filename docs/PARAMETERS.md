@@ -472,3 +472,12 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `contact_amount` | Collision Amount | 0 % .. 100 % | 30 % | Smoothed route strength with destination-loss normalization. |
 | `contact_polarity` | Contact Polarity | Positive / Negative | Positive | Positive or inverted destination scattering. |
 | `contact_quality` | Contact Quality | Eco / Normal / High | Normal | Contact oversampling: Eco 1x, Normal 2x, High 4x. Changes crossfade. |
+| `stereo_mode` | Physical Stereo Mode | Economy / Physical stereo | Economy | Economy preserves the original single network. Physical runs independent left and right resonators. |
+| `stereo_divergence` | Length Divergence | 0 ct .. +30 ct | +8 ct | Total pitch separation between the left and right physical networks. |
+| `stereo_coupling` | Stereo Cross Coupling | 0 % .. 100 % | 10 % | Bounded, resonator-loss-scaled exchange between left and right networks. |
+| `stereo_exciter_spread` | Exciter Spread | 0 % .. 100 % | 0 % | Places the A-minus-B excitation difference across the physical networks. |
+| `stereo_pickup_spread` | Pickup Spread | 0 % .. 100 % | 10 % | Different pickup positions in each physical network. |
+| `stereo_damping` | Damping Divergence | -100 % .. +100 % | 0 % | Opposite damping offsets for the two networks. |
+| `stereo_rotation` | Stereo Rotation | -100 % .. +100 % | 0 % | Rotate the mid/side field up to 45 degrees, before mono bass. |
+| `stereo_width` | Physical Stereo Width | 0 % .. 200 % | 100 % | Mid/side width. Zero produces identical channels in Physical mode. |
+| `stereo_mono_bass` | Mono Bass | 20.0 Hz .. 1.00 kHz | 120 Hz | Remove low frequencies from the side channel. Minimum disables convergence. |

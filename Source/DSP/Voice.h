@@ -9,7 +9,7 @@
 #include "PreShaper.h"
 #include "Wavefolder.h"
 #include "Oversampler.h"
-#include "ResonatorNetwork.h"
+#include "StereoResonatorNetwork.h"
 #include "ModMatrix.h"
 #include "../Visualization/VisualizerModel.h"
 
@@ -84,6 +84,8 @@ public:
 
     float getEnergy() const noexcept { return network.energy (0) + network.energy (1) + network.energy (2); }
     float getResonatorEnergy (int i) const noexcept { return network.energy (i); }
+    float getStereoLeftEnergy() const noexcept {return network.leftEnergy();}
+    float getStereoRightEnergy() const noexcept {return network.rightEnergy();}
     float getContactActivity() const noexcept {return network.contactActivity();}
     float getNetworkEnergy() const noexcept { return network.netEnergy(); }
     float getGovernor() const noexcept { return network.governor(); }
@@ -108,10 +110,10 @@ private:
     Interaction interaction;
     PreShaper preShaper;
     Wavefolder folder;
-    Oversampler decimator, extUp, loopUp;
+    Oversampler decimator, extUp, loopUp, sideDecimator;
     OnePole dynEnv;
     // ---- resonator network + body ----
-    ResonatorNetwork network;
+    StereoResonatorNetwork network;
     ModularFilters filters;
     SVF bodyL, bodyR;
     // ---- modulation ----

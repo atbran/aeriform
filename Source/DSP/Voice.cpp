@@ -79,14 +79,14 @@ void Voice::configureOversampling (int factor)
     folder.prepare (osRate);
     decimator.setFactor (factor);
     extUp.setFactor (factor);
-    loopUp.setFactor (factor);
+    loopUp.setFactor (factor);sideDecimator.setFactor(factor);
 }
 
 void Voice::reset()
 {
     exA.reset(); exB.reset();
     interaction.reset(); preShaper.reset(); folder.reset();
-    decimator.reset(); extUp.reset(); loopUp.reset();
+    decimator.reset(); extUp.reset(); loopUp.reset();sideDecimator.reset();
     dynEnv.reset (0.3f);
     network.reset();filters.reset();
     bodyL.reset(); bodyR.reset();
@@ -109,7 +109,7 @@ void Voice::startNote (int midiNote, float vel, float glideFromNote, bool legato
         network.reset();filters.reset();
         exA.reset(); exB.reset();
         interaction.reset(); preShaper.reset(); folder.reset();
-        decimator.reset(); extUp.reset(); loopUp.reset();
+        decimator.reset(); extUp.reset(); loopUp.reset();sideDecimator.reset();
         bodyL.reset(); bodyR.reset();
         gainRampL = gainRampR = 0.0f;
         loopRet = 0.0f;
@@ -541,6 +541,7 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
     buildNetworkParams (p, baseNote);
     auto& cp=netParams.contact;cp.enabled=p.getb(P::contactOn);cp.source=p.geti(P::contactSource);cp.destination=p.geti(P::contactDestination);
     cp.gap=p.get(P::contactGap);cp.stiffness=p.get(P::contactStiffness);cp.hardness=p.get(P::contactHardness);cp.damping=p.get(P::contactDamping);cp.friction=p.get(P::contactFriction);cp.asymmetry=p.get(P::contactAsymmetry);cp.amount=p.get(P::contactAmount);cp.polarity=p.geti(P::contactPolarity)?-1.0f:1.0f;cp.quality=p.geti(P::contactQuality);
+    StereoNetworkParams stereo;stereo.enabled=p.geti(P::stereoMode)>0;stereo.divergence=p.get(P::stereoDivergence);stereo.coupling=p.get(P::stereoCoupling);stereo.exciterSpread=p.get(P::stereoExciterSpread);stereo.pickupSpread=p.get(P::stereoPickupSpread);stereo.dampingDivergence=p.get(P::stereoDamping);stereo.rotation=p.get(P::stereoRotation);stereo.width=p.get(P::stereoWidth);stereo.monoBass=p.get(P::stereoMonoBass);network.setStereo(stereo,n);
     network.update (netParams, snapNextLength);
     snapNextLength = false;
     {
@@ -573,6 +574,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
     const int interval = std::clamp (p.controlInterval, 8, kMaxControlInterval);
     int pos = 0;
     float monoAcc = 0.0f;
+    float osSide[Oversampler::kMaxFactor];
     float osExt[Oversampler::kMaxFactor], osLoop[Oversampler::kMaxFactor], osOut[Oversampler::kMaxFactor];
     static const float zeroNoise[Oversampler::kMaxFactor] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -611,6 +613,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                     else if (interactionMode == InteractionMode::Sync) syncA = exB.wrapped() && interactionAmount > 0.01f;
                 }
                 const float a = filters.at(FilterPosition::ExciterA,exA.next (osExt[k], shared[k], breath, fm, pm, syncA));
+                osSide[k]=.5f*(a-b);
                 float m = filters.at(FilterPosition::Combined,interaction.next (a, b));
                 if (loopToChain && loopDest == LoopDest::ShaperIn) m += osLoop[k];
                 float f;
@@ -629,6 +632,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                 osOut[k] = f;
             }
             float x = decimator.downsample (osOut);
+            if(network.stereoActive())network.setExciterSide(sideDecimator.downsample(osSide));
 
             // ---- dynamics normaliser ----------------------------------------------------
             if (dynAmount > 0.0005f)
@@ -677,7 +681,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
         network.reset();filters.reset();
         exA.reset(); exB.reset();
         interaction.reset(); preShaper.reset(); folder.reset();
-        decimator.reset(); extUp.reset(); loopUp.reset();
+        decimator.reset(); extUp.reset(); loopUp.reset();sideDecimator.reset();
         lastMono = lastFolded = loopRet = 0.0f;
     }
 

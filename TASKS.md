@@ -102,3 +102,9 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - 406 stable parameters. Bounded oversampled contact route connected to both the source reaction and destination injection; CONTACT page with force curve and atomic activity meter.
 - Five focused tests, 486787 checks, zero failures (build/contact-tests.log). Full regression at previous filter checkpoint: 91 tests passing; filter pluginval strictness 10 SUCCESS.
 - Further shared physical models, true stereo, effects/FX and final performance/allocation validation remain in progress.
+
+## Physical stereo checkpoint
+
+- 415 stable parameters. Independent left/right resonators, coupling, excitation/pickup/damping differences, rotation, width and mono bass connected; contextual PHYSICAL page.
+- Five stereo tests: 220685 checks, zero failures. Seven filter regressions: 266281 checks, zero failures. Original source status remains clean.
+- Second network stops in Economy. Comb buffers now reserve oversampled storage only where needed, and unused comb buffers are not cleared on note restart.

@@ -205,6 +205,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/PresetLevelTests.cpp
         Tests/ReliabilityTests.cpp
         Tests/PatchToolsTests.cpp
+        Tests/StereoNetworkTests.cpp
         Tests/CollisionTests.cpp
         Tests/ModularFilterTests.cpp
         Tests/SmokeTests.cpp)

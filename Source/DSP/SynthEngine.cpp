@@ -615,6 +615,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             for (const auto& v : voices)
                 if (v.isActive() && (newest == nullptr || v.getStartOrder() > newest->getStartOrder())) newest = &v;
             filterEnvelope=newest?newest->getEnvLevel():0;
+            vis.stereoLeftEnergy.store(newest?newest->getStereoLeftEnergy():0,std::memory_order_relaxed);vis.stereoRightEnergy.store(newest?newest->getStereoRightEnergy():0,std::memory_order_relaxed);
             vis.collisionActivity.store(newest?newest->getContactActivity():0,std::memory_order_relaxed);
             if (newest != nullptr)
             {
