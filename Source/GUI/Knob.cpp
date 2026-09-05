@@ -72,8 +72,8 @@ void Knob::sliderValueChanged (juce::Slider*)
     else { showValue(); startTimer (1100); }
 }
 
-void Knob::sliderDragStarted (juce::Slider*) { stopTimer(); showValue(); }
-void Knob::sliderDragEnded (juce::Slider*)   { startTimer (900); }
+void Knob::sliderDragStarted (juce::Slider*) { processor.getPatchTools().begin("Edit "+paramID); stopTimer(); showValue(); }
+void Knob::sliderDragEnded (juce::Slider*) { processor.getPatchTools().end(); startTimer(900); }
 void Knob::timerCallback() { stopTimer(); showName(); repaint(); }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +101,9 @@ void Knob::KnobSlider::mouseUp (const juce::MouseEvent& e)
     juce::Slider::mouseUp (e);
 }
 
+void Knob::KnobSlider::mouseDoubleClick(const juce::MouseEvent& e) {owner.processor.getPatchTools().begin("Edit "+owner.paramID);juce::Slider::mouseDoubleClick(e);owner.processor.getPatchTools().end();}
+void Knob::KnobSlider::mouseWheelMove(const juce::MouseEvent& e,const juce::MouseWheelDetails& d) {owner.processor.getPatchTools().begin("Edit "+owner.paramID);juce::Slider::mouseWheelMove(e,d);owner.processor.getPatchTools().end();}
+
 void Knob::showContextMenu()
 {
     auto& learn = processor.getMidiLearn();
@@ -113,6 +116,7 @@ void Knob::showContextMenu()
     menu.addItem (2, mappedCC >= 0 ? "Clear MIDI mapping (CC " + juce::String (mappedCC) + ")" : "No MIDI mapping", mappedCC >= 0);
     menu.addSeparator();
     menu.addItem (3, "Reset to default");
+    menu.addItem (5, "Lock for randomization",true,processor.getPatchTools().isLocked(paramID));
     if (learning) menu.addItem (4, "Cancel learn");
 
     juce::Component::SafePointer<Knob> safe (this);
@@ -122,14 +126,13 @@ void Knob::showContextMenu()
         auto& l = safe->processor.getMidiLearn();
         switch (result)
         {
+            case 5: safe->processor.getPatchTools().setLocked(safe->paramID,!safe->processor.getPatchTools().isLocked(safe->paramID));safe->repaint();break;
             case 1: l.armLearn (safe->paramID); safe->repaint(); break;
             case 2: l.clearMapping (safe->paramID); safe->repaint(); break;
             case 3:
                 if (safe->param != nullptr)
                 {
-                    safe->param->beginChangeGesture();
-                    safe->param->setValueNotifyingHost (safe->param->getDefaultValue());
-                    safe->param->endChangeGesture();
+                    safe->processor.getPatchTools().setParameter(safe->paramID,safe->param->convertFrom0to1(safe->param->getDefaultValue()));
                 }
                 break;
             case 4: l.cancelLearn(); safe->repaint(); break;
@@ -196,6 +199,7 @@ void Knob::resized()
 
 void Knob::paint (juce::Graphics& g)
 {
+    if(processor.getPatchTools().isLocked(paramID)) {g.setColour(theme::teal.withAlpha(.7f));g.drawRoundedRectangle((float)getWidth()-12,4,7,7,1,1);g.drawEllipse((float)getWidth()-11,0,5,7,1);}
     // modulation ring around the knob + MIDI learn indicator
     auto& learn = processor.getMidiLearn();
     const bool learning = learn.isLearning() && learn.getLearningParam() == paramID;

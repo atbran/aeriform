@@ -79,3 +79,13 @@ All edits and builds occur only in D:\dev\build\gpt-aeriform-test. Confirmed ori
 - [ ] Phase 5: class-aware preset metering, full configuration tests, allocation/performance/latency measurements, validators for both targets, docs/screenshots/release artifacts and final tested commit.
 
 Each successfully tested phase receives a focused commit. Document partial or experimental behavior honestly. No silent quality or voice reduction. Ordinary controls edit the selected snapshot endpoint while morphing. Preserve original sounds by defaulting new DSP off; add corrected preset variants where warranted.
+
+## EXP_Aeriform state/performance phase - verified
+
+- Separate EXP_Aeriform VST3 identity (Exaf / com.aeriformaudio.exp-aeriform) and standalone built.
+- 358 stable parameters; state version 3, old state loading tests pass.
+- A/B snapshot capture/load/serialization, explicit endpoint edits, Parameter and Deep effective layers, seeded scoped randomization/mutation and locks, GUI undo/redo, persistent stable-ID favorites and combined search/filter are connected.
+- New PLAY page and global undo/redo; docs/experimental/play.png rendered and visually inspected.
+- Complete regression run: 84 tests, 53468 checks, zero failures. Host check PASSED. Pluginval strictness 10 SUCCESS for EXP_Aeriform.
+- Logs: build/state-verified-tests.log, state-host.log, state-pluginval.log.
+- Known limits: interior Deep blends cannot flatten to one structure (commit disabled); activating Deep on held notes primes notes but cannot reconstruct past physical energy. Existing JUCE MPE locks/allocation still require the real-time audit. Additional modules and final performance matrix remain unimplemented.

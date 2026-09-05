@@ -325,6 +325,13 @@ C('quality', 'quality', 'Quality', 'Master', 'QualityModes', 1, 'Eco: 2x folder 
 # --------------------------------------------------------------------------
 # validation + emit
 # --------------------------------------------------------------------------
+# Experimental additions are appended; every existing index remains stable.
+B('morphOn','morph_on','Morph Enabled','Master',False,'Enable A/B snapshot morphing. Controls edit the selected endpoint.')
+F('morphPosition','morph_position','Morph','Master',0,1,0,'%', 'Percent','Position between snapshot A and B.')
+C('morphMode','morph_mode','Morph Engine','Master','MorphModes',0,'Parameter mode holds selected structural values. Deep mode crossfades two complete engines.')
+F('randomMutation','random_mutation','Mutation','Master',0,1,0.15,'%', 'Percent','Reproducible mutation radius around the current patch.')
+B('randomWild','random_wild','Wild','Master',False,'Expand musical randomization ranges while retaining bounded feedback and protected administration.')
+
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]
 assert len(set(ids)) == len(ids), 'duplicate id'

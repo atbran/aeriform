@@ -35,6 +35,10 @@ public:
                   MidiLearn* midiLearn,
                   bool isNonRealtime);
 
+    using EffectiveValues=std::array<float,(size_t)kNumParams>;
+    void setEffectiveValues(const EffectiveValues* values, bool skipOutputStage=false) noexcept;
+    void processRange(juce::AudioBuffer<float>&,const juce::AudioBuffer<float>*,juce::MidiBuffer&,
+                      const juce::AudioPlayHead::PositionInfo&,MidiLearn*,bool,int midiOffset);
     int getActiveVoiceCount() const noexcept;
 
     /** Snapshot of the current routing (read from the parameters). Message-thread helper for the GUI. */

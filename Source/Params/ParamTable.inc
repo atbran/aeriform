@@ -354,4 +354,9 @@ static const ParamDef kParamDefs[kNumParams] = {
     { P::mod16Dst, "mod16_dst", "Mod 16 Destination", ParamSection::Motion, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ModDests, "Parameter modulated by this slot." },
     { P::mod16Depth, "mod16_depth", "Mod 16 Depth", ParamSection::Motion, ParamKind::Float, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, "%", Fmt::BipolarPercent, ChoiceList::None, "Bipolar modulation depth. Positive raises the destination, negative lowers it." },
     { P::quality, "quality", "Quality", ParamSection::Master, ParamKind::Choice, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::QualityModes, "Eco: 2x folder oversampling, 64-sample control rate. Normal: 2x, 32. High: 4x oversampling of the whole exciter chain." },
+    { P::morphOn, "morph_on", "Morph Enabled", ParamSection::Master, ParamKind::Bool, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::None, "Enable A/B snapshot morphing. Controls edit the selected endpoint." },
+    { P::morphPosition, "morph_position", "Morph", ParamSection::Master, ParamKind::Float, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Position between snapshot A and B." },
+    { P::morphMode, "morph_mode", "Morph Engine", ParamSection::Master, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::MorphModes, "Parameter mode holds selected structural values. Deep mode crossfades two complete engines." },
+    { P::randomMutation, "random_mutation", "Mutation", ParamSection::Master, ParamKind::Float, 0.0f, 1.0f, 0.15f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Reproducible mutation radius around the current patch." },
+    { P::randomWild, "random_wild", "Wild", ParamSection::Master, ParamKind::Bool, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::None, "Expand musical randomization ranges while retaining bounded feedback and protected administration." },
 };

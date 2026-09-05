@@ -8,6 +8,8 @@ PresetManager::PresetManager (juce::AudioProcessorValueTreeState& state) : apvts
     for (auto* p : apvts.processor.getParameters())
         if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p))
             apvts.addParameterListener (rp->paramID, this);
+    favoriteFile=juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory).getChildFile("EXP_Aeriform").getChildFile("favorites.xml");
+    loadFavorites();
     rescan();
 }
 
@@ -21,7 +23,7 @@ PresetManager::~PresetManager()
 juce::File PresetManager::getUserPresetDirectory()
 {
     return juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
-               .getChildFile ("Aeriform").getChildFile ("Presets");
+               .getChildFile ("EXP_Aeriform").getChildFile ("Presets");
 }
 
 void PresetManager::rescan()
@@ -37,6 +39,7 @@ void PresetManager::rescan()
         e.category = factory[(size_t) i].category;
         e.isFactory = true;
         e.factoryIndex = i;
+        e.stableId="factory:"+juce::String(i).paddedLeft('0',4);
         entries.push_back (e);
     }
 
@@ -57,6 +60,7 @@ void PresetManager::rescan()
             {
                 if (xml->hasTagName ("AeriformPreset"))
                 {
+                    e.stableId=presetId(*xml);
                     if (xml->hasAttribute ("name")) e.name = xml->getStringAttribute ("name");
                     if (xml->hasAttribute ("category")) e.category = xml->getStringAttribute ("category");
                 }
@@ -107,6 +111,7 @@ void PresetManager::applyFactoryPreset (const FactoryPreset& preset)
     for (const auto& [id, value] : preset.values)
         setParamValue (id, value);
     applying = false;
+    if(toolsFromXml)toolsFromXml(nullptr);
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +119,7 @@ std::unique_ptr<juce::XmlElement> PresetManager::createPresetXml (const juce::St
 {
     auto xml = std::make_unique<juce::XmlElement> ("AeriformPreset");
     xml->setAttribute ("version", kPresetFormatVersion);
+    xml->setAttribute("uuid",juce::Uuid().toString());
     xml->setAttribute ("name", name);
     xml->setAttribute ("category", category);
     xml->setAttribute ("plugin", "AERIFORM");
@@ -129,6 +135,7 @@ std::unique_ptr<juce::XmlElement> PresetManager::createPresetXml (const juce::St
             e->setAttribute ("value", (double) rp->convertFrom0to1 (rp->getValue()));
         }
     }
+    if(toolsToXml)xml->addChildElement(toolsToXml().release());
     return xml;
 }
 
@@ -150,6 +157,7 @@ bool PresetManager::applyPresetXml (const juce::XmlElement& xml)
         }
     }
     applying = false;
+    if(toolsFromXml)toolsFromXml(xml.getChildByName("PatchTools"));
     return true;
 }
 
@@ -206,6 +214,7 @@ void PresetManager::loadInit()
     applying = true;
     resetAllToDefaults();
     applying = false;
+    if(toolsFromXml)toolsFromXml(nullptr);
     setCurrentName ("Init", "Init", true);
 }
 
@@ -229,6 +238,7 @@ juce::String PresetManager::makeSafeFileName (const juce::String& name)
 bool PresetManager::saveToFile (const juce::File& file, const juce::String& name, const juce::String& category)
 {
     auto xml = createPresetXml (name, category);
+    if(auto existing=juce::XmlDocument::parse(file))xml->setAttribute("uuid",presetId(*existing));
     file.getParentDirectory().createDirectory();
     return xml->writeTo (file, {});
 }
@@ -262,5 +272,23 @@ bool PresetManager::deleteUserPreset (int index)
     rescan();
     notify();
     return true;
+}
+juce::String PresetManager::presetId(const juce::XmlElement& xml) {
+    const auto id=xml.getStringAttribute("uuid");if(id.isNotEmpty())return id;
+    // Legacy files: parameter-content identity survives filename/display-name changes.
+    auto* params=xml.getChildByName("Parameters");
+    return "legacy:"+juce::String::toHexString((juce::int64)(params?params->toString().hashCode64():xml.toString().hashCode64()));
+}
+void PresetManager::loadFavorites() {
+    favorites.clear();if(auto xml=juce::XmlDocument::parse(favoriteFile))
+        if(xml->hasTagName("Favorites"))for(auto* item:xml->getChildWithTagNameIterator("Preset"))favorites.insert(item->getStringAttribute("id"));
+}
+bool PresetManager::setFavorite(const juce::String& id,bool value) {
+    if(id.isEmpty())return false;
+    loadFavorites();auto updated=favorites;if(value)updated.insert(id);else updated.erase(id);
+    juce::XmlElement xml("Favorites");xml.setAttribute("version",1);
+    for(const auto& entry:updated)xml.createNewChildElement("Preset")->setAttribute("id",entry);
+    if(!favoriteFile.getParentDirectory().createDirectory().wasOk()||!favoriteFile.replaceWithText(xml.toString()))return false;
+    favorites=std::move(updated);notify();return true;
 }
 } // namespace aeriform

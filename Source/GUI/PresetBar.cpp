@@ -17,12 +17,15 @@ PresetBar::PresetBar (AeriformProcessor& p) : processor (p)
     saveAsButton.setTooltip ("Save the current sound as a new user preset");
     initButton.setTooltip ("Reset every parameter to the neutral initialisation patch");
 
-    prevButton.onClick = [this] { processor.getPresetManager().loadPrevious(); };
-    nextButton.onClick = [this] { processor.getPresetManager().loadNext(); };
+    prevButton.onClick = [this] { processor.getPatchTools().perform("Previous preset",[&]{processor.getPresetManager().loadPrevious();}); };
+    nextButton.onClick = [this] { processor.getPatchTools().perform("Next preset",[&]{processor.getPresetManager().loadNext();}); };
     nameButton.onClick = [this] { showPresetMenu(); };
     saveButton.onClick = [this] { processor.getPresetManager().saveCurrent(); refresh(); };
     saveAsButton.onClick = [this] { showSaveAsDialog(); };
-    initButton.onClick = [this] { processor.getPresetManager().loadInit(); };
+    initButton.onClick = [this] { processor.getPatchTools().perform("Initialize patch",[&]{processor.getPresetManager().loadInit();}); };
+    addAndMakeVisible(favoriteButton);addAndMakeVisible(favoritesOnly);addAndMakeVisible(search);
+    search.setTextToShowWhenEmpty("Search presets",textDim);search.setTooltip("Search by preset name or category, combined with Favorites filter");
+    favoriteButton.onClick=[this]{auto& pm=processor.getPresetManager();int i=pm.getCurrentIndex();if(i>=0&&i<(int)pm.getEntries().size())processor.getPatchTools().toggleFavorite(pm.getEntries()[(size_t)i].stableId);refresh();};
     refresh();
 }
 
@@ -35,6 +38,9 @@ PresetBar::~PresetBar()
 void PresetBar::refresh()
 {
     auto& pm = processor.getPresetManager();
+    const int index=pm.getCurrentIndex();
+    const bool starred=index>=0&&index<(int)pm.getEntries().size()&&pm.isFavorite(pm.getEntries()[(size_t)index].stableId);
+    favoriteButton.setButtonText(starred?"STARRED":"STAR");
     nameButton.setButtonText ((pm.isDirty() ? "* " : "") + pm.getCurrentName());
     repaint();
 }
@@ -53,6 +59,8 @@ void PresetBar::resized()
     r.removeFromRight (4);
     saveButton.setBounds (r.removeFromRight (54));
     r.removeFromRight (6);
+    favoriteButton.setBounds(r.removeFromLeft(64));r.removeFromLeft(4);
+    favoritesOnly.setBounds(r.removeFromRight(88));search.setBounds(r.removeFromRight(130));r.removeFromRight(4);
     nameButton.setBounds (r);
 }
 
@@ -80,7 +88,9 @@ void PresetBar::showPresetMenu()
     {
         menu.addSectionHeader (cat);
         for (int i = 0; i < (int) entries.size(); ++i)
-            if (entries[(size_t) i].category == cat)
+            if (entries[(size_t) i].category == cat
+                && (!favoritesOnly.getToggleState() || pm.isFavorite(entries[(size_t)i].stableId))
+                && (search.getText().isEmpty() || entries[(size_t)i].name.containsIgnoreCase(search.getText()) || cat.containsIgnoreCase(search.getText())))
                 menu.addItem (1000 + i, entries[(size_t) i].name, true, i == pm.getCurrentIndex());
     }
     menu.addSeparator();
@@ -95,7 +105,7 @@ void PresetBar::showPresetMenu()
     {
         if (safe == nullptr || result == 0) return;
         auto& manager = safe->processor.getPresetManager();
-        if (result >= 1000) { manager.loadPreset (result - 1000); return; }
+        if (result >= 1000) { safe->processor.getPatchTools().perform("Load preset",[&]{manager.loadPreset (result - 1000);}); return; }
         switch (result)
         {
             case 1: safe->importPreset(); break;
@@ -143,7 +153,7 @@ void PresetBar::importPreset()
         if (safe == nullptr) return;
         const auto file = fc.getResult();
         if (file.existsAsFile())
-            safe->processor.getPresetManager().loadFromFile (file);
+            safe->processor.getPatchTools().perform("Import preset",[&]{safe->processor.getPresetManager().loadFromFile (file);});
     });
 }
 

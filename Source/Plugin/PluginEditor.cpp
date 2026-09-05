@@ -1,17 +1,18 @@
 #include "PluginEditor.h"
 #include "../GUI/Theme.h"
 #include <cstdlib>
+#include "../GUI/PerformancePage.h"
 
 using namespace aeriform;
 using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE" })
+      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "PLAY" })
 {
     setLookAndFeel (&lookAndFeel);
 
-    titleLabel.setText ("AERIFORM", juce::dontSendNotification);
+    titleLabel.setText ("EXP_Aeriform", juce::dontSendNotification);
     titleLabel.setFont (titleFont (22.0f));
     titleLabel.setColour (juce::Label::textColourId, copperBright);
     subtitleLabel.setText ("COMPLEX EXCITER / RESONATOR NETWORK SYNTHESIZER", juce::dontSendNotification);
@@ -29,6 +30,11 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     pages[2] = std::make_unique<NetworkPage> (p);
     pages[3] = std::make_unique<MotionPage> (p);
     pages[4] = std::make_unique<SpacePage> (p);
+    pages[5] = std::make_unique<PerformancePage>(p);
+    undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
+    redoButton.onClick=[this]{processor.getPatchTools().undo.redo();};
+    content.addAndMakeVisible(undoButton);content.addAndMakeVisible(redoButton);
+    setWantsKeyboardFocus(true);
 
     for (auto* c : std::initializer_list<juce::Component*> { &titleLabel, &subtitleLabel, &statusLabel, &presetBar, &scaleButton, &tabs })
         content.addAndMakeVisible (c);
@@ -43,7 +49,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     currentPage = -1;
     int initialPage = processor.getEditorPage();
     if (const char* env = std::getenv ("AERIFORM_PAGE")) initialPage = std::atoi (env);   // development hook (screenshots)
-    showPage (juce::jlimit (0, 4, initialPage));
+    showPage (juce::jlimit (0, 5, initialPage));
 
     processor.getPresetManager().onPresetChanged = [this] { presetDirtyFlag = true; };
 
@@ -118,15 +124,16 @@ void AeriformEditor::layoutContent()
     // ---- top bar: row 1 = title, page tabs, status, size; row 2 = subtitle + the full-width preset browser
     auto top = r.removeFromTop (56);
     auto row1 = top.removeFromTop (28);
-    titleLabel.setBounds (row1.removeFromLeft (250));
+    titleLabel.setBounds (row1.removeFromLeft (210));
     scaleButton.setBounds (row1.removeFromRight (64).reduced (0, 1));
     row1.removeFromRight (8);
     statusLabel.setBounds (row1.removeFromRight (200));
     row1.removeFromRight (12);
-    tabs.setBounds (row1.removeFromRight (400).reduced (0, 1));
+    tabs.setBounds (row1.removeFromRight (540).reduced (0, 1));
     top.removeFromTop (2);
     auto row2 = top.removeFromTop (26);
-    subtitleLabel.setBounds (row2.removeFromLeft (250));
+    subtitleLabel.setVisible(false);
+    undoButton.setBounds(row2.removeFromLeft(58));row2.removeFromLeft(4);redoButton.setBounds(row2.removeFromLeft(58));row2.removeFromLeft(12);
     presetBar.setBounds (row2.reduced (0, 1));
     r.removeFromTop (6);
 
@@ -153,6 +160,7 @@ void AeriformEditor::Content::resized() {}
 // ---------------------------------------------------------------------------
 void AeriformEditor::timerCallback()
 {
+    undoButton.setEnabled(processor.getPatchTools().undo.canUndo());redoButton.setEnabled(processor.getPatchTools().undo.canRedo());
     // modulation rings of the visible page
     auto config = processor.getEngine().getModConfig();
     processor.getVisualizerModel().readLiveMod (liveMod);
@@ -188,4 +196,10 @@ void AeriformEditor::timerCallback()
     if (lim < 0.98f) status += "  LIM";
     statusLabel.setText (status, juce::dontSendNotification);
     statusLabel.setColour (juce::Label::textColourId, (lim < 0.98f || gov < 0.98f) ? amber : textSecondary);
+}
+
+bool AeriformEditor::keyPressed(const juce::KeyPress& key) {
+    if(!key.getModifiers().isCtrlDown())return false;
+    const int code=key.getKeyCode();if(code=='Z'||code=='z'){if(key.getModifiers().isShiftDown())processor.getPatchTools().undo.redo();else processor.getPatchTools().undo.undo();return true;}
+    if(code=='Y'||code=='y'){processor.getPatchTools().undo.redo();return true;}return false;
 }

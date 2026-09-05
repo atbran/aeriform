@@ -30,6 +30,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     Noise sharedRng;
 
     VoiceParams params;
+    const SynthEngine::EffectiveValues* effective=nullptr;
+    bool skipOutputStage=false;
     std::array<std::atomic<float>*, (size_t) kNumParams> atomics {};
     ModSources globalSources {};
     ModValues globalMod {};
@@ -89,6 +91,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
     float raw (P p) const noexcept
     {
+        if (effective != nullptr) return (*effective)[(size_t)p];
         auto* a = atomics[(size_t) p];
         return a != nullptr ? a->load (std::memory_order_relaxed) : 0.0f;
     }
@@ -180,7 +183,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     void readParams (double bpm)
     {
         for (int i = 0; i < kNumParams; ++i)
-            params.v[(size_t) i] = atomics[(size_t) i]->load (std::memory_order_relaxed);
+            params.v[(size_t) i] = raw((P)i);
         params.tempoBpm = bpm;
         params.derive();
 
@@ -634,12 +637,14 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                           params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);
 
+        if (!skipOutputStage) {
         output.setParams (params.get (P::outGain), params.get (P::outHighpass), params.getb (P::limiterOn));
         output.process (L, R, numSamples);
         const auto& meter=output.getMeter();
         vis.preLimiterPeak.store(meter.prePeak); vis.preLimiterRms.store(meter.preRms); vis.preLimiterMean.store(meter.preMean);
         vis.postLimiterRms.store(meter.postRms); vis.postLimiterMean.store(meter.postMean);
         vis.limiterFraction.store(meter.limitedFraction); vis.ceilingFraction.store(meter.ceilingFraction);
+        }
 
         // ---- numerical safety net -------------------------------------------------------
         bool finite = true;
@@ -746,6 +751,11 @@ void SynthEngine::process (juce::AudioBuffer<float>& output, const juce::AudioBu
     impl->process (output, externalInput, midi, position, midiLearn, isNonRealtime);
 }
 
+void SynthEngine::setEffectiveValues(const EffectiveValues* v,bool skip) noexcept {impl->effective=v;impl->skipOutputStage=skip;}
+void SynthEngine::processRange(juce::AudioBuffer<float>& out,const juce::AudioBuffer<float>* in,juce::MidiBuffer& midi,
+                              const juce::AudioPlayHead::PositionInfo& pos,MidiLearn* learn,bool offline,int offset) {
+    impl->process(out,in,midi,pos,learn,offline,offset);
+}
 int SynthEngine::getActiveVoiceCount() const noexcept { return impl->activeVoiceCount(); }
 
 dsp::ModConfig SynthEngine::getModConfig() const
@@ -754,9 +764,9 @@ dsp::ModConfig SynthEngine::getModConfig() const
     for (int i = 0; i < ids::numModSlots; ++i)
     {
         auto& s = cfg.slots[(size_t) i];
-        s.source = (ModSource) juce::jlimit (0, (int) ModSource::Count - 1, (int) std::lround (impl->raw (ids::modP (i + 1, ids::ModField::Src))));
-        s.dest = (ModDest) juce::jlimit (0, (int) ModDest::Count - 1, (int) std::lround (impl->raw (ids::modP (i + 1, ids::ModField::Dst))));
-        s.depth = impl->raw (ids::modP (i + 1, ids::ModField::Depth));
+        s.source = (ModSource) juce::jlimit (0, (int) ModSource::Count - 1, (int) std::lround (impl->atomics[(size_t)ids::modP(i+1,ids::ModField::Src)]->load()));
+        s.dest = (ModDest) juce::jlimit (0, (int) ModDest::Count - 1, (int) std::lround (impl->atomics[(size_t)ids::modP(i+1,ids::ModField::Dst)]->load()));
+        s.depth = impl->atomics[(size_t)ids::modP(i+1,ids::ModField::Depth)]->load();
     }
     return cfg;
 }

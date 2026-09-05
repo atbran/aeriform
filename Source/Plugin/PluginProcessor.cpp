@@ -13,8 +13,12 @@ AeriformProcessor::AeriformProcessor()
       apvts (*this, nullptr, "AeriformParams", aeriform::createParameterLayout()),
       engine (apvts, visualizer),
       presetManager (apvts),
-      midiLearn (apvts)
+      midiLearn (apvts),
+      patchTools (*this),
+      morphEngine(apvts,morphVisualizer)
 {
+    presetManager.toolsToXml=[this]{return patchTools.toXml();};
+    presetManager.toolsFromXml=[this](const juce::XmlElement* xml){patchTools.fromXml(xml);};
 }
 
 AeriformProcessor::~AeriformProcessor() = default;
@@ -24,6 +28,10 @@ void AeriformProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
     engine.prepare (sampleRate, juce::jmax (1, samplesPerBlock));
+    preparedBlock=juce::jmax(1,samplesPerBlock);
+    morphEngine.prepare(sampleRate,preparedBlock);morphOutput.prepare(sampleRate);patchTools.prepare(sampleRate);
+    morphBuffer.setSize(2,preparedBlock);morphInput.setSize(2,preparedBlock);primeMidi.ensureSize(65536);
+    heldNotes.fill(0);wasDeep=false;
     setLatencySamples (0);
 }
 
@@ -33,7 +41,7 @@ void AeriformProcessor::releaseResources()
 
 void AeriformProcessor::reset()
 {
-    engine.reset();
+    engine.reset();morphEngine.reset();morphOutput.reset();heldNotes.fill(0);wasDeep=false;
 }
 
 bool AeriformProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -73,7 +81,11 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     // Render into the output bus. The engine writes (does not accumulate) into
     // the output buffer, so the input copy is consumed by the engine first.
     auto outBus = getBusBuffer (buffer, false, 0);
-    engine.process (outBus, extPtr, midi, position, &midiLearn, isNonRealtime());
+    processMorph(outBus,extPtr,midi,position);
+    for(const auto event:midi) {if(event.numBytes>3)continue;auto m=event.getMessage();
+        if(m.isNoteOnOrOff())heldNotes[(size_t)((m.getChannel()-1)*128+m.getNoteNumber())]=m.isNoteOn()?m.getVelocity():0;
+        else if(m.isAllNotesOff()||m.isAllSoundOff())heldNotes.fill(0);
+    }
 
     for (int ch = outBus.getNumChannels(); ch < totalOut; ++ch)
         buffer.clear (ch, 0, numSamples);
@@ -83,6 +95,50 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     const double blockSeconds = (double) numSamples / juce::jmax (1.0, currentSampleRate);
     const float load = (float) (elapsed / juce::jmax (1.0e-9, blockSeconds));
     cpuLoad.store (0.9f * cpuLoad.load (std::memory_order_relaxed) + 0.1f * load, std::memory_order_relaxed);
+}
+
+void AeriformProcessor::processMorph(juce::AudioBuffer<float>& out,const juce::AudioBuffer<float>* input,juce::MidiBuffer& midi,const juce::AudioPlayHead::PositionInfo& position) {
+    if(!patchTools.enabled()) {
+        engine.setEffectiveValues(nullptr);engine.process(out,input,midi,position,&midiLearn,isNonRealtime());wasDeep=false;return;
+    }
+    const bool deep=patchTools.deep();
+    if(deep&&!wasDeep) {
+        morphEngine.reset();primeMidi.clear();
+        for(int i=0;i<2048;++i)if(heldNotes[(size_t)i])primeMidi.addEvent(juce::MidiMessage::noteOn(i/128+1,i%128,(juce::uint8)heldNotes[(size_t)i]),0);
+        // Existing held notes enter the newly activated engine before this block's events.
+        if(!primeMidi.isEmpty()) {
+            patchTools.evaluate(0,effectiveA,effectiveB);morphEngine.setEffectiveValues(&effectiveB,true);
+            juce::AudioBuffer<float> silent(morphBuffer.getArrayOfWritePointers(),2,1);silent.clear();
+            morphEngine.process(silent,nullptr,primeMidi,position,nullptr,isNonRealtime());
+        }
+    }
+    for(int start=0;start<out.getNumSamples();start+=preparedBlock) {
+        const int n=std::min(preparedBlock,out.getNumSamples()-start);
+        const int inputChannels=input?std::min(2,input->getNumChannels()):0;
+        for(int c=0;c<2;++c)if(inputChannels>0)morphInput.copyFrom(c,0,*input,std::min(c,inputChannels-1),start,n);else morphInput.clear(c,0,n);
+        const float previous=patchTools.position();patchTools.evaluate(n,effectiveA,effectiveB);
+        juce::AudioBuffer<float> a(out.getArrayOfWritePointers(),out.getNumChannels(),start,n);
+        juce::AudioBuffer<float> b(morphBuffer.getArrayOfWritePointers(),out.getNumChannels(),n);
+        juce::AudioBuffer<float> ext(morphInput.getArrayOfWritePointers(),inputChannels,n);
+        engine.setEffectiveValues(&effectiveA,deep);
+        engine.processRange(a,inputChannels?&ext:nullptr,midi,position,&midiLearn,isNonRealtime(),start);
+        if(deep) {
+            morphEngine.setEffectiveValues(&effectiveB,true);
+            morphEngine.processRange(b,inputChannels?&ext:nullptr,midi,position,nullptr,isNonRealtime(),start);
+            for(int i=0;i<n;++i) {
+                float t=previous+(patchTools.position()-previous)*(float)(i+1)/(float)n;
+                const float ga=std::cos(t*juce::MathConstants<float>::halfPi),gb=std::sin(t*juce::MathConstants<float>::halfPi);
+                for(int c=0;c<a.getNumChannels();++c)a.setSample(c,i,ga*a.getSample(c,i)+gb*b.getSample(c,i));
+            }
+            if(a.getNumChannels()==1)morphBuffer.copyFrom(1,0,a,0,0,n);
+            morphOutput.setParams(effectiveA[(size_t)aeriform::P::outGain],effectiveA[(size_t)aeriform::P::outHighpass],effectiveA[(size_t)aeriform::P::limiterOn]>0.5f);
+            morphOutput.process(a.getWritePointer(0),a.getNumChannels()>1?a.getWritePointer(1):morphBuffer.getWritePointer(1),n);
+            const auto& m=morphOutput.getMeter();visualizer.limiterGain.store(morphOutput.getLimiterGain());
+            visualizer.preLimiterPeak.store(m.prePeak);visualizer.preLimiterRms.store(m.preRms);visualizer.postLimiterRms.store(m.postRms);
+            visualizer.limiterFraction.store(m.limitedFraction);visualizer.ceilingFraction.store(m.ceilingFraction);
+        }
+    }
+    engine.setEffectiveValues(nullptr);morphEngine.setEffectiveValues(nullptr);wasDeep=deep;
 }
 
 void AeriformProcessor::processBlockBypassed (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
@@ -108,6 +164,7 @@ std::unique_ptr<juce::XmlElement> AeriformProcessor::createStateXml()
     if (auto params = apvts.copyState().createXml())
         xml->addChildElement (params.release());
     xml->addChildElement (midiLearn.toXml().release());
+    xml->addChildElement (patchTools.toXml().release());
     return xml;
 }
 
@@ -130,6 +187,7 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
     }
 
     midiLearn.fromXml (xml.getChildByName ("MidiLearn"));
+    patchTools.fromXml(xml.getChildByName("PatchTools"));
     setEditorScale ((float) xml.getDoubleAttribute ("editorScale", 1.0));
     setEditorPage (xml.getIntAttribute ("editorPage", 0));
     presetManager.setCurrentName (xml.getStringAttribute ("presetName", "Init"),

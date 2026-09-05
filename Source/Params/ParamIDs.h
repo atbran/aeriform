@@ -360,6 +360,11 @@ enum class P : int
     mod16Dst,
     mod16Depth,
     quality,
+    morphOn,
+    morphPosition,
+    morphMode,
+    randomMutation,
+    randomWild,
     Count
 };
 
@@ -721,6 +726,11 @@ inline constexpr const char* mod16Src = "mod16_src";
 inline constexpr const char* mod16Dst = "mod16_dst";
 inline constexpr const char* mod16Depth = "mod16_depth";
 inline constexpr const char* quality = "quality";
+inline constexpr const char* morphOn = "morph_on";
+inline constexpr const char* morphPosition = "morph_position";
+inline constexpr const char* morphMode = "morph_mode";
+inline constexpr const char* randomMutation = "random_mutation";
+inline constexpr const char* randomWild = "random_wild";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1076,6 +1086,11 @@ inline constexpr const char* const all[kNumParams] = {
     "mod16_dst",
     "mod16_depth",
     "quality",
+    "morph_on",
+    "morph_position",
+    "morph_mode",
+    "random_mutation",
+    "random_wild",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

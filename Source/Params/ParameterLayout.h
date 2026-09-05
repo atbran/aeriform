@@ -94,7 +94,7 @@ enum class ChoiceList
 {
     None, LfoShapes, LfoModes, SyncDivs, ResTypes, VoiceModes, ModSources, ModDests, ExciterModels, RetrigModes,
     InteractionModes, PreFilterTypes, ShaperOrders, FoldModes, Polarities, InjectPoints, OutputTaps, LoopSources,
-    LoopDests, NetModes, QualityModes
+    LoopDests, NetModes, QualityModes, MorphModes
 };
 
 /** One row of the generated parameter table. */
@@ -146,5 +146,5 @@ const juce::StringArray& choiceStrings (ChoiceList list);
 
 /** Current state-format version written into saved state / preset files.
     1 = v0.1 (single exciter / single resonator), 2 = v2.1 (dual exciters, folder, network). */
-inline constexpr int kStateVersion = 2;
+inline constexpr int kStateVersion = 3;
 } // namespace aeriform

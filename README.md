@@ -726,3 +726,9 @@ licence**. See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for details,
 including the splash-screen rule for JUCE Personal. All DSP in this repository
 (oscillators, noise models, physical exciters, folder functions, halfband
 design, resonator models, network) is original work written for AERIFORM.
+
+## EXP_Aeriform experimental branch
+
+This isolated development branch adds the PLAY snapshot/randomizer page, A/B Parameter and Deep Morph, explicit GUI undo/redo, seeded mutation with locks, and persistent favorite presets. The VST3 is named EXP_Aeriform with an independent identifier. All original factory presets remain present. Experimental user presets use Documents/EXP_Aeriform/Presets.
+
+Read docs/PRESET_MORPH.md and docs/RANDOMIZER.md for behavior and limitations. State format 3 loads earlier states and preserves all original parameter IDs. The requested network, modular filters, advanced effects and FX target are subsequent implementation phases; they are not yet present in this checkpoint.

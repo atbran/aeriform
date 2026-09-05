@@ -156,6 +156,7 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::LoopDests:        return choices::loopDests();
         case ChoiceList::NetModes:         return choices::netModes();
         case ChoiceList::QualityModes:     return choices::qualityModes();
+        case ChoiceList::MorphModes: { static const juce::StringArray v { "Parameter", "Deep" }; return v; }
         case ChoiceList::None:
         default:
         {

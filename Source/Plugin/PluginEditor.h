@@ -21,6 +21,7 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    bool keyPressed(const juce::KeyPress&) override;
 
     /** Shows a page (0 = MAIN .. 4 = SPACE). */
     void showPage (int index);
@@ -47,9 +48,10 @@ private:
     aeriform::PresetBar presetBar;
     juce::TextButton scaleButton { "100 %" };
     aeriform::PageTabs tabs;
+    juce::TextButton undoButton{"UNDO"},redoButton{"REDO"};
 
     // pages
-    std::array<std::unique_ptr<aeriform::Page>, 5> pages;
+    std::array<std::unique_ptr<aeriform::Page>, 6> pages;
     int currentPage = 0;
 
     float scale = 1.0f;

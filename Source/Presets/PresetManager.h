@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "FactoryPresets.h"
+#include <set>
 
 namespace aeriform
 {
@@ -26,6 +27,7 @@ public:
         bool isFactory = true;
         int factoryIndex = -1;
         juce::File file;
+        juce::String stableId;
     };
 
     explicit PresetManager (juce::AudioProcessorValueTreeState& state);
@@ -63,6 +65,12 @@ public:
     void setCurrentName (const juce::String& name, const juce::String& category, bool markClean);
 
     static juce::File getUserPresetDirectory();
+    bool isFavorite(const juce::String& id) const {return favorites.count(id)>0;}
+    bool setFavorite(const juce::String&,bool);
+    void setFavoriteStorage(const juce::File& file) {favoriteFile=file;loadFavorites();}
+    const juce::File& getFavoriteStorage() const {return favoriteFile;}
+    std::function<std::unique_ptr<juce::XmlElement>()> toolsToXml;
+    std::function<void(const juce::XmlElement*)> toolsFromXml;
 
     /** Called on the message thread whenever the current preset (or dirty state) changes. */
     std::function<void()> onPresetChanged;
@@ -70,6 +78,10 @@ public:
 private:
     juce::AudioProcessorValueTreeState& apvts;
     std::vector<Entry> entries;
+    std::set<juce::String> favorites;
+    juce::File favoriteFile;
+    void loadFavorites();
+    static juce::String presetId(const juce::XmlElement&);
     int currentIndex = 0;
     juce::String currentName { "Init" };
     juce::String currentCategory { "Init" };

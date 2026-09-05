@@ -136,7 +136,7 @@ AERIFORM_TEST (v02_state_round_trips_every_new_parameter)
     }
     auto xml = a.processor.createStateXml();
     CHECK (xml->getIntAttribute ("version") == kStateVersion);
-    CHECK (kStateVersion == 2);
+    CHECK (kStateVersion == 3);
 }
 
 AERIFORM_TEST (existing_factory_presets_still_load_and_sound_with_the_new_engine)

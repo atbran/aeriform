@@ -21,6 +21,9 @@ public:
 private:
     AeriformProcessor& processor;
     juce::TextButton prevButton { "<" }, nextButton { ">" }, nameButton, saveButton { "SAVE" }, saveAsButton { "SAVE AS" }, initButton { "INIT" };
+    juce::TextButton favoriteButton{"STAR"};
+    juce::ToggleButton favoritesOnly{"Favorites"};
+    juce::TextEditor search;
     std::unique_ptr<juce::FileChooser> chooser;
     std::unique_ptr<juce::AlertWindow> saveDialog;
 

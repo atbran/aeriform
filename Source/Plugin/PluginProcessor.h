@@ -6,6 +6,8 @@
 #include "../Presets/PresetManager.h"
 #include "../MIDI/MidiLearn.h"
 #include "../Visualization/VisualizerModel.h"
+#include "../State/PatchStateManager.h"
+#include "../DSP/Effects/OutputStage.h"
 
 class AeriformProcessor : public juce::AudioProcessor
 {
@@ -49,10 +51,12 @@ public:
     aeriform::MidiLearn& getMidiLearn() noexcept { return midiLearn; }
     aeriform::VisualizerModel& getVisualizerModel() noexcept { return visualizer; }
 
+    aeriform::PatchStateManager& getPatchTools() noexcept { return patchTools; }
+
     float getEditorScale() const noexcept { return editorScale.load(); }
     void setEditorScale (float s) noexcept { editorScale.store (juce::jlimit (0.5f, 3.0f, s)); }
     int  getEditorPage() const noexcept { return editorPage.load(); }
-    void setEditorPage (int p) noexcept { editorPage.store (juce::jlimit (0, 4, p)); }
+    void setEditorPage (int p) noexcept { editorPage.store (juce::jlimit (0, 5, p)); }
 
     /** CPU load of the last blocks as a fraction of real time (0..1+). Audio thread writes, GUI reads. */
     float getCpuLoad() const noexcept { return cpuLoad.load(); }
@@ -74,8 +78,19 @@ private:
     aeriform::SynthEngine engine;
     aeriform::PresetManager presetManager;
     aeriform::MidiLearn midiLearn;
+    aeriform::PatchStateManager patchTools;
+    aeriform::VisualizerModel morphVisualizer;
+    aeriform::SynthEngine morphEngine;
+    aeriform::dsp::OutputStage morphOutput;
+    juce::AudioBuffer<float> morphBuffer, morphInput;
+    juce::MidiBuffer primeMidi;
+    std::array<unsigned char,2048> heldNotes{};
+    aeriform::PatchStateManager::Values effectiveA{},effectiveB{};
+    bool wasDeep=false;
+    int preparedBlock=512;
+    void processMorph(juce::AudioBuffer<float>&,const juce::AudioBuffer<float>*,juce::MidiBuffer&,const juce::AudioPlayHead::PositionInfo&);
     std::atomic<float> editorScale { 1.0f };
-    std::atomic<int> editorPage { 0 };
+    std::atomic<int> editorPage { 5 };
     std::atomic<float> cpuLoad { 0.0f };
     double currentSampleRate = 44100.0;
 

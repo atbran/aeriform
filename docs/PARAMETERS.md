@@ -409,3 +409,8 @@ Generated from the parameter layout (`AeriformTests --params`).
 | ID | Name | Range | Default | Description |
 |---|---|---|---|---|
 | `quality` | Quality | Eco / Normal / High | Normal | Eco: 2x folder oversampling, 64-sample control rate. Normal: 2x, 32. High: 4x oversampling of the whole exciter chain. |
+| `morph_on` | Morph Enabled | off / on | off | Enable A/B snapshot morphing. Controls edit the selected endpoint. |
+| `morph_position` | Morph | 0 % .. 100 % | 0 % | Position between snapshot A and B. |
+| `morph_mode` | Morph Engine | Parameter / Deep | Parameter | Parameter mode holds selected structural values. Deep mode crossfades two complete engines. |
+| `random_mutation` | Mutation | 0 % .. 100 % | 15 % | Reproducible mutation radius around the current patch. |
+| `random_wild` | Wild | off / on | off | Expand musical randomization ranges while retaining bounded feedback and protected administration. |

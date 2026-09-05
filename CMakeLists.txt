@@ -38,18 +38,18 @@ if(APPLE)
 endif()
 
 juce_add_plugin(Aeriform
-    PRODUCT_NAME                "AERIFORM"
+    PRODUCT_NAME                "EXP_Aeriform"
     COMPANY_NAME                "Aeriform Audio"
     COMPANY_WEBSITE             "https://example.invalid/aeriform"
-    BUNDLE_ID                   "com.aeriformaudio.aeriform"
+    BUNDLE_ID                   "com.aeriformaudio.exp-aeriform"
     PLUGIN_MANUFACTURER_CODE    Aerf
-    PLUGIN_CODE                 Aefm
+    PLUGIN_CODE                 Exaf
     FORMATS                     ${AERIFORM_FORMATS}
     IS_SYNTH                    TRUE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           FALSE
     IS_MIDI_EFFECT              FALSE
-    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     ${AERIFORM_COPY_PLUGIN}
     VST3_CATEGORIES             Instrument Synth
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
@@ -58,6 +58,7 @@ juce_add_plugin(Aeriform
 juce_generate_juce_header(Aeriform)
 
 set(AERIFORM_SOURCES
+    Source/State/PatchStateManager.cpp
     Source/Plugin/PluginProcessor.cpp
     Source/Plugin/PluginEditor.cpp
     Source/Params/ParameterLayout.cpp
@@ -81,6 +82,7 @@ set(AERIFORM_SOURCES
     Source/GUI/PresetBar.cpp
     Source/GUI/ModMatrixPanel.cpp
     Source/GUI/Displays.cpp
+    Source/GUI/PerformancePage.cpp
     Source/GUI/Pages.cpp
     Source/GUI/Panels/ExciterSlotPanel.cpp
     Source/GUI/Panels/ExcitersOverviewPanel.cpp
@@ -199,6 +201,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/ProfileTests.cpp
         Tests/PresetLevelTests.cpp
         Tests/ReliabilityTests.cpp
+        Tests/PatchToolsTests.cpp
         Tests/SmokeTests.cpp)
     target_include_directories(AeriformTests PRIVATE
         Source Tests
