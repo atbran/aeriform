@@ -40,6 +40,9 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     StereoDelay delay;
     FdnReverb reverb;
     OutputStage output;
+    ModularFilters globalFilters;
+    std::vector<ModularFilters::FrameWeights> filterFrames;
+    float filterNote=60,filterEnvelope=0;
     OnePole sidechainFollower;
     float sidechainEnv = 0.0f;
 
@@ -117,7 +120,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         chorus.prepare (sr);
         delay.prepare (sr);
         reverb.prepare (sr);
-        output.prepare (sr);
+        output.prepare (sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
         noteStackSize = 0;
@@ -137,7 +140,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         chorus.reset();
         delay.reset();
         reverb.reset();
-        output.reset();
+        output.reset();globalFilters.reset();
         couplingIn = 0.0f;
     }
 
@@ -447,6 +450,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     // ---------------------------------------------------------------------
     void handleMidi (const juce::MidiMessage& m, MidiLearn* learn)
     {
+        if(m.isNoteOn())filterNote=(float)m.getNoteNumber();
         if (m.isController())
         {
             const int cc = m.getControllerNumber();
@@ -610,6 +614,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             const Voice* newest = nullptr;
             for (const auto& v : voices)
                 if (v.isActive() && (newest == nullptr || v.getStartOrder() > newest->getStartOrder())) newest = &v;
+            filterEnvelope=newest?newest->getEnvLevel():0;
             if (newest != nullptr)
             {
                 gs[(size_t) ModSource::AmpEnv] = newest->getEnvLevel();
@@ -621,6 +626,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         float* L = mixBuffer.getWritePointer (0);
         float* R = mixBuffer.getWritePointer (1);
 
+        globalFilters.update(params,filterNote,filterEnvelope,numSamples);
+        for(int i=0;i<numSamples;++i){globalFilters.advance();filterFrames[(size_t)i]=globalFilters.weights();L[i]=globalFilters.atWeighted(FilterPosition::PreEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PreEffects,R[i],3,filterFrames[(size_t)i]);}
         chorus.setParams (clamp01 (params.get (P::chorusMix) + globalMod[(size_t) ModDest::ChorusMix]), params.get (P::chorusRate),
                           params.get (P::chorusDepth), params.get (P::chorusWidth));
         chorus.process (L, R, numSamples);
@@ -637,6 +644,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                           params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);
 
+        for(int i=0;i<numSamples;++i){L[i]=globalFilters.atWeighted(FilterPosition::PostEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PostEffects,R[i],3,filterFrames[(size_t)i]);}
         if (!skipOutputStage) {
         output.setParams (params.get (P::outGain), params.get (P::outHighpass), params.getb (P::limiterOn));
         output.process (L, R, numSamples);

@@ -10,3 +10,5 @@ out/
 Thumbs.db
 .DS_Store
 external/JUCE/
+
+__pycache__/

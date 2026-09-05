@@ -121,7 +121,7 @@ void Resonator::update (const ResonatorParams& p, bool snapLength)
 
     // ---- tuning: compensate the loop filters' phase delay ----------------------------
     const float omega = kTwoPi * f0 / sampleRate;
-    const float tau = loopPhaseDelay (omega);
+    const float tau = loopPhaseDelay (omega)+p.additionalPhaseDelay;
     targetLen = std::clamp (periodSamples - tau, 2.0f, (float) delay.getMaxDelay());
     if (snapLength) delayLen = targetLen;
 

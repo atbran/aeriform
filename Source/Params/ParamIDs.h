@@ -365,6 +365,42 @@ enum class P : int
     morphMode,
     randomMutation,
     randomWild,
+    filter1On,
+    filter1Position,
+    filter1Type,
+    filter1Cutoff,
+    filter1Resonance,
+    filter1Drive,
+    filter1Keytrack,
+    filter1Env,
+    filter1Morph,
+    filter1Slope,
+    filter1Vowel,
+    filter1Mix,
+    filter2On,
+    filter2Position,
+    filter2Type,
+    filter2Cutoff,
+    filter2Resonance,
+    filter2Drive,
+    filter2Keytrack,
+    filter2Env,
+    filter2Morph,
+    filter2Slope,
+    filter2Vowel,
+    filter2Mix,
+    filter3On,
+    filter3Position,
+    filter3Type,
+    filter3Cutoff,
+    filter3Resonance,
+    filter3Drive,
+    filter3Keytrack,
+    filter3Env,
+    filter3Morph,
+    filter3Slope,
+    filter3Vowel,
+    filter3Mix,
     Count
 };
 
@@ -731,6 +767,42 @@ inline constexpr const char* morphPosition = "morph_position";
 inline constexpr const char* morphMode = "morph_mode";
 inline constexpr const char* randomMutation = "random_mutation";
 inline constexpr const char* randomWild = "random_wild";
+inline constexpr const char* filter1On = "filter1_on";
+inline constexpr const char* filter1Position = "filter1_position";
+inline constexpr const char* filter1Type = "filter1_type";
+inline constexpr const char* filter1Cutoff = "filter1_cutoff";
+inline constexpr const char* filter1Resonance = "filter1_resonance";
+inline constexpr const char* filter1Drive = "filter1_drive";
+inline constexpr const char* filter1Keytrack = "filter1_keytrack";
+inline constexpr const char* filter1Env = "filter1_env";
+inline constexpr const char* filter1Morph = "filter1_morph";
+inline constexpr const char* filter1Slope = "filter1_slope";
+inline constexpr const char* filter1Vowel = "filter1_vowel";
+inline constexpr const char* filter1Mix = "filter1_mix";
+inline constexpr const char* filter2On = "filter2_on";
+inline constexpr const char* filter2Position = "filter2_position";
+inline constexpr const char* filter2Type = "filter2_type";
+inline constexpr const char* filter2Cutoff = "filter2_cutoff";
+inline constexpr const char* filter2Resonance = "filter2_resonance";
+inline constexpr const char* filter2Drive = "filter2_drive";
+inline constexpr const char* filter2Keytrack = "filter2_keytrack";
+inline constexpr const char* filter2Env = "filter2_env";
+inline constexpr const char* filter2Morph = "filter2_morph";
+inline constexpr const char* filter2Slope = "filter2_slope";
+inline constexpr const char* filter2Vowel = "filter2_vowel";
+inline constexpr const char* filter2Mix = "filter2_mix";
+inline constexpr const char* filter3On = "filter3_on";
+inline constexpr const char* filter3Position = "filter3_position";
+inline constexpr const char* filter3Type = "filter3_type";
+inline constexpr const char* filter3Cutoff = "filter3_cutoff";
+inline constexpr const char* filter3Resonance = "filter3_resonance";
+inline constexpr const char* filter3Drive = "filter3_drive";
+inline constexpr const char* filter3Keytrack = "filter3_keytrack";
+inline constexpr const char* filter3Env = "filter3_env";
+inline constexpr const char* filter3Morph = "filter3_morph";
+inline constexpr const char* filter3Slope = "filter3_slope";
+inline constexpr const char* filter3Vowel = "filter3_vowel";
+inline constexpr const char* filter3Mix = "filter3_mix";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1091,6 +1163,42 @@ inline constexpr const char* const all[kNumParams] = {
     "morph_mode",
     "random_mutation",
     "random_wild",
+    "filter1_on",
+    "filter1_position",
+    "filter1_type",
+    "filter1_cutoff",
+    "filter1_resonance",
+    "filter1_drive",
+    "filter1_keytrack",
+    "filter1_env",
+    "filter1_morph",
+    "filter1_slope",
+    "filter1_vowel",
+    "filter1_mix",
+    "filter2_on",
+    "filter2_position",
+    "filter2_type",
+    "filter2_cutoff",
+    "filter2_resonance",
+    "filter2_drive",
+    "filter2_keytrack",
+    "filter2_env",
+    "filter2_morph",
+    "filter2_slope",
+    "filter2_vowel",
+    "filter2_mix",
+    "filter3_on",
+    "filter3_position",
+    "filter3_type",
+    "filter3_cutoff",
+    "filter3_resonance",
+    "filter3_drive",
+    "filter3_keytrack",
+    "filter3_env",
+    "filter3_morph",
+    "filter3_slope",
+    "filter3_vowel",
+    "filter3_mix",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

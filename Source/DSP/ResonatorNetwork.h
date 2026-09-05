@@ -60,6 +60,7 @@ public:
         return o;
     }
 
+    void setFilters(ModularFilters* f,int lane=0) noexcept {filters=f;filterLane=lane;for(int i=0;i<3;++i)slots[(size_t)i].setLoopFilter(f,(FilterPosition)((int)FilterPosition::ResALoop+i),lane);}
     void prepare (float sampleRate);
     void reset();
     void update (const NetworkParams& p, bool snapLength);
@@ -73,25 +74,31 @@ public:
         fbDelaySamples += (fbDelayTarget - fbDelaySamples) * gSmooth;
         loopDelaySamples += (loopDelayTarget - loopDelaySamples) * gSmooth;
 
-        const float ex = excitation + loopNetIn;
+        const float ex = filters?filters->at(FilterPosition::NetworkInput,excitation+loopNetIn,filterLane):excitation+loopNetIn;
         float o[3] = { 0.0f, 0.0f, 0.0f }, t2[3] = { 0.0f, 0.0f, 0.0f };
 
         // ---- resonators in A -> B -> C order (feed-forward sends use current samples) ----
         if (running[0])
         {
-            const float inA = ex * g[G_injA] + fb[0];
+            float inA = ex * g[G_injA] + fb[0];
+            if(filters)inA=filters->at(FilterPosition::ResAInput,inA,filterLane);
             o[0] = slots[0].next (inA, pressureNow, t2[0]) * g[G_gateA];
+            if(filters){o[0]=filters->at(FilterPosition::ResAOutput,o[0],filterLane);t2[0]=filters->at(FilterPosition::ResAOutput,t2[0],filterLane+1);}
         }
         if (running[1])
         {
-            const float inB = ex * g[G_injB] + o[0] * g[G_sendAB] + fb[1];
+            float inB = ex * g[G_injB] + o[0] * g[G_sendAB] + fb[1];
+            if(filters)inB=filters->at(FilterPosition::ResBInput,inB,filterLane);
             o[1] = slots[1].next (inB, pressureNow, t2[1]) * g[G_gateB];
+            if(filters){o[1]=filters->at(FilterPosition::ResBOutput,o[1],filterLane);t2[1]=filters->at(FilterPosition::ResBOutput,t2[1],filterLane+1);}
         }
         if (running[2])
         {
             const float serialIn = hybrid ? o[0] : o[1];
-            const float inC = ex * g[G_injC] + serialIn * g[G_sendBC] + fb[2];
+            float inC = ex * g[G_injC] + serialIn * g[G_sendBC] + fb[2];
+            if(filters)inC=filters->at(FilterPosition::ResCInput,inC,filterLane);
             o[2] = slots[2].next (inC, pressureNow, t2[2]) * g[G_gateC];
+            if(filters){o[2]=filters->at(FilterPosition::ResCOutput,o[2],filterLane);t2[2]=filters->at(FilterPosition::ResCOutput,t2[2],filterLane+1);}
         }
 
         // ---- cross-feedback for the next sample --------------------------------------
@@ -135,6 +142,7 @@ public:
         loopDelay.push (src);
         float lr = loopLP.process (loopDelay.readLinear (std::max (1.0f, loopDelaySamples)));
         lr = fastTanh (lr * loopDriveGain) * loopDriveNorm;
+        if(filters)lr=filters->at(FilterPosition::EnergyLoop,lr,filterLane);
         loopReturnValue = lr * g[G_loop] * governorGain;
 
         // ---- governor: a loop limiter on the feedback paths -----------------------------------
@@ -176,9 +184,11 @@ private:
         float x = fbDelaySamples > 1.0f ? d.readLinear (fbDelaySamples) : raw;
         x = routeLP[(size_t) i].process (x);
         x = fastTanh (x * fbDriveGain) * fbDriveNorm;
+        if(filters)x=filters->at(FilterPosition::CrossFeedback,x,filterLane+i);
         return x * fbDampGain * fbPolarity;
     }
 
+    ModularFilters* filters=nullptr;int filterLane=0;
     float sampleRate = 44100.0f, gSmooth = 0.005f;
     std::array<ResonatorSlot, 3> slots;
     std::array<FractionalDelay, 3> routeDelay;

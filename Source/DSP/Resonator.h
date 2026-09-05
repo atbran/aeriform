@@ -3,6 +3,7 @@
 #include "DspUtils.h"
 #include "FractionalDelay.h"
 #include "ModalResonator.h"
+#include "ModularFilters.h"
 #include "../Params/ParameterLayout.h"
 
 namespace aeriform::dsp
@@ -25,6 +26,7 @@ struct ResonatorParams
     float pickup = 0.5f;         // 0..1 second pickup position (Width)
     float variationDamping = 0.0f;   // per-voice offsets (added by the voice)
     float variationBright = 0.0f;
+    float additionalPhaseDelay = 0.0f;
 };
 
 /**
@@ -43,6 +45,7 @@ class Resonator
 public:
     static constexpr int kMaxDispersionStages = 8;
 
+    void setLoopFilter(ModularFilters* f,FilterPosition pos,int lane) noexcept {loopFilter=f;loopPosition=pos;filterLane=lane;}
     void prepare (float sampleRate);
     void reset();
 
@@ -70,6 +73,7 @@ public:
         }
         for (int i = 0; i < activeDispersion; ++i) d = dispersion[i].process (d);
         d = dcBlock.process (d);
+        if(loopFilter)d=loopFilter->at(loopPosition,d,filterLane);
 
         const float sat = (fastTanh (d * drive + satBias) - satBiasOut) * invDrive;
         const float reflected = sat * loopGain;
@@ -112,6 +116,7 @@ public:
     bool  isFinite() const noexcept { return std::isfinite (lastOut) && std::isfinite (delayLen) && std::isfinite (energy); }
 
 private:
+    ModularFilters* loopFilter=nullptr;FilterPosition loopPosition=FilterPosition::ResALoop;int filterLane=0;
     float sampleRate = 44100.0f;
     FractionalDelay delay, exciteDelay;
     OnePole dampLP, reflLP, tiltLP;
@@ -144,6 +149,7 @@ public:
     void reset();
     void update (const ResonatorParams& p, bool snapLength);
 
+    void setLoopFilter(ModularFilters* f,FilterPosition pos,int lane) noexcept {loopFilter=f;loopPosition=pos;filterLane=lane;waveguide.setLoopFilter(f,pos,lane);}
     inline float next (float in, float pressureNow, float& tap2) noexcept
     {
         // a model change is applied at zero gain: fade out (~2 ms), switch, fade back in
@@ -156,6 +162,7 @@ public:
         {
             fadeGain = std::min (1.0f, fadeGain + fadeStep);
         }
+        if(modal&&loopFilter)in=loopFilter->at(loopPosition,in,filterLane);
         float y = modal ? bank.next (in, tap2) : waveguide.next (in, pressureNow, tap2);
         if (fadeGain < 1.0f) { y *= fadeGain; tap2 *= fadeGain; }
         return y;
@@ -174,6 +181,7 @@ private:
     void applyPending();
     void applyParams (const ResonatorParams& p, bool snapLength);
 
+    ModularFilters* loopFilter=nullptr;FilterPosition loopPosition=FilterPosition::ResALoop;int filterLane=0;
     Resonator waveguide;
     ModalBank bank;
     bool modal = false;

@@ -45,7 +45,7 @@ void Voice::prepare (double sr, int index)
     voiceIndex = index;
     const uint32_t seed = 0xA5F1C3u + (uint32_t) index * 0x9E3779B9u;
     rng.seed (seed);
-    network.prepare ((float) sr);
+    network.prepare ((float) sr);filters.prepare((float)sr);network.setFilters(&filters);
     bodyL.setSampleRate ((float) sr);
     bodyR.setSampleRate ((float) sr);
     dynEnv.setCutoff (12.0f, (float) sr);
@@ -88,7 +88,7 @@ void Voice::reset()
     interaction.reset(); preShaper.reset(); folder.reset();
     decimator.reset(); extUp.reset(); loopUp.reset();
     dynEnv.reset (0.3f);
-    network.reset();
+    network.reset();filters.reset();
     bodyL.reset(); bodyR.reset();
     ampEnv.reset(); modEnv.reset();
     active = false;
@@ -106,7 +106,7 @@ void Voice::startNote (int midiNote, float vel, float glideFromNote, bool legato
     if (! active)
     {
         // fresh start: clear the tube network so no stale energy from a previous note leaks in
-        network.reset();
+        network.reset();filters.reset();
         exA.reset(); exB.reset();
         interaction.reset(); preShaper.reset(); folder.reset();
         decimator.reset(); extUp.reset(); loopUp.reset();
@@ -537,6 +537,7 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
     }
 
     // ---- network + body ----------------------------------------------------------------------------
+    filters.update(p,baseNote,ampEnv.getLevel(),n);
     buildNetworkParams (p, baseNote);
     network.update (netParams, snapNextLength);
     snapNextLength = false;
@@ -582,6 +583,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
 
         for (int i = 0; i < n; ++i)
         {
+            filters.advance();
             const float env = ampEnv.next();
             modEnv.next();
             const float fade = fader.next();
@@ -597,7 +599,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
             for (int k = 0; k < os; ++k)
             {
                 const bool syncPulseB = syncBtoA && exA.wrapped();
-                const float b = exB.next (osExt[k], shared[k], breath, 0.0f, 0.0f, syncPulseB);
+                const float b = filters.at(FilterPosition::ExciterB,exB.next (osExt[k], shared[k], breath, 0.0f, 0.0f, syncPulseB));
                 float fm = 0.0f, pm = 0.0f;
                 bool syncA = false;
                 if (exB.isActive())
@@ -606,20 +608,20 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                     else if (interactionMode == InteractionMode::PM)   pm = b * b2a * interactionAmount * 0.5f;
                     else if (interactionMode == InteractionMode::Sync) syncA = exB.wrapped() && interactionAmount > 0.01f;
                 }
-                const float a = exA.next (osExt[k], shared[k], breath, fm, pm, syncA);
-                float m = interaction.next (a, b);
+                const float a = filters.at(FilterPosition::ExciterA,exA.next (osExt[k], shared[k], breath, fm, pm, syncA));
+                float m = filters.at(FilterPosition::Combined,interaction.next (a, b));
                 if (loopToChain && loopDest == LoopDest::ShaperIn) m += osLoop[k];
                 float f;
                 if (shaperOrder == ShaperOrder::ShapeThenFold)
                 {
                     f = preShaper.next (m);
                     if (loopToChain && loopDest == LoopDest::FolderIn) f += osLoop[k];
-                    f = folder.next (f);
+                    f = filters.at(FilterPosition::AfterFolder,folder.next(filters.at(FilterPosition::BeforeFolder,f)));
                 }
                 else
                 {
                     if (loopToChain && loopDest == LoopDest::FolderIn) m += osLoop[k];
-                    f = folder.next (m);
+                    f = filters.at(FilterPosition::AfterFolder,folder.next(filters.at(FilterPosition::BeforeFolder,m)));
                     f = preShaper.next (f);
                 }
                 osOut[k] = f;
@@ -653,6 +655,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                 r = r * (1.0f - 0.7f * bodyMix) + bodyR.bandpass (r) * bodyK * bodyGain;
             }
 
+            l=filters.at(FilterPosition::PostBody,l,0);r=filters.at(FilterPosition::PostBody,r,3);
             gainRampL += gainStepL;
             gainRampR += gainStepR;
             const float outL = l * fade * gainRampL, outR = r * fade * gainRampR;
@@ -669,7 +672,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
     // numerical safety: a non-finite state is flushed immediately (never propagates)
     if (! network.isFinite() || ! std::isfinite (lastMono) || ! std::isfinite (lastFolded) || ! std::isfinite (loopRet))
     {
-        network.reset();
+        network.reset();filters.reset();
         exA.reset(); exB.reset();
         interaction.reset(); preShaper.reset(); folder.reset();
         decimator.reset(); extUp.reset(); loopUp.reset();

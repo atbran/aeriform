@@ -111,6 +111,7 @@ private:
     OnePole dynEnv;
     // ---- resonator network + body ----
     ResonatorNetwork network;
+    ModularFilters filters;
     SVF bodyL, bodyR;
     // ---- modulation ----
     ADSR ampEnv, modEnv;

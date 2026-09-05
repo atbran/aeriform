@@ -89,3 +89,10 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - Complete regression run: 84 tests, 53468 checks, zero failures. Host check PASSED. Pluginval strictness 10 SUCCESS for EXP_Aeriform.
 - Logs: build/state-verified-tests.log, state-host.log, state-pluginval.log.
 - Known limits: interior Deep blends cannot flatten to one structure (commit disabled); activating Deep on held notes primes notes but cannot reconstruct past physical energy. Existing JUCE MPE locks/allocation still require the real-time audit. Additional modules and final performance matrix remain unimplemented.
+
+## Movable filters checkpoint
+
+- 394 stable parameters; three movable filters, eleven models and twenty insertion positions, FILTERS page.
+- Complete regression: 91 tests, 320079 checks, zero failures (`build/filter-all-tests.log`).
+- Disabled routing equality, all-placement audio differences, transition/reset tests, 18 audible reference tuning cases and 126 analytic-versus-measured phase cases passed. Exact tuning limitations are documented in docs/FILTER_ROUTING.md.
+- Original presets preserved; new DSP defaults off. Additional physical modules and effects remain in progress.

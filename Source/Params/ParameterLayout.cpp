@@ -157,6 +157,10 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::NetModes:         return choices::netModes();
         case ChoiceList::QualityModes:     return choices::qualityModes();
         case ChoiceList::MorphModes: { static const juce::StringArray v { "Parameter", "Deep" }; return v; }
+        case ChoiceList::FilterPositions: { static const juce::StringArray v { "Exciter A", "Exciter B", "Combined exciters", "Before wavefolder", "After wavefolder", "Network input", "Res A input", "Res B input", "Res C input", "Res A output", "Res B output", "Res C output", "Cross feedback", "Energy loop", "Res A loop / modal input", "Res B loop / modal input", "Res C loop / modal input", "Post body", "Pre effects", "Post effects" }; return v; }
+        case ChoiceList::FilterModels: { static const juce::StringArray v { "Low-pass", "High-pass", "Band-pass", "Notch", "SVF morph", "Driven SVF", "Ladder low-pass", "Formant / vowel", "Comb", "Modal bank", "Tilt EQ" }; return v; }
+        case ChoiceList::FilterSlopes: { static const juce::StringArray v { "12 dB / octave", "24 dB / octave" }; return v; }
+        case ChoiceList::FilterVowels: { static const juce::StringArray v { "A", "E", "I", "O", "U" }; return v; }
         case ChoiceList::None:
         default:
         {

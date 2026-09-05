@@ -63,6 +63,7 @@ set(AERIFORM_SOURCES
     Source/Plugin/PluginEditor.cpp
     Source/Params/ParameterLayout.cpp
     Source/DSP/SynthEngine.cpp
+    Source/DSP/ModularFilters.cpp
     Source/DSP/Voice.cpp
     Source/DSP/Exciter.cpp
     Source/DSP/Exciters/ExciterSlot.cpp
@@ -82,6 +83,7 @@ set(AERIFORM_SOURCES
     Source/GUI/PresetBar.cpp
     Source/GUI/ModMatrixPanel.cpp
     Source/GUI/Displays.cpp
+    Source/GUI/FiltersPage.cpp
     Source/GUI/PerformancePage.cpp
     Source/GUI/Pages.cpp
     Source/GUI/Panels/ExciterSlotPanel.cpp
@@ -202,6 +204,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/PresetLevelTests.cpp
         Tests/ReliabilityTests.cpp
         Tests/PatchToolsTests.cpp
+        Tests/ModularFilterTests.cpp
         Tests/SmokeTests.cpp)
     target_include_directories(AeriformTests PRIVATE
         Source Tests

@@ -94,7 +94,7 @@ enum class ChoiceList
 {
     None, LfoShapes, LfoModes, SyncDivs, ResTypes, VoiceModes, ModSources, ModDests, ExciterModels, RetrigModes,
     InteractionModes, PreFilterTypes, ShaperOrders, FoldModes, Polarities, InjectPoints, OutputTaps, LoopSources,
-    LoopDests, NetModes, QualityModes, MorphModes
+    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels
 };
 
 /** One row of the generated parameter table. */

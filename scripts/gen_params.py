@@ -332,6 +332,9 @@ C('morphMode','morph_mode','Morph Engine','Master','MorphModes',0,'Parameter mod
 F('randomMutation','random_mutation','Mutation','Master',0,1,0.15,'%', 'Percent','Reproducible mutation radius around the current patch.')
 B('randomWild','random_wild','Wild','Master',False,'Expand musical randomization ranges while retaining bounded feedback and protected administration.')
 
+from network_params import register as register_network
+register_network(F,C,B,I)
+
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]
 assert len(set(ids)) == len(ids), 'duplicate id'

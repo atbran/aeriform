@@ -51,7 +51,7 @@ private:
     juce::TextButton undoButton{"UNDO"},redoButton{"REDO"};
 
     // pages
-    std::array<std::unique_ptr<aeriform::Page>, 6> pages;
+    std::array<std::unique_ptr<aeriform::Page>, 7> pages;
     int currentPage = 0;
 
     float scale = 1.0f;

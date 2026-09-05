@@ -414,3 +414,44 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `morph_mode` | Morph Engine | Parameter / Deep | Parameter | Parameter mode holds selected structural values. Deep mode crossfades two complete engines. |
 | `random_mutation` | Mutation | 0 % .. 100 % | 15 % | Reproducible mutation radius around the current patch. |
 | `random_wild` | Wild | off / on | off | Expand musical randomization ranges while retaining bounded feedback and protected administration. |
+
+## SHAPING (interaction, pre-shaper, wavefolder)
+
+| ID | Name | Range | Default | Description |
+|---|---|---|---|---|
+| `filter1_on` | Filter 1 Enabled | off / on | off | Enable this movable filter block. |
+| `filter1_position` | Filter 1 Position | Exciter A / Exciter B / Combined exciters / Before wavefolder / After wavefolder / Network input / Res A input / Res B input / Res C input / Res A output / Res B output / Res C output / Cross feedback / Energy loop / Res A loop / modal input / Res B loop / modal input / Res C loop / modal input / Post body / Pre effects / Post effects | Network input | Insert this block at the selected point. Position changes crossfade. |
+| `filter1_type` | Filter 1 Type | Low-pass / High-pass / Band-pass / Notch / SVF morph / Driven SVF / Ladder low-pass / Formant / vowel / Comb / Modal bank / Tilt EQ | Low-pass | Surgical, character or comb filtering. |
+| `filter1_cutoff` | Filter 1 Cutoff | 20.0 Hz .. 20.0 kHz | 4.00 kHz | Cutoff or comb/modal tuning frequency. |
+| `filter1_resonance` | Filter 1 Resonance | 0 % .. 100 % | 10 % | Resonance. Loop placements normalize gain for stability. |
+| `filter1_drive` | Filter 1 Drive | 0 % .. 100 % | 0 % | Antiderivative-antialiased gain-compensated soft drive. |
+| `filter1_keytrack` | Filter 1 Key Track | 0 % .. 200 % | 0 % | Cutoff tracking relative to MIDI C4. |
+| `filter1_env` | Filter 1 Envelope | -4.00 .. 4.00 | 0.00 | Amplitude envelope cutoff offset in octaves. |
+| `filter1_morph` | Filter 1 Morph | 0 % .. 100 % | 50 % | SVF response blend, tilt or comb feedback polarity. |
+| `filter1_slope` | Filter 1 Slope | 12 dB / octave / 24 dB / octave | 12 dB / octave | Two or four poles for SVF/ladder types. |
+| `filter1_vowel` | Filter 1 Vowel | A / E / I / O / U | A | Formant vowel selection. |
+| `filter1_mix` | Filter 1 Mix | 0 % .. 100 % | 100 % | Smoothed wet/dry amount. |
+| `filter2_on` | Filter 2 Enabled | off / on | off | Enable this movable filter block. |
+| `filter2_position` | Filter 2 Position | Exciter A / Exciter B / Combined exciters / Before wavefolder / After wavefolder / Network input / Res A input / Res B input / Res C input / Res A output / Res B output / Res C output / Cross feedback / Energy loop / Res A loop / modal input / Res B loop / modal input / Res C loop / modal input / Post body / Pre effects / Post effects | Network input | Insert this block at the selected point. Position changes crossfade. |
+| `filter2_type` | Filter 2 Type | Low-pass / High-pass / Band-pass / Notch / SVF morph / Driven SVF / Ladder low-pass / Formant / vowel / Comb / Modal bank / Tilt EQ | Low-pass | Surgical, character or comb filtering. |
+| `filter2_cutoff` | Filter 2 Cutoff | 20.0 Hz .. 20.0 kHz | 4.00 kHz | Cutoff or comb/modal tuning frequency. |
+| `filter2_resonance` | Filter 2 Resonance | 0 % .. 100 % | 10 % | Resonance. Loop placements normalize gain for stability. |
+| `filter2_drive` | Filter 2 Drive | 0 % .. 100 % | 0 % | Antiderivative-antialiased gain-compensated soft drive. |
+| `filter2_keytrack` | Filter 2 Key Track | 0 % .. 200 % | 0 % | Cutoff tracking relative to MIDI C4. |
+| `filter2_env` | Filter 2 Envelope | -4.00 .. 4.00 | 0.00 | Amplitude envelope cutoff offset in octaves. |
+| `filter2_morph` | Filter 2 Morph | 0 % .. 100 % | 50 % | SVF response blend, tilt or comb feedback polarity. |
+| `filter2_slope` | Filter 2 Slope | 12 dB / octave / 24 dB / octave | 12 dB / octave | Two or four poles for SVF/ladder types. |
+| `filter2_vowel` | Filter 2 Vowel | A / E / I / O / U | A | Formant vowel selection. |
+| `filter2_mix` | Filter 2 Mix | 0 % .. 100 % | 100 % | Smoothed wet/dry amount. |
+| `filter3_on` | Filter 3 Enabled | off / on | off | Enable this movable filter block. |
+| `filter3_position` | Filter 3 Position | Exciter A / Exciter B / Combined exciters / Before wavefolder / After wavefolder / Network input / Res A input / Res B input / Res C input / Res A output / Res B output / Res C output / Cross feedback / Energy loop / Res A loop / modal input / Res B loop / modal input / Res C loop / modal input / Post body / Pre effects / Post effects | Network input | Insert this block at the selected point. Position changes crossfade. |
+| `filter3_type` | Filter 3 Type | Low-pass / High-pass / Band-pass / Notch / SVF morph / Driven SVF / Ladder low-pass / Formant / vowel / Comb / Modal bank / Tilt EQ | Low-pass | Surgical, character or comb filtering. |
+| `filter3_cutoff` | Filter 3 Cutoff | 20.0 Hz .. 20.0 kHz | 4.00 kHz | Cutoff or comb/modal tuning frequency. |
+| `filter3_resonance` | Filter 3 Resonance | 0 % .. 100 % | 10 % | Resonance. Loop placements normalize gain for stability. |
+| `filter3_drive` | Filter 3 Drive | 0 % .. 100 % | 0 % | Antiderivative-antialiased gain-compensated soft drive. |
+| `filter3_keytrack` | Filter 3 Key Track | 0 % .. 200 % | 0 % | Cutoff tracking relative to MIDI C4. |
+| `filter3_env` | Filter 3 Envelope | -4.00 .. 4.00 | 0.00 | Amplitude envelope cutoff offset in octaves. |
+| `filter3_morph` | Filter 3 Morph | 0 % .. 100 % | 50 % | SVF response blend, tilt or comb feedback polarity. |
+| `filter3_slope` | Filter 3 Slope | 12 dB / octave / 24 dB / octave | 12 dB / octave | Two or four poles for SVF/ladder types. |
+| `filter3_vowel` | Filter 3 Vowel | A / E / I / O / U | A | Formant vowel selection. |
+| `filter3_mix` | Filter 3 Mix | 0 % .. 100 % | 100 % | Smoothed wet/dry amount. |

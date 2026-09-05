@@ -197,7 +197,7 @@ void ResonatorNetwork::update (const NetworkParams& p, bool snapLength)
 
     // ---- resonators ------------------------------------------------------------------------------------
     for (int i = 0; i < 3; ++i)
-        if (running[i]) slots[(size_t) i].update (p.res[i], snapLength);
+        if (running[i]) {auto rp=p.res[i];if(filters)rp.additionalPhaseDelay=filters->phaseDelay((FilterPosition)((int)FilterPosition::ResALoop+i),rp.freqHz);slots[(size_t)i].update(rp,snapLength);}
 
     // safety: a slot that produced a non-finite value is flushed
     for (int i = 0; i < 3; ++i)
