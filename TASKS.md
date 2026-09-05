@@ -66,3 +66,16 @@ Exciter B --+   (oversampled 1x / 2x / 4x, decimated before the network) +-- Res
 
 ## Build and test status
 - 2026-09-05: build OK; 64 unit / 8 smoke tests pass; host check PASSED; pluginval strictness 10 SUCCESS
+
+## EXP_Aeriform implementation plan (Codex, 2026-09-05)
+
+All edits and builds occur only in D:\dev\build\gpt-aeriform-test. Confirmed original: C:\Users\The Nerd^2\Documents\Synth claude code. Preserve original factory presets. Experimental synth name EXP_Aeriform with distinct plugin identity; separate shared-DSP FX target. A/B morph is approved; optional XY is deferred. Three modular movable filter blocks provide surgical, character and comb types. Open-source hobby project; no extra proposed ideas are approved.
+
+- [ ] Phase 0: independent clone, baseline build/unit/smoke/fuzz/host/pluginval, parameter/preset/limiter audit, CODEX_BASELINE.md and baseline commit.
+- [ ] Phase 1: stable appended parameters, migration, immutable metadata, GUI undo, A/B effective layer and deep morph, seeded randomizer/locks, persistent favorites. Focused tests and commit.
+- [ ] Phase 2: movable filters, collision, sympathetic bank, true stereo, bounded room return; routing/tuning/aliasing/stability tests and commit.
+- [ ] Phase 3: resonant delay, shimmer, spectral freeze, multiband saturation, normal-input FX controller and target. Effects/FX tests and commit.
+- [ ] Phase 4: functional PLAY/FILTERS/contextual pages, undo shortcuts, favorites/search, demonstrations and GUI rendering. Tested commit.
+- [ ] Phase 5: class-aware preset metering, full configuration tests, allocation/performance/latency measurements, validators for both targets, docs/screenshots/release artifacts and final tested commit.
+
+Each successfully tested phase receives a focused commit. Document partial or experimental behavior honestly. No silent quality or voice reduction. Ordinary controls edit the selected snapshot endpoint while morphing. Preserve original sounds by defaulting new DSP off; add corrected preset variants where warranted.
