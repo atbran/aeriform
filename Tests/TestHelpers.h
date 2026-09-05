@@ -27,6 +27,7 @@ struct TestHost
     juce::MidiBuffer midi;
 
     explicit TestHost (double sr = 48000.0, int block = 256) { prepare (sr, block); }
+    TestHost (double sr, int block, bool withInput) { prepare (sr, block, withInput); }
 
     bool useInput = false;
     std::function<float (long sampleIndex)> inputSource;   // optional sidechain generator
@@ -170,6 +171,29 @@ inline double estimateFrequency (const std::vector<float>& xIn, double sampleRat
 }
 
 inline double centsBetween (double a, double b) { return 1200.0 * std::log2 (a / b); }
+
+/** Finds the strongest spectral peak within +/- 6 % of expectedHz by evaluating a Hann-windowed DFT
+    on a fine frequency grid (0.25 Hz steps). Suited to inharmonic sounds where autocorrelation is biased. */
+inline double estimatePeakFrequency (const std::vector<float>& x, double sampleRate, double expectedHz)
+{
+    const int n = (int) x.size();
+    double bestF = expectedHz, bestMag = -1.0;
+    for (double f = expectedHz * 0.94; f <= expectedHz * 1.06; f += 0.25)
+    {
+        double re = 0.0, im = 0.0;
+        const double w = 2.0 * 3.14159265358979 * f / sampleRate;
+        for (int i = 0; i < n; ++i)
+        {
+            const double hann = 0.5 - 0.5 * std::cos (2.0 * 3.14159265358979 * (double) i / (double) (n - 1));
+            const double v = hann * x[(size_t) i];
+            re += v * std::cos (w * i);
+            im -= v * std::sin (w * i);
+        }
+        const double mag = re * re + im * im;
+        if (mag > bestMag) { bestMag = mag; bestF = f; }
+    }
+    return bestF;
+}
 
 /** VoiceParams loaded with every parameter's default value. */
 inline dsp::VoiceParams defaultVoiceParams()

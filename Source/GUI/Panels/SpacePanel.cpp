@@ -2,34 +2,34 @@
 
 namespace aeriform
 {
-SpacePanel::SpacePanel (AeriformProcessor& p) : ParamPanel (p, "SPACE", theme::tealDim.brighter (0.4f))
+SpacePanel::SpacePanel (AeriformProcessor& p, bool f) : ParamPanel (p, "SPACE", theme::tealDim.brighter (0.4f)), full (f)
 {
     using namespace ids;
-    const int s = theme::knobSizeSmall;
+    const int s = full ? theme::knobSizeLarge : theme::knobSizeSmall;
 
     chorusCaption = caption ("CHORUS");
-    chorusMix   = knob (ids::chorusMix, additive (ModDest::ChorusMix), s);   chorusMix->setDisplayName ("Mix");
-    chorusRate  = knob (ids::chorusRate, {}, s);                            chorusRate->setDisplayName ("Rate");
-    chorusDepth = knob (ids::chorusDepth, {}, s);                           chorusDepth->setDisplayName ("Depth");
-    chorusWidth = knob (ids::chorusWidth, {}, s);                           chorusWidth->setDisplayName ("Width");
+    chorusMix   = knob (ids::chorusMix, "Mix", additive (ModDest::ChorusMix), s);
+    chorusRate  = knob (ids::chorusRate, "Rate", {}, s);
+    chorusDepth = knob (ids::chorusDepth, "Depth", {}, s);
+    chorusWidth = knob (ids::chorusWidth, "Width", {}, s);
 
     delayCaption  = caption ("DELAY");
-    delayMix      = knob (ids::delayMix, additive (ModDest::DelayMix), s);   delayMix->setDisplayName ("Mix");
-    delayTime     = knob (ids::delayTime, {}, s);                           delayTime->setDisplayName ("Time");
-    delayFeedback = knob (ids::delayFeedback, {}, s);                       delayFeedback->setDisplayName ("Feedback");
-    delayTone     = knob (ids::delayTone, {}, s);                           delayTone->setDisplayName ("Tone");
+    delayMix      = knob (ids::delayMix, "Mix", additive (ModDest::DelayMix), s);
+    delayTime     = knob (ids::delayTime, "Time", {}, s);
+    delayFeedback = knob (ids::delayFeedback, "Feedback", {}, s);
+    delayTone     = knob (ids::delayTone, "Tone", {}, s);
     delaySync     = control<Toggle> (processor, ids::delaySync, "Sync");
     delayPingPong = control<Toggle> (processor, ids::delayPingPong, "Ping-Pong");
     delayDiv      = control<ChoiceBox> (processor, ids::delayDiv, "Division");
 
     reverbCaption = caption ("REVERB");
-    revMix   = knob (reverbMix, additive (ModDest::ReverbMix), s);  revMix->setDisplayName ("Mix");
-    revSize  = knob (reverbSize, {}, s);                           revSize->setDisplayName ("Size");
-    revDecay = knob (reverbDecay, {}, s);                          revDecay->setDisplayName ("Decay");
-    revDamp  = knob (reverbDamping, {}, s);                        revDamp->setDisplayName ("Damping");
-    revPre   = knob (reverbPreDelay, {}, s);                       revPre->setDisplayName ("Pre-Delay");
-    revWidth = knob (reverbWidth, {}, s);                          revWidth->setDisplayName ("Width");
-    revMod   = knob (reverbModulation, {}, s);                     revMod->setDisplayName ("Motion");
+    revMix   = knob (reverbMix, "Mix", additive (ModDest::ReverbMix), s);
+    revSize  = knob (reverbSize, "Size", {}, s);
+    revDecay = knob (reverbDecay, "Decay", {}, s);
+    revDamp  = knob (reverbDamping, "Damping", {}, s);
+    revPre   = knob (reverbPreDelay, "Pre-Delay", {}, s);
+    revWidth = knob (reverbWidth, "Width", {}, s);
+    revMod   = knob (reverbModulation, "Motion", {}, s);
 
     for (auto& k : knobs) k->setAccentColour (theme::teal);
 }
@@ -38,10 +38,37 @@ void SpacePanel::resized()
 {
     auto r = getContentArea();
     const int capH = 14;
+
+    if (full)
+    {
+        const int gap = 16;
+        const int colW = (r.getWidth() - 2 * gap) / 3;
+        auto chorusArea = r.removeFromLeft (colW); r.removeFromLeft (gap);
+        auto delayArea = r.removeFromLeft (colW);  r.removeFromLeft (gap);
+        auto reverbArea = r;
+
+        const int rowH = 96;
+        chorusCaption->setBounds (chorusArea.removeFromTop (capH));
+        knobRow (chorusArea.removeFromTop (rowH), { chorusMix, chorusRate, chorusDepth, chorusWidth });
+
+        delayCaption->setBounds (delayArea.removeFromTop (capH));
+        knobRow (delayArea.removeFromTop (rowH), { delayMix, delayTime, delayFeedback, delayTone });
+        delayArea.removeFromTop (10);
+        auto switches = delayArea.removeFromTop (44);
+        delaySync->setBounds (switches.removeFromLeft (80).withTrimmedTop (14));
+        delayPingPong->setBounds (switches.removeFromLeft (110).withTrimmedTop (14));
+        switches.removeFromLeft (8);
+        delayDiv->setBounds (switches.removeFromLeft (150));
+        delayDiv->setCaptionVisible (true);
+
+        reverbCaption->setBounds (reverbArea.removeFromTop (capH));
+        knobRow (reverbArea.removeFromTop (rowH), { revMix, revSize, revDecay, revDamp });
+        knobRow (reverbArea.removeFromTop (rowH), { revPre, revWidth, revMod, nullptr });
+        return;
+    }
+
     const int knobW = 56;
     const int rowH = 66;
-
-    // row 1: chorus + delay, row 2: reverb
     auto top = r.removeFromTop (capH + rowH);
     auto chorusArea = top.removeFromLeft (knobW * 4);
     top.removeFromLeft (16);

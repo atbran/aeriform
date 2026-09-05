@@ -103,6 +103,7 @@ std::unique_ptr<juce::XmlElement> AeriformProcessor::createStateXml()
     xml->setAttribute ("presetCategory", presetManager.getCurrentCategory());
     xml->setAttribute ("presetDirty", presetManager.isDirty());
     xml->setAttribute ("editorScale", (double) editorScale.load());
+    xml->setAttribute ("editorPage", editorPage.load());
 
     if (auto params = apvts.copyState().createXml())
         xml->addChildElement (params.release());
@@ -130,6 +131,7 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
 
     midiLearn.fromXml (xml.getChildByName ("MidiLearn"));
     setEditorScale ((float) xml.getDoubleAttribute ("editorScale", 1.0));
+    setEditorPage (xml.getIntAttribute ("editorPage", 0));
     presetManager.setCurrentName (xml.getStringAttribute ("presetName", "Init"),
                                   xml.getStringAttribute ("presetCategory", "Init"),
                                   ! xml.getBoolAttribute ("presetDirty", false));

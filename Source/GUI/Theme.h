@@ -34,6 +34,14 @@ inline const juce::Colour knobRim      { 0xff3d424a };
 inline const juce::Colour knobTrack    { 0xff35393f };
 inline const juce::Colour knobPointer  { 0xffe8e2d6 };
 
+// v0.2 accents: exciter slots and resonator nodes
+inline const juce::Colour exciterA     { 0xffe0a35a };
+inline const juce::Colour exciterB     { 0xffd87a6a };
+inline const juce::Colour nodeA        { 0xffd8b46a };
+inline const juce::Colour nodeB        { 0xff8fbf7f };
+inline const juce::Colour nodeC        { 0xff6fb8e0 };
+inline const juce::Colour folder       { 0xffc98ad6 };
+
 // Logical layout constants (the editor scales everything uniformly)
 inline constexpr int editorWidth  = 1180;
 inline constexpr int editorHeight = 820;
@@ -41,6 +49,7 @@ inline constexpr int knobSize     = 58;
 inline constexpr int knobSizeLarge= 72;
 inline constexpr int knobSizeSmall= 46;
 inline constexpr int sectionTitleHeight = 22;
+inline constexpr int tabBarHeight = 28;
 inline constexpr float cornerRadius = 6.0f;
 
 inline juce::Font font (float size, bool bold = false)

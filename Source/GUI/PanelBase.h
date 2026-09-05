@@ -10,9 +10,13 @@ namespace aeriform
 class ParamPanel : public SectionPanel
 {
 public:
-    ParamPanel (AeriformProcessor& p, juce::String title, juce::Colour accent) : SectionPanel (std::move (title), accent), processor (p) {}
+    ParamPanel (AeriformProcessor& p, juce::String title, juce::Colour accent, bool framed = true)
+        : SectionPanel (std::move (title), accent, framed), processor (p) {}
 
     const std::vector<std::unique_ptr<Knob>>& getKnobs() const noexcept { return knobs; }
+
+    /** Nested panels whose knobs should also receive modulation-ring updates. */
+    virtual void collectPanels (std::vector<ParamPanel*>& out) { out.push_back (this); }
 
 protected:
     using Kind = Knob::ModMapping::Kind;
@@ -27,6 +31,14 @@ protected:
         addAndMakeVisible (*k);
         knobs.push_back (std::move (k));
         return knobs.back().get();
+    }
+
+    /** Knob with a display name override (short labels for dense rows). */
+    Knob* knob (const juce::String& id, const juce::String& name, Knob::ModMapping mapping = {}, int diameter = theme::knobSize)
+    {
+        auto* k = knob (id, mapping, diameter);
+        k->setDisplayName (name);
+        return k;
     }
 
     static Knob::ModMapping additive (ModDest d)               { return { d, Kind::Additive, 1.0f }; }
@@ -56,6 +68,10 @@ protected:
     static void knobRow (juce::Rectangle<int> area, std::initializer_list<juce::Component*> items, int gap = 2)
     {
         SectionPanel::layoutRow (area, items, gap);
+    }
+    static void knobRowV (juce::Rectangle<int> area, const std::vector<juce::Component*>& items, int gap = 2)
+    {
+        SectionPanel::layoutRowV (area, items, gap);
     }
 };
 } // namespace aeriform

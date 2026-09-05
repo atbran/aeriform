@@ -1,20 +1,20 @@
 #include "PluginEditor.h"
 #include "../GUI/Theme.h"
+#include <cstdlib>
 
 using namespace aeriform;
 using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), visualizer (p.getVisualizerModel()),
-      breath (p), resonator (p), motion (p), space (p), master (p)
+      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE" })
 {
     setLookAndFeel (&lookAndFeel);
 
     titleLabel.setText ("AERIFORM", juce::dontSendNotification);
     titleLabel.setFont (titleFont (22.0f));
     titleLabel.setColour (juce::Label::textColourId, copperBright);
-    subtitleLabel.setText ("BREATH-DRIVEN RESONATOR SYNTHESIZER", juce::dontSendNotification);
+    subtitleLabel.setText ("COMPLEX EXCITER / RESONATOR NETWORK SYNTHESIZER", juce::dontSendNotification);
     subtitleLabel.setFont (font (9.5f, true));
     subtitleLabel.setColour (juce::Label::textColourId, textDim);
     statusLabel.setFont (monoFont (10.5f));
@@ -24,10 +24,26 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     scaleButton.setTooltip ("Interface size");
     scaleButton.onClick = [this] { showScaleMenu(); };
 
-    for (auto* c : std::initializer_list<juce::Component*> { &titleLabel, &subtitleLabel, &statusLabel, &presetBar, &scaleButton,
-                                                           &visualizer, &breath, &resonator, &motion, &space, &master })
+    pages[0] = std::make_unique<MainPage> (p);
+    pages[1] = std::make_unique<ExcitersPage> (p);
+    pages[2] = std::make_unique<NetworkPage> (p);
+    pages[3] = std::make_unique<MotionPage> (p);
+    pages[4] = std::make_unique<SpacePage> (p);
+
+    for (auto* c : std::initializer_list<juce::Component*> { &titleLabel, &subtitleLabel, &statusLabel, &presetBar, &scaleButton, &tabs })
         content.addAndMakeVisible (c);
+    for (auto& page : pages)
+    {
+        content.addChildComponent (*page);
+        page->setVisible (false);
+    }
     addAndMakeVisible (content);
+
+    tabs.onChange = [this] (int index) { showPage (index); };
+    currentPage = -1;
+    int initialPage = processor.getEditorPage();
+    if (const char* env = std::getenv ("AERIFORM_PAGE")) initialPage = std::atoi (env);   // development hook (screenshots)
+    showPage (juce::jlimit (0, 4, initialPage));
 
     processor.getPresetManager().onPresetChanged = [this] { presetDirtyFlag = true; };
 
@@ -49,6 +65,17 @@ AeriformEditor::~AeriformEditor()
 }
 
 // ---------------------------------------------------------------------------
+void AeriformEditor::showPage (int index)
+{
+    index = juce::jlimit (0, (int) pages.size() - 1, index);
+    if (index == currentPage) return;
+    currentPage = index;
+    for (int i = 0; i < (int) pages.size(); ++i)
+        pages[(size_t) i]->setVisible (i == index);
+    tabs.setSelected (index);
+    processor.setEditorPage (index);
+}
+
 void AeriformEditor::applyScale (float newScale)
 {
     scale = juce::jlimit (0.5f, 2.0f, newScale);
@@ -97,26 +124,13 @@ void AeriformEditor::layoutContent()
     top.removeFromRight (8);
     statusLabel.setBounds (top.removeFromRight (190).reduced (0, 8));
     top.removeFromRight (12);
+    auto tabArea = top.removeFromRight (390).reduced (0, 8);
+    top.removeFromRight (12);
+    tabs.setBounds (tabArea);
     presetBar.setBounds (top.reduced (0, 7));
     r.removeFromTop (8);
 
-    // ---- bottom row: SPACE + MASTER ------------------------------------------
-    auto bottom = r.removeFromBottom (200);
-    master.setBounds (bottom.removeFromRight (392));
-    bottom.removeFromRight (8);
-    space.setBounds (bottom);
-    r.removeFromBottom (8);
-
-    // ---- three columns ----------------------------------------------------------
-    auto left = r.removeFromLeft (392);
-    r.removeFromLeft (8);
-    auto right = r.removeFromRight (392);
-    r.removeFromRight (8);
-    breath.setBounds (left);
-    motion.setBounds (right);
-    visualizer.setBounds (r.removeFromTop (150));
-    r.removeFromTop (8);
-    resonator.setBounds (r);
+    for (auto& page : pages) page->setBounds (r);
 }
 
 void AeriformEditor::paint (juce::Graphics& g)
@@ -139,12 +153,13 @@ void AeriformEditor::Content::resized() {}
 // ---------------------------------------------------------------------------
 void AeriformEditor::timerCallback()
 {
-    // modulation rings
+    // modulation rings of the visible page
     auto config = processor.getEngine().getModConfig();
     processor.getVisualizerModel().readLiveMod (liveMod);
-    for (auto* panel : std::initializer_list<ParamPanel*> { &breath, &resonator, &motion, &space, &master })
-        for (auto& k : panel->getKnobs())
-            k->updateModRing (config, liveMod);
+    if (currentPage >= 0)
+        for (auto* panel : pages[(size_t) currentPage]->getPanels())
+            for (auto& k : panel->getKnobs())
+                k->updateModRing (config, liveMod);
 
     // MIDI learn completion
     if (processor.getMidiLearn().pollLearn())
@@ -157,16 +172,18 @@ void AeriformEditor::timerCallback()
         presetBar.refresh();
     }
 
-    // status line: voices, CPU, MIDI activity, limiter
+    // status line: voices, CPU, MIDI activity, limiter, governor
     auto& vis = processor.getVisualizerModel();
     const int activity = vis.midiActivity.exchange (0);
     midiActivityCounter = activity > 0 ? 6 : juce::jmax (0, midiActivityCounter - 1);
     const float cpu = processor.getCpuLoad() * 100.0f;
     const float lim = vis.limiterGain.load (std::memory_order_relaxed);
+    const float gov = vis.governorGain.load (std::memory_order_relaxed);
     juce::String status = "MIDI " + juce::String (midiActivityCounter > 0 ? "*" : "-")
-                          + "   VOICES " + juce::String (vis.activeVoices.load (std::memory_order_relaxed))
-                          + "   CPU " + juce::String (cpu, 1) + " %";
-    if (lim < 0.98f) status += "   LIM";
+                          + "  VOICES " + juce::String (vis.activeVoices.load (std::memory_order_relaxed))
+                          + "  CPU " + juce::String (cpu, 1) + " %";
+    if (gov < 0.98f) status += "  GOV";
+    if (lim < 0.98f) status += "  LIM";
     statusLabel.setText (status, juce::dontSendNotification);
-    statusLabel.setColour (juce::Label::textColourId, lim < 0.98f ? amber : textSecondary);
+    statusLabel.setColour (juce::Label::textColourId, (lim < 0.98f || gov < 0.98f) ? amber : textSecondary);
 }

@@ -6,9 +6,11 @@
 namespace aeriform::dsp
 {
 /**
-    Two-path polyphase IIR halfband filter (six second-order allpass sections,
-    ~ -100 dB stop band, transition ~0.1 fs). Used for 2x interpolation and
-    decimation; two instances cascade for 4x. Allocation-free.
+    Two-path polyphase IIR halfband filter (eight second-order allpass sections,
+    elliptic design: passband to 0.2 fs, > 100 dB stop band from 0.3 fs).
+    Used for 2x interpolation and decimation; two instances cascade for 4x.
+    Coefficients computed with the classic Valenzuela / Constantinides
+    polyphase-IIR method (see scripts/gen_halfband.py). Allocation-free.
 */
 class Halfband
 {
@@ -33,24 +35,27 @@ public:
     }
 
 private:
-    struct Section { float x1 = 0.0f, x2 = 0.0f, y1 = 0.0f, y2 = 0.0f; };
-    static constexpr float kA0[3] = { 0.07986642623635751f, 0.5453536510711322f, 0.9027213749126163f };
-    static constexpr float kA1[3] = { 0.28382934487410993f, 0.7346814251043284f, 0.9773334741405917f };
+    // Each allpass is (a + z^-2)/(1 + a z^-2) at the oversampled rate, i.e. first order in the
+    // polyphase (decimated) domain in which these sections actually run.
+    struct Section { float x1 = 0.0f, y1 = 0.0f; };
+    static constexpr int kSections = 4;
+    static constexpr float kA0[kSections] = { 0.0358327884310621f, 0.2720401433964576f, 0.5720571972357003f, 0.8271247619973240f };
+    static constexpr float kA1[kSections] = { 0.1340901419430669f, 0.4243248712718685f, 0.7062921421386394f, 0.9415030941737551f };
 
-    static inline float run (std::array<Section, 3>& path, const float* coef, float x) noexcept
+    static inline float run (std::array<Section, kSections>& path, const float* coef, float x) noexcept
     {
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < kSections; ++i)
         {
             auto& s = path[(size_t) i];
-            const float y = coef[i] * (x + s.y2) - s.x2;
-            s.x2 = s.x1; s.x1 = x;
-            s.y2 = s.y1; s.y1 = y;
+            const float y = coef[i] * (x - s.y1) + s.x1;
+            s.x1 = x;
+            s.y1 = y;
             x = y;
         }
         return x;
     }
 
-    std::array<Section, 3> path0 {}, path1 {};
+    std::array<Section, kSections> path0 {}, path1 {};
 };
 
 /** 1x / 2x / 4x oversampling helper for a mono signal path. */

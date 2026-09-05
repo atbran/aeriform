@@ -4,7 +4,7 @@
 
 namespace aeriform
 {
-/** MASTER: voice mode, polyphony, glide, unison, pitch bend, MPE, output. */
+/** MASTER: voice mode, polyphony, glide, unison, pitch bend, MPE, quality, output. */
 class MasterPanel : public ParamPanel
 {
 public:
@@ -13,7 +13,7 @@ public:
 
 private:
     juce::Label *voiceCaption, *outCaption;
-    ChoiceBox* voiceMode;
+    ChoiceBox *voiceMode, *quality;
     Knob *voices, *glide, *unison, *detune, *spread, *bend, *outGain, *outHp;
     Toggle *glideLegato, *mpe, *limiter;
 };

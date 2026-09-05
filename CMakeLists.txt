@@ -80,7 +80,12 @@ set(AERIFORM_SOURCES
     Source/GUI/Visualizer.cpp
     Source/GUI/PresetBar.cpp
     Source/GUI/ModMatrixPanel.cpp
-    Source/GUI/Panels/BreathPanel.cpp
+    Source/GUI/Displays.cpp
+    Source/GUI/Pages.cpp
+    Source/GUI/Panels/ExciterSlotPanel.cpp
+    Source/GUI/Panels/ExcitersOverviewPanel.cpp
+    Source/GUI/Panels/ShapingPanels.cpp
+    Source/GUI/Panels/NetworkPanels.cpp
     Source/GUI/Panels/ResonatorPanel.cpp
     Source/GUI/Panels/MotionPanel.cpp
     Source/GUI/Panels/SpacePanel.cpp
@@ -186,6 +191,13 @@ if(AERIFORM_BUILD_TESTS)
         Tests/StateTests.cpp
         Tests/VoiceTests.cpp
         Tests/SidechainTests.cpp
+        Tests/ExciterTests.cpp
+        Tests/FolderTests.cpp
+        Tests/NetworkTests.cpp
+        Tests/MigrationTests.cpp
+        Tests/EditorTests.cpp
+        Tests/ProfileTests.cpp
+        Tests/PresetLevelTests.cpp
         Tests/SmokeTests.cpp)
     target_include_directories(AeriformTests PRIVATE
         Source Tests

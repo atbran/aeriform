@@ -1,5 +1,6 @@
 #include "Knob.h"
 #include "Theme.h"
+#include "GuiDiagnostics.h"
 
 namespace aeriform
 {
@@ -11,6 +12,7 @@ Knob::Knob (AeriformProcessor& p, const juce::String& id, ModMapping m, int diam
     param = processor.getAPVTS().getParameter (paramID);
     info = findParamInfo (paramID);
     jassert (param != nullptr && info != nullptr);
+    if (param == nullptr || info == nullptr) ++gui::unboundControlCount();
 
     slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);

@@ -143,10 +143,10 @@ public:
             }
             case ExciterModel::Mallet:
             {
-                // raised-cosine strike; Speed > 0 rolls at 1..20 Hz
-                if (hitRemaining <= 0 && params.speed > 0.05f)
+                // raised-cosine strike; Speed above 70 % rolls at 1..20 Hz
+                if (hitRemaining <= 0 && params.speed > 0.7f)
                 {
-                    const int rollPeriod = (int) (sr / (0.5f + 20.0f * params.speed));
+                    const int rollPeriod = (int) (sr / (1.0f + 19.0f * (params.speed - 0.7f) / 0.3f));
                     if (++rollCounter >= rollPeriod) { rollCounter = 0; hitRemaining = hitLength; hitPos = 0; }
                 }
                 if (hitRemaining > 0)

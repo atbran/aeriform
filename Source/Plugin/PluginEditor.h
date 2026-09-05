@@ -5,17 +5,12 @@
 #include "PluginProcessor.h"
 #include "../GUI/LookAndFeel.h"
 #include "../GUI/PresetBar.h"
-#include "../GUI/Visualizer.h"
-#include "../GUI/Panels/BreathPanel.h"
-#include "../GUI/Panels/ResonatorPanel.h"
-#include "../GUI/Panels/MotionPanel.h"
-#include "../GUI/Panels/SpacePanel.h"
-#include "../GUI/Panels/MasterPanel.h"
+#include "../GUI/Pages.h"
 
 /**
-    AERIFORM editor: five conceptual regions around a central airflow visualiser.
-    The whole interface is laid out at a fixed logical size and scaled uniformly
-    (75 % .. 200 %), so it stays crisp on high-DPI displays.
+    AERIFORM editor: a top bar (title, presets, status, size), a page strip and
+    five pages (MAIN, EXCITERS, NETWORK, MOTION, SPACE). The whole interface is
+    laid out at a fixed logical size and scaled uniformly (75 % .. 200 %).
 */
 class AeriformEditor : public juce::AudioProcessorEditor,
                        private juce::Timer
@@ -26,6 +21,10 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+
+    /** Shows a page (0 = MAIN .. 4 = SPACE). */
+    void showPage (int index);
+    int getCurrentPage() const noexcept { return currentPage; }
 
 private:
     class Content : public juce::Component
@@ -47,14 +46,11 @@ private:
     juce::Label titleLabel, subtitleLabel, statusLabel;
     aeriform::PresetBar presetBar;
     juce::TextButton scaleButton { "100 %" };
+    aeriform::PageTabs tabs;
 
-    // regions
-    aeriform::Visualizer visualizer;
-    aeriform::BreathPanel breath;
-    aeriform::ResonatorPanel resonator;
-    aeriform::MotionPanel motion;
-    aeriform::SpacePanel space;
-    aeriform::MasterPanel master;
+    // pages
+    std::array<std::unique_ptr<aeriform::Page>, 5> pages;
+    int currentPage = 0;
 
     float scale = 1.0f;
     std::array<float, (size_t) aeriform::ModDest::Count> liveMod {};

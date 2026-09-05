@@ -5,11 +5,12 @@
 
 namespace aeriform
 {
-/** MOTION: three LFOs, modulation envelope and the routing matrix. */
+/** MOTION: three LFOs, modulation envelope and the routing matrix.
+    Compact (MAIN page column): matrix slots 1-8. Full (MOTION page): LFOs side by side, all 16 slots. */
 class MotionPanel : public ParamPanel
 {
 public:
-    explicit MotionPanel (AeriformProcessor&);
+    MotionPanel (AeriformProcessor&, bool full);
     void resized() override;
 
 private:
@@ -20,6 +21,7 @@ private:
         Toggle* sync;
         Knob *rate, *fade, *phase;
     };
+    bool full;
     LfoRow lfos[ids::numLFOs];
     juce::Label* envCaption;
     Knob *menvA, *menvD, *menvS, *menvR;

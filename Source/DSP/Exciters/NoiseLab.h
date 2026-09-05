@@ -147,7 +147,7 @@ public:
             {
                 // gusts: slow random amplitude with density-controlled activity, swept low-pass
                 const float g = gust.next();
-                const float target = std::max (0.0f, 0.25f + 0.75f * g) * (0.3f + 0.7f * params.density);
+                const float target = (0.15f + 0.85f * std::max (0.0f, 0.25f + 0.75f * g)) * (0.3f + 0.7f * params.density);
                 gustEnv += 0.0005f * (target - gustEnv);
                 const float sw = sweep.next();
                 tiltLP.setCoefficient (std::clamp (0.01f + 0.08f * (0.5f + 0.5f * sw) * (0.5f + 0.5f * params.bandwidth), 0.002f, 0.5f));

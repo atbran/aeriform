@@ -23,7 +23,7 @@ void ExciterSlot::prepare (float osRate, int oversampleFactor, int vIndex, int s
     toneLP.setCutoff (1200.0f, osRate);
     driftRnd.seed (seed ^ 0xD41F7u);
     driftRnd.setRate (0.4f, osRate);
-    breathComp = std::sqrt ((float) osFactor);
+    breathComp = std::sqrt ((float) osFactor) * (osFactor > 1 ? 1.15f : 1.0f);   // matches the v0.1 level after decimation
     varTune = rng.next(); varTone = rng.next(); varParam = rng.next();
     reset();
 }

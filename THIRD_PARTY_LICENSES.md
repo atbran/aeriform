@@ -52,9 +52,26 @@ distributing binaries.
 - Tracktion pluginval is GPLv3 and is used only as a development-time validator;
   it is not linked into or distributed with AERIFORM.
 
+## Algorithms and design references (no third-party code)
+
+- The polyphase IIR halfband used for oversampling (`Source/DSP/Oversampler.h`)
+  was designed for AERIFORM from the standard textbook method for elliptic
+  halfband filters built from two allpass branches (Valenzuela / Constantinides,
+  "Digital signal processing schemes for efficient interpolation and
+  decimation", IEE Proceedings G, 1983); the coefficients were computed with a
+  small script written for this project. No third-party filter code is used.
+- PolyBLEP band-limiting, the logistic map, the Kellet pink-noise filter, the
+  free-free bar and circular-membrane mode ratios and the vowel formant
+  frequencies are public textbook / literature values. All implementations are
+  original.
+- The fold functions, the "orbit" oscillator, the noise laboratory models, the
+  physical exciters, the coupling normalisation, the Repipe curves, the
+  governor and the energy loop are original designs for AERIFORM.
+
 ## Trademarks and originality
 
-- "Steam Pipe" is a product of Erica Synths. AERIFORM is an original design
-  inspired only by the general concept of an oscillator-free exciter / resonator
-  architecture. It contains no Erica Synths code, presets, artwork, panel layout
-  or branding.
+- "Steam Pipe" is a product of Erica Synths; "Generate" is a product of
+  Newfangled Audio. AERIFORM is an original design inspired only by the general
+  concept of an oscillator-free exciter / resonator architecture and of complex
+  generators feeding resonant networks. It contains no code, algorithms,
+  presets, artwork, panel layouts or branding from those or any other product.

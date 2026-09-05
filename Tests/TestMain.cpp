@@ -7,7 +7,7 @@
 static int dumpParameterReference()
 {
     aeriform::test::TestHost host;
-    const char* sectionNames[] = { "BREATH", "RESONATOR", "MOTION", "SPACE", "MASTER" };
+    const char* sectionNames[] = { "BREATH (v0.1 exciter, now Exciter model \"Breath\")", "EXCITERS", "SHAPING (interaction, pre-shaper, wavefolder)", "RESONATOR A", "NETWORK (resonators B / C, routing, energy loop)", "MOTION", "SPACE", "MASTER" };
     int lastSection = -1;
     std::printf ("# AERIFORM parameter reference\n\nGenerated from the parameter layout (`AeriformTests --params`).\n");
     for (const auto& info : aeriform::parameterInfos())

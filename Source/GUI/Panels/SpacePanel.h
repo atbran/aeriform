@@ -4,14 +4,15 @@
 
 namespace aeriform
 {
-/** SPACE: chorus, tempo-synced delay, reverb. */
+/** SPACE: chorus, tempo-synced delay, reverb. Full mode (SPACE page) uses three wide columns. */
 class SpacePanel : public ParamPanel
 {
 public:
-    explicit SpacePanel (AeriformProcessor&);
+    SpacePanel (AeriformProcessor&, bool full);
     void resized() override;
 
 private:
+    bool full;
     juce::Label *chorusCaption, *delayCaption, *reverbCaption;
     Knob *chorusMix, *chorusRate, *chorusDepth, *chorusWidth;
     Knob *delayMix, *delayTime, *delayFeedback, *delayTone;

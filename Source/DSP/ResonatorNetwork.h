@@ -42,6 +42,24 @@ struct NetworkParams
 class ResonatorNetwork
 {
 public:
+    /** The Repipe macro's route curves (shared with the GUI diagram so it shows what is really active).
+        r = 0..1; outputs are the minimum values the macro imposes on the corresponding routes. */
+    struct RepipeRoutes { float sendAB = 0.0f, sendBC = 0.0f, ba = 0.0f, ca = 0.0f, cb = 0.0f, ac = 0.0f, fbScale = 0.0f, fbDrive = 0.0f; };
+    static RepipeRoutes repipeRoutes (float r) noexcept
+    {
+        auto smoothstep = [] (float a, float b, float x) { const float t = clamp01 ((x - a) / (b - a)); return t * t * (3.0f - 2.0f * t); };
+        RepipeRoutes o;
+        o.sendAB = smoothstep (0.0f, 0.45f, r);
+        o.sendBC = smoothstep (0.25f, 0.75f, r);
+        o.ba = 0.5f * smoothstep (0.4f, 1.0f, r);
+        o.ca = 0.35f * smoothstep (0.55f, 1.0f, r);
+        o.cb = 0.25f * smoothstep (0.7f, 1.0f, r);
+        o.ac = 0.2f * smoothstep (0.8f, 1.0f, r);
+        o.fbScale = 0.5f + 0.5f * smoothstep (0.4f, 1.0f, r);
+        o.fbDrive = 0.4f * r;
+        return o;
+    }
+
     void prepare (float sampleRate);
     void reset();
     void update (const NetworkParams& p, bool snapLength);
@@ -119,10 +137,15 @@ public:
         lr = fastTanh (lr * loopDriveGain) * loopDriveNorm;
         loopReturnValue = lr * g[G_loop] * governorGain;
 
-        // ---- governor + safety -------------------------------------------------------------
-        const float e = slots[0].getEnergy() + slots[1].getEnergy() + slots[2].getEnergy() + netEnergyValue * 2.0f;
-        if (e > 2.2f) governorGain += (0.5f - governorGain) * 0.002f;
-        else if (e < 1.2f) governorGain += (1.0f - governorGain) * 0.00005f;
+        // ---- governor: a loop limiter on the feedback paths -----------------------------------
+        // Self-oscillation (cross routes / energy loop with loop gain > 1) settles at the reference level
+        // instead of at the saturators' ceiling. A peak follower with instant attack sees a feedback burst
+        // within a millisecond; the gain recovers slowly so the network breathes rather than pumps. Driven
+        // playing below the reference is untouched and the direct signal path is never attenuated.
+        const float inst = std::fabs (o[0]) + std::fabs (o[1]) + std::fabs (o[2]);
+        peakEnv = inst > peakEnv ? inst : peakEnv * 0.9998f;
+        const float target = peakEnv > kGovernorRef ? std::max (0.01f, kGovernorRef / peakEnv) : 1.0f;
+        governorGain += (target - governorGain) * (target < governorGain ? 0.02f : 0.0001f);
     }
 
     float loopReturn() const noexcept { return loopReturnValue; }
@@ -137,6 +160,8 @@ public:
     }
 
 private:
+    static constexpr float kGovernorRef = 0.6f;
+
     enum Gain
     {
         G_injA, G_injB, G_injC, G_sendAB, G_sendBC, G_ab, G_ba, G_bc, G_cb, G_ca, G_ac, G_fbScale,
@@ -167,7 +192,7 @@ private:
     float fbDelaySamples = 0.0f, fbDelayTarget = 0.0f, fbDriveGain = 1.0f, fbDriveNorm = 1.0f, fbDampGain = 1.0f, fbPolarity = 1.0f;
     float loopDelaySamples = 1.0f, loopDelayTarget = 1.0f, loopDriveGain = 1.0f, loopDriveNorm = 1.0f, loopReturnValue = 0.0f;
     LoopSource loopSrc = LoopSource::Mix;
-    float governorGain = 1.0f, netEnergyValue = 0.0f;
+    float governorGain = 1.0f, netEnergyValue = 0.0f, peakEnv = 0.0f;
     int releaseCountdown[3] = { 0, 0, 0 };
 };
 } // namespace aeriform::dsp

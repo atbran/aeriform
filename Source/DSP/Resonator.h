@@ -146,8 +146,19 @@ public:
 
     inline float next (float in, float pressureNow, float& tap2) noexcept
     {
-        if (modal) return bank.next (in, tap2);
-        return waveguide.next (in, pressureNow, tap2);
+        // a model change is applied at zero gain: fade out (~2 ms), switch, fade back in
+        if (pending)
+        {
+            fadeGain -= fadeStep;
+            if (fadeGain <= 0.0f) { fadeGain = 0.0f; applyPending(); }
+        }
+        else if (fadeGain < 1.0f)
+        {
+            fadeGain = std::min (1.0f, fadeGain + fadeStep);
+        }
+        float y = modal ? bank.next (in, tap2) : waveguide.next (in, pressureNow, tap2);
+        if (fadeGain < 1.0f) { y *= fadeGain; tap2 *= fadeGain; }
+        return y;
     }
 
     float getEnergy() const noexcept { return modal ? bank.getEnergy() : waveguide.getEnergy(); }
@@ -160,9 +171,15 @@ public:
     }
 
 private:
+    void applyPending();
+    void applyParams (const ResonatorParams& p, bool snapLength);
+
     Resonator waveguide;
     ModalBank bank;
     bool modal = false;
     ResMode lastType = ResMode::OpenPipe;
+    bool pending = false;
+    ResonatorParams pendingParams;
+    float fadeGain = 1.0f, fadeStep = 0.01f;
 };
 } // namespace aeriform::dsp

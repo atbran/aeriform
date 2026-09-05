@@ -65,7 +65,8 @@ struct VoiceParams
             l.phaseDeg = get (ids::lfoP (i + 1, ids::LfoField::Phase));
         }
         const auto q = getEnum (P::quality, QualityMode::Count);
-        osFactor = q == QualityMode::High ? 4 : 2;
+        // Eco runs the exciter chain at 1x while the folder is off (identical to the v0.1 path), 2x otherwise
+        osFactor = q == QualityMode::High ? 4 : (q == QualityMode::Eco && ! getb (P::wfOn) ? 1 : 2);
         controlInterval = q == QualityMode::Eco ? 64 : 32;
     }
 };

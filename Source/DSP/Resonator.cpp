@@ -136,28 +136,48 @@ void ResonatorSlot::prepare (float sampleRate)
     bank.prepare (sampleRate);
     modal = false;
     lastType = ResMode::OpenPipe;
+    pending = false;
+    fadeGain = 1.0f;
+    fadeStep = 1.0f / (0.002f * sampleRate);
 }
 
 void ResonatorSlot::reset()
 {
     waveguide.reset();
     bank.reset();
+    if (pending) applyPending();
+    fadeGain = 1.0f;
 }
 
 void ResonatorSlot::update (const ResonatorParams& p, bool snapLength)
 {
-    const bool wantModal = isModalType (p.type);
-    if (p.type != lastType)
+    if (p.type != lastType || pending)
     {
+        // the switch lands in next() once the output has faded out; a note start (snapLength) switches at once
         lastType = p.type;
-        if (wantModal != modal)
-        {
-            // clear the engine we are switching to; the old one is simply abandoned
-            if (wantModal) bank.reset(); else waveguide.reset();
-            modal = wantModal;
-            snapLength = true;
-        }
+        pendingParams = p;
+        pending = true;
+        if (snapLength) { applyPending(); fadeGain = 1.0f; }
+        return;
     }
+    applyParams (p, snapLength);
+}
+
+void ResonatorSlot::applyPending()
+{
+    pending = false;
+    const bool wantModal = isModalType (pendingParams.type);
+    if (wantModal != modal)
+    {
+        // clear the engine we are switching to; the old one is simply abandoned
+        if (wantModal) bank.reset(); else waveguide.reset();
+        modal = wantModal;
+    }
+    applyParams (pendingParams, true);
+}
+
+void ResonatorSlot::applyParams (const ResonatorParams& p, bool snapLength)
+{
     if (modal)
     {
         ModalBank::Params m;

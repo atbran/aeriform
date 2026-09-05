@@ -134,7 +134,7 @@ public:
         y = y * compGain - biasOut;
         y = lerp (x, y, p.mix);
         y = dc.process (y);
-        if (p.postLpHz < sr * 0.44f) y = postLP.process (y);
+        if (p.postLpHz < 19000.0f) y = postLP.process (y);   // the maximum setting bypasses the filter
         return std::clamp (y, -4.0f, 4.0f);
     }
 

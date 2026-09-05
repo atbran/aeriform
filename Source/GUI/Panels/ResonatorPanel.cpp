@@ -2,7 +2,7 @@
 
 namespace aeriform
 {
-ResonatorPanel::ResonatorPanel (AeriformProcessor& p) : ParamPanel (p, "RESONATOR", theme::brass)
+ResonatorPanel::ResonatorPanel (AeriformProcessor& p) : ParamPanel (p, "RESONATOR A", theme::brass)
 {
     using namespace ids;
     tuneCaption = caption ("TUNING");
@@ -10,7 +10,7 @@ ResonatorPanel::ResonatorPanel (AeriformProcessor& p) : ParamPanel (p, "RESONATO
     fine     = knob (resFine, semitones (ModDest::Pitch, 2400.0f));   // pitch mod: +/- 24 semitones = +/- 2400 cents
     length   = knob (resLength);
     keyTrack = knob (resKeyTrack);
-    mode     = control<ChoiceBox> (processor, resMode, "Mode");
+    mode     = control<ChoiceBox> (processor, resMode, "Model");
 
     tubeCaption = caption ("TUBE");
     feedback   = knob (resFeedback, additive (ModDest::Feedback), theme::knobSizeLarge);

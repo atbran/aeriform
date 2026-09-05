@@ -17,6 +17,7 @@ class ModalBank
 {
 public:
     static constexpr int kMaxModes = 12;
+    static constexpr float kStrikeNorm = 0.06f;
 
     struct Params
     {
@@ -37,7 +38,7 @@ public:
         params = p;
         numModes = p.type == ResMode::FormantBody ? 5 : (p.type == ResMode::ModalBank ? 12 : 10);
         // decay: feedback 0..1 -> T60 0.03 .. 14 s (log-ish), damping shortens the high modes
-        const float t60 = 0.03f * std::pow (14.0f / 0.03f, clamp01 (p.feedback));
+        const float t60 = 0.02f * std::pow (600.0f, clamp01 (p.feedback));   // 20 ms .. 12 s
         const float sizeScale = std::exp2 ((p.size - 0.5f) * 1.6f);
         drive = 1.0f + 6.0f * clamp01 (p.saturation);
         invDrive = 1.0f / drive;
@@ -71,19 +72,24 @@ public:
             const float theta = kTwoPi * f / sr;
             m.a1 = 2.0f * R * std::cos (theta);
             m.a2 = -R * R;
-            m.gain = (1.0f - R) * 2.0f;                                     // ~unit peak gain
+            // impulse normalisation: a strike of ~15 sample-units of area rings at unit amplitude in every mode
+            // (the 2-pole impulse response peaks at gain / sin(theta)); sustained input is bounded by the AGC + tanh
+            m.gain = kStrikeNorm * std::max (0.02f, std::sin (theta));
             // brightness: amplitude tilt across modes; pickup: alternate weighting for the second tap
             const float tilt = std::pow (0.35f + 0.65f * (1.0f - k), (1.0f - p.brightness) * 3.0f);
             m.amp = tilt * (p.type == ResMode::FormantBody ? kFormantAmp[i] : 1.0f);
             m.amp2 = m.amp * std::cos (kPi * (float) i * (0.2f + 0.8f * p.pickup));
         }
-        norm = 1.0f / std::sqrt ((float) numModes) * 1.6f;
+        norm = 1.2f / std::sqrt ((float) numModes);
     }
 
     /** Returns the main output; the second (pickup) tap is written to `tap2`. */
     inline float next (float x, float& tap2) noexcept
     {
-        const float in = fastTanh (x * drive) * invDrive;
+        // sustained excitation would pump a high-Q bank without limit: attenuate the input as the bank
+        // fills up (energy AGC) and soft-bound the sum, mirroring the waveguide's in-loop saturator
+        const float agc = 1.0f / (1.0f + 10.0f * std::max (0.0f, energy - 0.6f));
+        const float in = fastTanh (x * drive) * invDrive * agc;
         float sum = 0.0f, sum2 = 0.0f;
         for (int i = 0; i < numModes; ++i)
         {
@@ -94,6 +100,8 @@ public:
             sum2 += y * m.amp2;
         }
         sum *= norm; sum2 *= norm;
+        sum = fastTanh (sum * 0.5f) * 2.0f;
+        sum2 = fastTanh (sum2 * 0.5f) * 2.0f;
         energy += 0.002f * (std::fabs (sum) - energy);
         tap2 = sum2;
         return sum;

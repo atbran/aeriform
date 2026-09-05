@@ -3,6 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "../Plugin/PluginProcessor.h"
 #include "Theme.h"
+#include "GuiDiagnostics.h"
 
 namespace aeriform
 {
@@ -14,6 +15,7 @@ public:
     {
         auto* param = dynamic_cast<juce::AudioParameterChoice*> (p.getAPVTS().getParameter (paramID));
         jassert (param != nullptr);
+        if (param == nullptr) ++gui::unboundControlCount();
         if (param != nullptr)
         {
             box.addItemList (param->choices, 1);
@@ -52,7 +54,8 @@ public:
     {
         button.setButtonText (caption.isNotEmpty() ? caption : (findParamInfo (paramID) != nullptr ? findParamInfo (paramID)->name : paramID));
         button.setTooltip (findParamInfo (paramID) != nullptr ? findParamInfo (paramID)->tooltip : juce::String());
-        attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (p.getAPVTS(), paramID, button);
+        if (p.getAPVTS().getParameter (paramID) == nullptr) { ++gui::unboundControlCount(); }
+        else attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (p.getAPVTS(), paramID, button);
         addAndMakeVisible (button);
     }
     void resized() override { button.setBounds (getLocalBounds()); }
@@ -71,6 +74,7 @@ public:
     {
         auto* param = p.getAPVTS().getParameter (paramID);
         jassert (param != nullptr);
+        if (param == nullptr) ++gui::unboundControlCount();
         slider.setSliderStyle (juce::Slider::LinearHorizontal);
         slider.setTextBoxStyle (showValueBox ? juce::Slider::TextBoxRight : juce::Slider::NoTextBox, false, 54, 16);
         slider.setPopupDisplayEnabled (true, false, nullptr);

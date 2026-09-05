@@ -2,46 +2,74 @@
 
 namespace aeriform
 {
-MotionPanel::MotionPanel (AeriformProcessor& p) : ParamPanel (p, "MOTION", theme::teal)
+MotionPanel::MotionPanel (AeriformProcessor& p, bool f) : ParamPanel (p, "MOTION", theme::teal), full (f)
 {
     using namespace ids;
     const ModDest rateDest[ids::numLFOs] = { ModDest::Lfo1Rate, ModDest::Lfo2Rate, ModDest::Lfo3Rate };
+    const int d = full ? theme::knobSize : theme::knobSizeSmall;
     for (int i = 0; i < numLFOs; ++i)
     {
         auto& l = lfos[i];
         const int n = i + 1;
         l.caption  = caption ("LFO " + juce::String (n));
         l.shape    = control<ChoiceBox> (processor, lfoParam (n, lfoShapeSuffix), "Shape");
-        l.rate     = knob (lfoParam (n, lfoRateSuffix), exponential (rateDest[i], 3.0f), theme::knobSizeSmall);
-        l.rate->setDisplayName ("Rate");
+        l.rate     = knob (lfoParam (n, lfoRateSuffix), "Rate", exponential (rateDest[i], 3.0f), d);
         l.sync     = control<Toggle> (processor, lfoParam (n, lfoSyncSuffix), "Sync");
         l.division = control<ChoiceBox> (processor, lfoParam (n, lfoDivSuffix), "Division");
         l.mode     = control<ChoiceBox> (processor, lfoParam (n, lfoModeSuffix), "Trigger");
-        l.fade     = knob (lfoParam (n, lfoFadeSuffix), {}, theme::knobSizeSmall);
-        l.fade->setDisplayName ("Fade");
-        l.phase    = knob (lfoParam (n, lfoPhaseSuffix), {}, theme::knobSizeSmall);
-        l.phase->setDisplayName ("Phase");
+        l.fade     = knob (lfoParam (n, lfoFadeSuffix), "Fade", {}, d);
+        l.phase    = knob (lfoParam (n, lfoPhaseSuffix), "Phase", {}, d);
     }
-    for (auto& l : lfos)
-        for (auto* k : { l.rate, l.fade, l.phase })
-            k->setAccentColour (theme::teal);
-
     envCaption = caption ("MOD ENVELOPE");
-    menvA = knob (menvAttack, {}, theme::knobSizeSmall);  menvA->setDisplayName ("Attack");
-    menvD = knob (menvDecay, {}, theme::knobSizeSmall);   menvD->setDisplayName ("Decay");
-    menvS = knob (menvSustain, {}, theme::knobSizeSmall); menvS->setDisplayName ("Sustain");
-    menvR = knob (menvRelease, {}, theme::knobSizeSmall); menvR->setDisplayName ("Release");
+    menvA = knob (menvAttack, "Attack", {}, d);
+    menvD = knob (menvDecay, "Decay", {}, d);
+    menvS = knob (menvSustain, "Sustain", {}, d);
+    menvR = knob (menvRelease, "Release", {}, d);
+    for (auto& k : knobs) k->setAccentColour (theme::teal);
 
-    matrixCaption = caption ("MODULATION MATRIX");
-    matrix = control<ModMatrixPanel> (processor);
+    matrixCaption = caption (full ? "MODULATION MATRIX  (16 slots)" : "MODULATION MATRIX  (slots 1-8, all 16 on the MOTION page)");
+    matrix = control<ModMatrixPanel> (processor, 1, full ? ids::numModSlots : ids::numModSlotsV01, full ? 2 : 1);
 }
 
 void MotionPanel::resized()
 {
     auto r = getContentArea();
     const int capH = 14;
-    const int lfoRowH = 62;
 
+    if (full)
+    {
+        // three LFO columns
+        auto lfoArea = r.removeFromTop (150);
+        const int colW = (lfoArea.getWidth() - 2 * 12) / 3;
+        for (int i = 0; i < ids::numLFOs; ++i)
+        {
+            auto& l = lfos[i];
+            auto col = juce::Rectangle<int> (lfoArea.getX() + i * (colW + 12), lfoArea.getY(), colW, lfoArea.getHeight());
+            l.caption->setBounds (col.removeFromTop (capH));
+            auto boxes = col.removeFromTop (44);
+            const int bw = (boxes.getWidth() - 16) / 3;
+            l.shape->setBounds (boxes.removeFromLeft (bw)); boxes.removeFromLeft (8);
+            l.mode->setBounds (boxes.removeFromLeft (bw)); boxes.removeFromLeft (8);
+            l.division->setBounds (boxes);
+            col.removeFromTop (4);
+            auto row = col.removeFromTop (80);
+            l.sync->setBounds (row.removeFromLeft (70).withTrimmedTop (24).withHeight (22));
+            knobRow (row, { l.rate, l.fade, l.phase });
+        }
+        r.removeFromTop (8);
+        auto bottom = r;
+        auto envArea = bottom.removeFromLeft (150);
+        envCaption->setBounds (envArea.removeFromTop (capH));
+        auto envRow1 = envArea.removeFromTop (84);
+        knobRow (envRow1, { menvA, menvD });
+        knobRow (envArea.removeFromTop (84), { menvS, menvR });
+        bottom.removeFromLeft (16);
+        matrixCaption->setBounds (bottom.removeFromTop (capH));
+        matrix->setBounds (bottom);
+        return;
+    }
+
+    const int lfoRowH = 62;
     for (auto& l : lfos)
     {
         l.caption->setBounds (r.removeFromTop (capH));

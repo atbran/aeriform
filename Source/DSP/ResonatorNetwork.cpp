@@ -36,6 +36,7 @@ void ResonatorNetwork::reset()
     loopReturnValue = 0.0f;
     netEnergyValue = 0.0f;
     governorGain = 1.0f;
+    peakEnv = 0.0f;
     for (int i = 0; i < kNumGains; ++i) g[i] = gTarget[i];
     fbDelaySamples = fbDelayTarget;
     loopDelaySamples = loopDelayTarget;
@@ -98,14 +99,15 @@ void ResonatorNetwork::update (const NetworkParams& p, bool snapLength)
     float outW[3] = { p.out[0], p.out[1], p.out[2] };
     if (repipe)
     {
-        sendAB = std::max (sendAB, smoothstep (0.0f, 0.45f, r));
-        sendBC = std::max (sendBC, smoothstep (0.25f, 0.75f, r));
-        ba = std::max (ba, 0.5f * smoothstep (0.4f, 1.0f, r));
-        ca = std::max (ca, 0.35f * smoothstep (0.55f, 1.0f, r));
-        cb = std::max (cb, 0.25f * smoothstep (0.7f, 1.0f, r));
-        ac = std::max (ac, 0.2f * smoothstep (0.8f, 1.0f, r));
-        fbScale = std::max (fbScale, 0.5f + 0.5f * smoothstep (0.4f, 1.0f, r));
-        fbDrive = std::max (fbDrive, 0.4f * r);
+        const auto rp = repipeRoutes (r);
+        sendAB = std::max (sendAB, rp.sendAB);
+        sendBC = std::max (sendBC, rp.sendBC);
+        ba = std::max (ba, rp.ba);
+        ca = std::max (ca, rp.ca);
+        cb = std::max (cb, rp.cb);
+        ac = std::max (ac, rp.ac);
+        fbScale = std::max (fbScale, rp.fbScale);
+        fbDrive = std::max (fbDrive, rp.fbDrive);
         outW[0] = p.out[0] * lerp (1.0f, 0.6f, smoothstep (0.0f, 0.5f, r));
         outW[1] = std::max (outW[1] * smoothstep (0.1f, 0.6f, r), p.on[1] ? p.out[1] : 0.0f);
         outW[2] = std::max (outW[2] * smoothstep (0.4f, 0.9f, r), p.on[2] ? p.out[2] : 0.0f);
@@ -128,10 +130,33 @@ void ResonatorNetwork::update (const NetworkParams& p, bool snapLength)
         default: break;
     }
 
+    // constant-power output normalisation: several slots at full level must not be louder than one
+    {
+        float sumSq = 0.0f;
+        for (int i = 0; i < 3; ++i) if (wantRunning[i]) sumSq += tapW[i] * tapW[i];
+        const float outNorm = 1.0f / std::sqrt (std::max (1.0f, sumSq));
+        for (auto& w : tapW) w *= outNorm;
+    }
+
+    // ---- coupling normalisation --------------------------------------------------------------
+    // A resonator amplifies a signal at its own resonances by roughly 1 / (1 - loop gain). Signals coming
+    // from another resonator tuned to the same note are exactly such signals, so every send and cross route
+    // into a slot is scaled by that slot's loss: a chain is then colouring rather than amplifying, and
+    // "route = 1" means a loop gain of about one instead of fifty. Modal banks use a fixed coupling; their
+    // AGC and soft bound take care of the rest. The direct excitation injections are not scaled.
+    float couple[3];
+    for (int i = 0; i < 3; ++i)
+    {
+        const auto& r = p.res[i];
+        if (ResonatorSlot::isModalType (r.type)) couple[i] = 0.15f;
+        else couple[i] = std::clamp (1.0f - (0.7f + 0.3f * clamp01 (r.feedback)), 0.05f, 1.0f);
+    }
+
     // ---- gain targets ------------------------------------------------------------------------
     gTarget[G_injA] = injA; gTarget[G_injB] = injB; gTarget[G_injC] = injC;
-    gTarget[G_sendAB] = sendAB; gTarget[G_sendBC] = sendBC;
-    gTarget[G_ab] = ab; gTarget[G_ba] = ba; gTarget[G_bc] = bc; gTarget[G_cb] = cb; gTarget[G_ca] = ca; gTarget[G_ac] = ac;
+    gTarget[G_sendAB] = sendAB * couple[1]; gTarget[G_sendBC] = sendBC * (hybrid ? couple[2] : couple[2]);
+    gTarget[G_ab] = ab * couple[1]; gTarget[G_ba] = ba * couple[0]; gTarget[G_bc] = bc * couple[2];
+    gTarget[G_cb] = cb * couple[1]; gTarget[G_ca] = ca * couple[0]; gTarget[G_ac] = ac * couple[2];
     gTarget[G_fbScale] = clamp01 (fbScale) * 0.98f;
     for (int i = 0; i < 3; ++i)
     {

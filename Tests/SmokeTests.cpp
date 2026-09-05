@@ -3,6 +3,7 @@
 #include "TestHelpers.h"
 #include "Presets/FactoryPresets.h"
 #include <chrono>
+#include <cstdlib>
 
 using namespace aeriform;
 using namespace aeriform::test;
@@ -41,6 +42,7 @@ AERIFORM_TEST (smoke_render_at_three_sample_rates_and_block_sizes)
             CHECK_MSG (sustain.finite && tail.finite && after.finite, msg);
             CHECK_MSG (sustain.peak < 1.25f, msg);                 // limiter bound
             CHECK_MSG (sustain.rms > 1.0e-3, msg);                 // non-trivial audio
+            CHECK_MSG (sustain.rms > 0.06 && sustain.rms < 0.30, msg);   // level continuity with v0.1 (0.12 .. 0.16 measured)
             CHECK_MSG (after.peak < 2.0e-3f, msg);                 // decays (reverb tail may linger quietly)
         }
 }
@@ -138,6 +140,85 @@ AERIFORM_TEST (smoke_repeated_prepare_release_cycles)
         h.noteOff (60 + i);
         CHECK (h.render (0.1).finite);
     }
+}
+
+AERIFORM_TEST (smoke_randomized_parameter_fuzz)
+{
+    // Randomises every valid parameter, voice count, notes, sample rate and block size for
+    // AERIFORM_FUZZ_SECONDS seconds of audio (default 60) and verifies finite, bounded output,
+    // no persistent DC and no pathological block times.
+    double totalSeconds = 60.0;
+    if (const char* env = std::getenv ("AERIFORM_FUZZ_SECONDS")) totalSeconds = std::max (5.0, std::atof (env));
+    const double sampleRates[] = { 44100.0, 48000.0, 96000.0 };
+    const int blockSizes[] = { 32, 64, 128, 256, 512, 1024 };
+    juce::Random rng (20260904);
+    double rendered = 0.0;
+    double worstBlockMs = 0.0, worstBlockBudgetRatio = 0.0;
+    int nonFinite = 0, overshoots = 0, overshootsLimited = 0, dcFailures = 0, configs = 0;
+    double worstLimited = 0.0, worstOpen = 0.0;
+    long held[16] = {}; int numHeld = 0;
+
+    while (rendered < totalSeconds)
+    {
+        const double sr = sampleRates[rng.nextInt (3)];
+        const int bs = blockSizes[rng.nextInt (6)];
+        TestHost h (sr, bs, rng.nextBool());
+        ++configs;
+        const bool limiter = rng.nextInt (5) != 0;
+        h.set (ids::limiterOn, limiter ? 1.0f : 0.0f);
+        h.set (ids::voiceCount, (float) (1 + rng.nextInt (16)));
+        dsp::Noise noise; noise.seed ((uint32_t) rng.nextInt());
+        h.inputSource = [&] (long) { return noise.next() * 0.7f; };
+        numHeld = 0;
+        const double configSeconds = 2.0 + rng.nextDouble() * 4.0;
+        const int blocks = (int) (configSeconds * sr / bs);
+        double dcAcc = 0.0; long dcCount = 0;
+        for (int b = 0; b < blocks; ++b)
+        {
+            // randomise a handful of parameters every few blocks (all kinds, full ranges)
+            if (rng.nextInt (3) == 0)
+                for (int k = 0; k < 6; ++k)
+                {
+                    const int idx = rng.nextInt (kNumParams);
+                    auto* p = h.processor.getAPVTS().getParameter (ids::all[idx]);
+                    if (p != nullptr && idx != (int) P::voiceCount) p->setValueNotifyingHost (rng.nextFloat());
+                }
+            if (rng.nextInt (4) == 0)
+            {
+                const int note = rng.nextInt (128);
+                if (numHeld < 16 && rng.nextInt (3) != 0) { h.noteOn (note, 1 + rng.nextInt (127)); held[numHeld++] = note; }
+                else if (numHeld > 0) { const int i = rng.nextInt (numHeld); h.noteOff ((int) held[i]); held[i] = held[--numHeld]; }
+            }
+            if (rng.nextInt (40) == 0) h.cc (1 + rng.nextInt (120), rng.nextInt (128));
+            if (rng.nextInt (60) == 0) h.pitchBend (rng.nextInt (16384));
+            if (rng.nextInt (50) == 0) h.aftertouch (rng.nextInt (128));
+
+            const bool limiterNow = h.get (ids::limiterOn) > 0.5f;   // the fuzz may have switched it
+            const auto t0 = std::chrono::steady_clock::now();
+            std::vector<float> mono;
+            const auto s = h.renderBlock (&mono);
+            const double ms = std::chrono::duration<double, std::milli> (std::chrono::steady_clock::now() - t0).count();
+            const double budget = 1000.0 * bs / sr;
+            worstBlockMs = std::max (worstBlockMs, ms);
+            worstBlockBudgetRatio = std::max (worstBlockBudgetRatio, ms / budget);
+            if (! s.finite) ++nonFinite;
+            if (s.peak > (limiterNow ? 1.3f : 4.05f)) { ++overshoots; if (limiterNow) ++overshootsLimited; }
+            if (limiterNow) worstLimited = std::max (worstLimited, (double) s.peak); else worstOpen = std::max (worstOpen, (double) s.peak);
+            for (float v : mono) { dcAcc += v; ++dcCount; }
+            if (dcCount >= (long) sr)   // one-second DC window
+            {
+                if (std::fabs (dcAcc / (double) dcCount) > 0.08) ++dcFailures;
+                dcAcc = 0.0; dcCount = 0;
+            }
+        }
+        rendered += configSeconds;
+    }
+    std::printf ("    fuzz: %.0f s of audio over %d random configurations, worst block %.2f ms (%.1f%% of its real-time budget)\n",
+                 rendered, configs, worstBlockMs, worstBlockBudgetRatio * 100.0);
+    CHECK_MSG (nonFinite == 0, "non-finite blocks: " + std::to_string (nonFinite));
+    std::printf ("    fuzz: worst peak with limiter %.3f, without limiter %.3f\n", worstLimited, worstOpen);
+    CHECK_MSG (overshoots == 0, "overshooting blocks: " + std::to_string (overshoots) + " (" + std::to_string (overshootsLimited) + " with the limiter on)");
+    CHECK_MSG (dcFailures == 0, "persistent DC windows: " + std::to_string (dcFailures));
 }
 
 AERIFORM_TEST (smoke_cpu_measurement_eight_voices_with_effects)
