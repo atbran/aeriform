@@ -34,7 +34,7 @@ inline const juce::Colour knobRim      { 0xff3d424a };
 inline const juce::Colour knobTrack    { 0xff35393f };
 inline const juce::Colour knobPointer  { 0xffe8e2d6 };
 
-// v0.2 accents: exciter slots and resonator nodes
+// v2.1 accents: exciter slots and resonator nodes
 inline const juce::Colour exciterA     { 0xffe0a35a };
 inline const juce::Colour exciterB     { 0xffd87a6a };
 inline const juce::Colour nodeA        { 0xffd8b46a };

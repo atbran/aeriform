@@ -278,7 +278,7 @@ const std::vector<FactoryPreset>& factoryPresets()
             .space (0.0f, 0.35f, 0.5f).delay (d1_8, 0.5f).reverb (0.9f, 0.75f, 0.4f).v });
 
 
-        // =================================================================== v0.2 experimental bank
+        // =================================================================== v2.1 experimental bank
         // 21 ------------------------------------------------------------- dual-exciter cross-modulation
         list.push_back ({ "Orbit Crossmod", "Experimental", Build().p (outGain, -7.0f)
             .p (exaModel, (float) ExciterModel::Wave).p (exaWaveShape, 0.62f).p (exaLevel, 0.8f)

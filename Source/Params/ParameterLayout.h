@@ -41,7 +41,7 @@ enum class ModSource
 {
     None, LFO1, LFO2, LFO3, ModEnv, AmpEnv, Velocity, ModWheel, Aftertouch,
     PitchBend, MpeSlide, KeyTrack, Random, BreathCC, ExpressionCC,
-    // v0.2
+    // v2.1
     ExAEnv, ExBEnv, SidechainEnv, ResAEnergy, ResBEnergy, ResCEnergy, NetEnergy,
     SampleHold, SmoothRandom, ChaosX, ChaosY, NoteAge, KeyPosition, VoiceNumber, AlternateNote,
     Count
@@ -52,7 +52,7 @@ enum class ModDest
     None, Pressure, Noise, NoiseColor, ExciterLP, ExciterHP, Turbulence, Pitch,
     Feedback, Damping, Brightness, Dispersion, Shape, Reflection, BodyFreq, BodyMix,
     Pan, Amp, ChorusMix, DelayMix, ReverbMix, Lfo1Rate, Lfo2Rate, Lfo3Rate,
-    // v0.2
+    // v2.1
     ExALevel, ExAPitch, ExATone, ExAShape, ExAChaos, ExBLevel, ExBPitch, ExBTone, ExBShape, ExBChaos,
     Interaction, Balance, PreDrive, Fold, FoldDrive, FoldSymmetry, FoldBias,
     ResBPitch, ResBFeedback, ResBDamping, ResBBrightness, ResCPitch, ResCFeedback, ResCDamping, ResCBrightness,
@@ -145,6 +145,6 @@ const ParamDef& paramDef (P p);
 const juce::StringArray& choiceStrings (ChoiceList list);
 
 /** Current state-format version written into saved state / preset files.
-    1 = v0.1 (single exciter / single resonator), 2 = v0.2 (dual exciters, folder, network). */
+    1 = v0.1 (single exciter / single resonator), 2 = v2.1 (dual exciters, folder, network). */
 inline constexpr int kStateVersion = 2;
 } // namespace aeriform

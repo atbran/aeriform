@@ -2,9 +2,9 @@
 
 Living document. Updated as work progresses.
 
-## v0.2 overhaul: dual exciters, wavefolder, resonator network - DONE (2026-09-05)
+## v2.1 overhaul: dual exciters, wavefolder, resonator network - DONE (2026-09-05)
 
-### Baseline (recorded 2026-09-04 before any v0.2 change)
+### Baseline (recorded 2026-09-04 before any v2.1 change)
 - Build: OK (GCC 14.2 MinGW-w64, Release, `D:\dev\build\aeriform\mingw-release`)
 - `AeriformTests --all`: 38 tests, 3690 checks, 0 failures
 - `AeriformHostCheck ... AERIFORM.vst3`: PASSED; pluginval strictness 10: SUCCESS
@@ -12,7 +12,7 @@ Living document. Updated as work progresses.
 - 120 parameters, state version 1, 20 factory presets
 - Git: repository initialised at this baseline (commit "Checkpoint: AERIFORM v0.1.0 baseline")
 
-### Final status (v0.2.0)
+### Final status (v2.1.0)
 - Build: OK, VST3 + Standalone + tests + host checker
 - `AeriformTests`: 64 unit tests, 0 failures; `--smoke`: 8 tests, 0 failures (fuzz 60-93 s over 16-25 random configurations)
 - Host check (VST3 load, prepare, notes, render at 3 rates, state, editor): PASSED
@@ -45,11 +45,11 @@ Exciter B --+   (oversampled 1x / 2x / 4x, decimated before the network) +-- Res
 
 ## Completed
 - (v0.1) Everything listed in the baseline above
-- v0.2 step A: table-driven parameter layout (`scripts/gen_params.py`), state version 2
-- v0.2 step B: DSP (exciter slots, interaction, pre-shaper, folder + oversampling, modal resonators, network, loop, matrix)
-- v0.2 step C: stability work (modal normalisation, coupling normalisation, governor, click-free model switches), 20 presets, GUI overhaul (5 pages, scopes, transfer curve, interactive diagram), editor / migration / network / folder / exciter / profile / preset-level tests, docs
+- v2.1 step A: table-driven parameter layout (`scripts/gen_params.py`), state version 2
+- v2.1 step B: DSP (exciter slots, interaction, pre-shaper, folder + oversampling, modal resonators, network, loop, matrix)
+- v2.1 step C: stability work (modal normalisation, coupling normalisation, governor, click-free model switches), 20 presets, GUI overhaul (5 pages, scopes, transfer curve, interactive diagram), editor / migration / network / folder / exciter / profile / preset-level tests, docs
 
-## Remaining / follow-ups (not required for v0.2)
+## Remaining / follow-ups (not required for v2.1)
 - macOS / Linux / AU verification; MSVC build verification
 - Per-slot sidechain freeze is momentary by design; a longer hold would need a user-facing buffer length
 - CPU: the Wave / Complex exciters dominate at 4x; a SIMD pass over the exciter chain would help 16-voice High-quality patches

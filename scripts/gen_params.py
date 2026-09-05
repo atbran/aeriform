@@ -134,7 +134,7 @@ B('limiterOn', 'limiter_on', 'Limiter', S, True, 'Soft output limiter protecting
 NUM_V01 = len(rows)
 
 # --------------------------------------------------------------------------
-# v0.2: exciter slots
+# v2.1: exciter slots
 # --------------------------------------------------------------------------
 def exciter_slot(px, letter, default_model):
     S = 'Exciters'
@@ -200,7 +200,7 @@ exciter_slot('exb', 'B', 0)   # Off
 B('exbSync', 'exb_sync', 'Exciter B Sync', 'Exciters', False, 'Hard-syncs Exciter B\'s phase to Exciter A (pitched models).')
 
 # --------------------------------------------------------------------------
-# v0.2: interaction, pre-shaper, wavefolder, dynamics
+# v2.1: interaction, pre-shaper, wavefolder, dynamics
 # --------------------------------------------------------------------------
 S = 'Shaping'
 C('mixMode', 'mix_mode', 'Interaction Mode', S, 'InteractionModes', 0, 'How Exciter A and B combine. With one slot Off the other passes through untouched.')
@@ -236,7 +236,7 @@ F('wfLp', 'wf_lp', 'Fold Post LP', S, 200, 20000, 20000, 'Hz', 'Hz', 'Low-pass f
 F('dynAmount', 'dyn_amount', 'Dynamics', S, 0, 1, 0, '%', 'Percent', 'Level normaliser after the folder: keeps the excitation feeding the network at a consistent level.')
 
 # --------------------------------------------------------------------------
-# v0.2: resonator A extras, resonators B and C, network, energy loop
+# v2.1: resonator A extras, resonators B and C, network, energy loop
 # --------------------------------------------------------------------------
 S = 'Resonator'
 B('resOn', 'res_on', 'Resonator A', S, True, 'Enables Resonator A.')
@@ -311,7 +311,7 @@ C('loopPolarity', 'loop_polarity', 'Loop Polarity', S, 'Polarities', 0, 'Polarit
 F('loopSat', 'loop_sat', 'Loop Saturation', S, 0, 1, 0.5, '%', 'Percent', 'Saturation of the return path (also its safety bound).')
 
 # --------------------------------------------------------------------------
-# v0.2: matrix slots 9..16, quality
+# v2.1: matrix slots 9..16, quality
 # --------------------------------------------------------------------------
 S = 'Motion'
 for i in range(9, 17):

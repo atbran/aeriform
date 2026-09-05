@@ -6,7 +6,7 @@
 using namespace aeriform;
 using namespace aeriform::test;
 
-// CPU profile of the v0.2 configurations at every quality mode. Prints a markdown table
+// CPU profile of the v2.1 configurations at every quality mode. Prints a markdown table
 // (copied into docs/PERFORMANCE.md). Run with:  AeriformTests --filter=smoke_cpu_profile
 namespace
 {

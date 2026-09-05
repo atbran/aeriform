@@ -1,4 +1,4 @@
-# AERIFORM v0.2 CPU profile
+# AERIFORM v2.1 CPU profile
 
 Measured by `AeriformTests --filter=smoke_cpu_profile` (`AERIFORM_PROFILE_SECONDS=4`)
 on an Intel i5-11600K, Release build, GCC 14.2 MinGW-w64, 48 kHz, 256-sample blocks,
@@ -18,7 +18,7 @@ is sounding for the whole measurement).
 | Everything: 2 exciters, folder, 3 resonators hybrid, cross-feedback, loop, effects, 8 voices | 21.7 % | 23.0 % | 37.4 % |
 | Everything, 16 voices | 43.3 % | 46.2 % | 73.0 % |
 
-The v0.1 measurement (8 voices + effects, default patch) was 3.7-4.0 %; the v0.2
+The v0.1 measurement (8 voices + effects, default patch) was 3.7-4.0 %; the v2.1
 default patch costs 5.6 % in Eco and 7.9 % in Normal because the exciter chain
 now runs through the interaction / pre-shaper stages and (Normal) 2x oversampling
 with a polyphase halfband decimator even when the folder is off.

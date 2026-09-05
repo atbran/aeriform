@@ -3,13 +3,13 @@
 **An oscillator-free physical-modelling synthesizer with a complex exciter
 generator and a three-resonator feedback network.**
 VST3 + Standalone, 8-voice polyphonic (up to 16), MPE, sidechain excitation.
-C++20 / JUCE 7.0.12 / CMake. Version 0.2.
+C++20 / JUCE 7.0.12 / CMake. Version 2.1.
 
 ![AERIFORM interface (MAIN page)](docs/screenshot.png)
 
 AERIFORM started (v0.1) as a breath-driven waveguide instrument: air, noise,
 plucks or sidechain audio pushed into a tuned tube whose reflections, losses,
-dispersion and reed junction shape the tone. Version 0.2 turns the front end
+dispersion and reed junction shape the tone. Version 2.1 turns the front end
 into a **dual-exciter complex generator** (conventional band-limited waveforms,
 an original chaotic "orbit" oscillator, a noise laboratory, physical exciters
 and the sidechain) with **thirteen interaction modes**, a **pre-shaper** and an
@@ -28,7 +28,7 @@ presets, panel layouts, artwork or branding from any other product.
 ## Contents
 
 1. [Features](#features)
-2. [What changed in v0.2](#what-changed-in-v02)
+2. [What changed in v2.1](#what-changed-in-v21)
 3. [Building on Windows](#building-on-windows)
 4. [macOS and Linux](#macos-and-linux)
 5. [Installing and running](#installing-and-running)
@@ -100,7 +100,7 @@ presets, panel layouts, artwork or branding from any other product.
 - **Space**: ensemble chorus, tempo-synced ping-pong delay, FDN reverb, final
   high-pass and a soft limiter.
 - **Quality**: Eco / Normal / High (1x-2x / 2x / 4x exciter-chain oversampling).
-- **Presets**: 40 factory presets (20 v0.1 + 20 v0.2 experimental), user
+- **Presets**: 40 factory presets (20 v0.1 + 20 v2.1 experimental), user
   presets as portable XML files, import / export, dirty indicator.
 - **GUI**: five pages (MAIN, EXCITERS, NETWORK, MOTION, SPACE), context-sensitive
   exciter modules with live waveform scopes, wavefolder transfer display,
@@ -115,9 +115,9 @@ presets, panel layouts, artwork or branding from any other product.
 
 ---
 
-## What changed in v0.2
+## What changed in v2.1
 
-| Area | v0.1 | v0.2 |
+| Area | v0.1 | v2.1 |
 |---|---|---|
 | Exciter | one breath / pluck / sidechain exciter | two slots, 25 models each, interaction stage, pre-shaper, oversampled wavefolder |
 | Resonator | one waveguide (3 topologies) + body | three slots, 9 models, routing, cross-feedback, Repipe, energy loop, governor |
@@ -311,7 +311,7 @@ AeriformHostCheck_artefacts\Release\AeriformHostCheck.exe Aeriform_artefacts\Rel
 D:\dev\tools\pluginval\pluginval.exe --strictness-level 10 --validate-in-process --validate D:\dev\build\aeriform\mingw-release\Aeriform_artefacts\Release\VST3\AERIFORM.vst3
 ```
 
-Last results (v0.2 build): unit 64 / 0 failures, smoke 8 / 0 failures (fuzz 93 s
+Last results (v2.1 build): unit 64 / 0 failures, smoke 8 / 0 failures (fuzz 93 s
 over 25 configurations), host check PASSED, pluginval strictness 10
 **SUCCESS**.
 
@@ -659,7 +659,7 @@ parameters) is generated from the layout: [docs/PARAMETERS.md](docs/PARAMETERS.m
   Evolving Drone, Dark Cinematic Pad, Metallic Ambience, Unstable Feedback,
   Soft Breath Pad, Percussive Click, Noise Machine, Whistle Lead, Sub Drone
   Engine, Ceramic Bells, Steam Vent.
-- 20 v0.2 experimental presets: Orbit Crossmod (wave FM'd by the orbit
+- 20 v2.1 experimental presets: Orbit Crossmod (wave FM'd by the orbit
   oscillator), Strange Attractor (chaotic orbit into a dispersive tube),
   Folded Static (noise through the folder), Bowed Metal (bow exciter into a
   metallic bar), Reed Chain (reed exciter through a serial network), Mallet

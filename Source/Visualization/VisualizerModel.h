@@ -68,7 +68,7 @@ public:
     std::atomic<int>   activeVoices    { 0 };
     std::atomic<int>   midiActivity    { 0 };
 
-    // v0.2: per-resonator energies, network feedback energy, governor, exciter levels (newest voice)
+    // v2.1: per-resonator energies, network feedback energy, governor, exciter levels (newest voice)
     std::array<std::atomic<float>, 3> resonatorEnergy {};
     std::atomic<float> networkEnergy { 0.0f };
     std::atomic<float> governorGain  { 1.0f };
