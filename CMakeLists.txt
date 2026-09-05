@@ -83,6 +83,7 @@ set(AERIFORM_SOURCES
     Source/GUI/PresetBar.cpp
     Source/GUI/ModMatrixPanel.cpp
     Source/GUI/Displays.cpp
+    Source/GUI/ContactPage.cpp
     Source/GUI/FiltersPage.cpp
     Source/GUI/PerformancePage.cpp
     Source/GUI/Pages.cpp
@@ -204,6 +205,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/PresetLevelTests.cpp
         Tests/ReliabilityTests.cpp
         Tests/PatchToolsTests.cpp
+        Tests/CollisionTests.cpp
         Tests/ModularFilterTests.cpp
         Tests/SmokeTests.cpp)
     target_include_directories(AeriformTests PRIVATE

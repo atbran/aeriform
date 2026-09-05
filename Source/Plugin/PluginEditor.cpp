@@ -3,13 +3,14 @@
 #include <cstdlib>
 #include "../GUI/PerformancePage.h"
 #include "../GUI/FiltersPage.h"
+#include "../GUI/ContactPage.h"
 
 using namespace aeriform;
 using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "PLAY", "FILTERS" })
+      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "PLAY", "FILTERS", "CONTACT" })
 {
     setLookAndFeel (&lookAndFeel);
 
@@ -33,6 +34,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     pages[4] = std::make_unique<SpacePage> (p);
     pages[5] = std::make_unique<PerformancePage>(p);
     pages[6] = std::make_unique<FiltersPage>(p);
+    pages[7] = std::make_unique<ContactPage>(p);
     undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
     redoButton.onClick=[this]{processor.getPatchTools().undo.redo();};
     content.addAndMakeVisible(undoButton);content.addAndMakeVisible(redoButton);
@@ -51,7 +53,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     currentPage = -1;
     int initialPage = processor.getEditorPage();
     if (const char* env = std::getenv ("AERIFORM_PAGE")) initialPage = std::atoi (env);   // development hook (screenshots)
-    showPage (juce::jlimit (0, 6, initialPage));
+    showPage (juce::jlimit (0, 7, initialPage));
 
     processor.getPresetManager().onPresetChanged = [this] { presetDirtyFlag = true; };
 

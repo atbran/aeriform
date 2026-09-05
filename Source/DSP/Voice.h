@@ -84,6 +84,7 @@ public:
 
     float getEnergy() const noexcept { return network.energy (0) + network.energy (1) + network.energy (2); }
     float getResonatorEnergy (int i) const noexcept { return network.energy (i); }
+    float getContactActivity() const noexcept {return network.contactActivity();}
     float getNetworkEnergy() const noexcept { return network.netEnergy(); }
     float getGovernor() const noexcept { return network.governor(); }
     bool  isResonatorRunning (int i) const noexcept { return network.slotRunning (i); }

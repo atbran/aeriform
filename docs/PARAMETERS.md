@@ -455,3 +455,20 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `filter3_slope` | Filter 3 Slope | 12 dB / octave / 24 dB / octave | 12 dB / octave | Two or four poles for SVF/ladder types. |
 | `filter3_vowel` | Filter 3 Vowel | A / E / I / O / U | A | Formant vowel selection. |
 | `filter3_mix` | Filter 3 Mix | 0 % .. 100 % | 100 % | Smoothed wet/dry amount. |
+
+## NETWORK (resonators B / C, routing, energy loop)
+
+| ID | Name | Range | Default | Description |
+|---|---|---|---|---|
+| `contact_on` | Collision Enabled | off / on | off | Enable a bounded nonlinear contact route between two running resonators. |
+| `contact_source` | Collision Source | Res A / Res B / Res C | Res A | Source displacement is compared with the contact gap. |
+| `contact_destination` | Collision Destination | Res A / Res B / Res C | Res B | Receiving resonator. A reaction is also applied to the source. Both slots must be running. |
+| `contact_gap` | Contact Gap | 0.00 .. 1.00 | 0.05 | Displacement threshold for contact. |
+| `contact_stiffness` | Contact Stiffness | 0 % .. 100 % | 50 % | Nonlinear stiffness, bounded before network injection. |
+| `contact_hardness` | Contact Hardness | 1.00 .. 4.00 | 1.50 | Exponent of the penetration response. |
+| `contact_damping` | Contact Damping | 0 % .. 100 % | 20 % | Increases dissipative equalization during contact. |
+| `contact_friction` | Contact Friction | 0 % .. 100 % | 0 % | Bounded corrugation of the contact surface for buzz and chatter. |
+| `contact_asymmetry` | Contact Asymmetry | -100 % .. +100 % | 0 % | Different positive and negative displacement gaps. |
+| `contact_amount` | Collision Amount | 0 % .. 100 % | 30 % | Smoothed route strength with destination-loss normalization. |
+| `contact_polarity` | Contact Polarity | Positive / Negative | Positive | Positive or inverted destination scattering. |
+| `contact_quality` | Contact Quality | Eco / Normal / High | Normal | Contact oversampling: Eco 1x, Normal 2x, High 4x. Changes crossfade. |

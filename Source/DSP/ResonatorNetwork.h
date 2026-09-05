@@ -3,6 +3,7 @@
 #include "DspUtils.h"
 #include "FractionalDelay.h"
 #include "Resonator.h"
+#include "CollisionRoute.h"
 #include "../Params/ParameterLayout.h"
 #include <array>
 
@@ -10,6 +11,7 @@ namespace aeriform::dsp
 {
 struct NetworkParams
 {
+    ContactParams contact;
     NetMode mode = NetMode::Single;
     float feedback = 0.5f;
     float ab = 0.0f, ba = 0.0f, bc = 0.0f, cb = 0.0f, ca = 0.0f, ac = 0.0f;
@@ -80,14 +82,14 @@ public:
         // ---- resonators in A -> B -> C order (feed-forward sends use current samples) ----
         if (running[0])
         {
-            float inA = ex * g[G_injA] + fb[0];
+            float inA = ex * g[G_injA] + fb[0] + contactInjection[0]*contactLoss[0];
             if(filters)inA=filters->at(FilterPosition::ResAInput,inA,filterLane);
             o[0] = slots[0].next (inA, pressureNow, t2[0]) * g[G_gateA];
             if(filters){o[0]=filters->at(FilterPosition::ResAOutput,o[0],filterLane);t2[0]=filters->at(FilterPosition::ResAOutput,t2[0],filterLane+1);}
         }
         if (running[1])
         {
-            float inB = ex * g[G_injB] + o[0] * g[G_sendAB] + fb[1];
+            float inB = ex * g[G_injB] + o[0] * g[G_sendAB] + fb[1] + contactInjection[1]*contactLoss[1];
             if(filters)inB=filters->at(FilterPosition::ResBInput,inB,filterLane);
             o[1] = slots[1].next (inB, pressureNow, t2[1]) * g[G_gateB];
             if(filters){o[1]=filters->at(FilterPosition::ResBOutput,o[1],filterLane);t2[1]=filters->at(FilterPosition::ResBOutput,t2[1],filterLane+1);}
@@ -95,11 +97,13 @@ public:
         if (running[2])
         {
             const float serialIn = hybrid ? o[0] : o[1];
-            float inC = ex * g[G_injC] + serialIn * g[G_sendBC] + fb[2];
+            float inC = ex * g[G_injC] + serialIn * g[G_sendBC] + fb[2] + contactInjection[2]*contactLoss[2];
             if(filters)inC=filters->at(FilterPosition::ResCInput,inC,filterLane);
             o[2] = slots[2].next (inC, pressureNow, t2[2]) * g[G_gateC];
             if(filters){o[2]=filters->at(FilterPosition::ResCOutput,o[2],filterLane);t2[2]=filters->at(FilterPosition::ResCOutput,t2[2],filterLane+1);}
         }
+
+        contact.next(o,contactInjection);
 
         // ---- cross-feedback for the next sample --------------------------------------
         {
@@ -156,6 +160,7 @@ public:
         governorGain += (target - governorGain) * (target < governorGain ? 0.02f : 0.0001f);
     }
 
+    float contactActivity() const noexcept {return contact.getActivity();}
     float loopReturn() const noexcept { return loopReturnValue; }
     float energy (int i) const noexcept { return slots[(size_t) juce::jlimit (0, 2, i)].getEnergy(); }
     float netEnergy() const noexcept { return netEnergyValue; }
@@ -188,6 +193,8 @@ private:
         return x * fbDampGain * fbPolarity;
     }
 
+    CollisionRoute contact;
+    float contactInjection[3]{},contactLoss[3]{};
     ModularFilters* filters=nullptr;int filterLane=0;
     float sampleRate = 44100.0f, gSmooth = 0.005f;
     std::array<ResonatorSlot, 3> slots;

@@ -96,3 +96,9 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - Complete regression: 91 tests, 320079 checks, zero failures (`build/filter-all-tests.log`).
 - Disabled routing equality, all-placement audio differences, transition/reset tests, 18 audible reference tuning cases and 126 analytic-versus-measured phase cases passed. Exact tuning limitations are documented in docs/FILTER_ROUTING.md.
 - Original presets preserved; new DSP defaults off. Additional physical modules and effects remain in progress.
+
+## Collision checkpoint
+
+- 406 stable parameters. Bounded oversampled contact route connected to both the source reaction and destination injection; CONTACT page with force curve and atomic activity meter.
+- Five focused tests, 486787 checks, zero failures (build/contact-tests.log). Full regression at previous filter checkpoint: 91 tests passing; filter pluginval strictness 10 SUCCESS.
+- Further shared physical models, true stereo, effects/FX and final performance/allocation validation remain in progress.

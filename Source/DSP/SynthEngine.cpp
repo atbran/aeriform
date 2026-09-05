@@ -615,6 +615,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             for (const auto& v : voices)
                 if (v.isActive() && (newest == nullptr || v.getStartOrder() > newest->getStartOrder())) newest = &v;
             filterEnvelope=newest?newest->getEnvLevel():0;
+            vis.collisionActivity.store(newest?newest->getContactActivity():0,std::memory_order_relaxed);
             if (newest != nullptr)
             {
                 gs[(size_t) ModSource::AmpEnv] = newest->getEnvLevel();

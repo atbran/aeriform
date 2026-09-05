@@ -56,7 +56,7 @@ public:
     float getEditorScale() const noexcept { return editorScale.load(); }
     void setEditorScale (float s) noexcept { editorScale.store (juce::jlimit (0.5f, 3.0f, s)); }
     int  getEditorPage() const noexcept { return editorPage.load(); }
-    void setEditorPage (int p) noexcept { editorPage.store (juce::jlimit (0, 6, p)); }
+    void setEditorPage (int p) noexcept { editorPage.store (juce::jlimit (0, 7, p)); }
 
     /** CPU load of the last blocks as a fraction of real time (0..1+). Audio thread writes, GUI reads. */
     float getCpuLoad() const noexcept { return cpuLoad.load(); }

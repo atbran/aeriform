@@ -1,0 +1,29 @@
+#include "ContactPage.h"
+#include "../DSP/CollisionRoute.h"
+namespace aeriform {
+using namespace theme;
+ContactPage::ContactPage(AeriformProcessor& p):processor(p){controls=add<Controls>(p);startTimerHz(30);}
+ContactPage::Controls::Controls(AeriformProcessor& p):ParamPanel(p,"CONTACT / COLLISION",copper){
+    enabled=control<Toggle>(p,ids::contactOn,"ENABLED");source=control<ChoiceBox>(p,ids::contactSource,"Source");destination=control<ChoiceBox>(p,ids::contactDestination,"Destination");
+    gap=knob(ids::contactGap,"Gap");stiffness=knob(ids::contactStiffness,"Stiffness");hardness=knob(ids::contactHardness,"Hardness");damping=knob(ids::contactDamping,"Damping");friction=knob(ids::contactFriction,"Friction / buzz");asymmetry=knob(ids::contactAsymmetry,"Asymmetry");amount=knob(ids::contactAmount,"Route amount");
+    quality=control<ChoiceBox>(p,ids::contactQuality,"Oversampling");polarity=control<ChoiceBox>(p,ids::contactPolarity,"Polarity");
+}
+void ContactPage::Controls::resized(){auto r=getContentArea().reduced(12);enabled->setBounds(r.removeFromTop(28));r.removeFromTop(14);auto route=r.removeFromTop(46);source->setBounds(route.removeFromLeft(route.getWidth()/2).reduced(0,0));route.removeFromLeft(12);destination->setBounds(route);r.removeFromTop(28);
+    knobRow(r.removeFromTop(108),{gap,stiffness,hardness},12);r.removeFromTop(24);knobRow(r.removeFromTop(108),{damping,friction,asymmetry},12);r.removeFromTop(24);
+    auto bottom=r.removeFromTop(112);amount->setBounds(bottom.removeFromLeft(bottom.getWidth()/3));bottom.removeFromLeft(16);quality->setBounds(bottom.removeFromTop(46));bottom.removeFromTop(12);polarity->setBounds(bottom.removeFromTop(46));
+}
+void ContactPage::resized(){controls->setBounds(getLocalBounds().removeFromLeft(getWidth()/2-6));}
+void ContactPage::paint(juce::Graphics& g){auto r=getLocalBounds().withTrimmedLeft(getWidth()/2+6).reduced(20);g.setColour(textPrimary);g.setFont(titleFont(19));g.drawText("PREPARED RESONATORS",r.removeFromTop(40),juce::Justification::centredLeft);
+    auto value=[&](const char* id){return processor.getAPVTS().getRawParameterValue(id)->load();};int src=(int)value(ids::contactSource),dst=(int)value(ids::contactDestination);
+    float activity=processor.getVisualizerModel().collisionActivity.load();auto nodes=r.removeFromTop(130);const float cy=(float)nodes.getCentreY(),spacing=nodes.getWidth()/3.0f;float x[3];
+    for(int i=0;i<3;++i)x[i]=nodes.getX()+spacing*(i+.5f);
+    g.setColour(copper.withAlpha(std::clamp(.2f+activity*10,0.0f,1.0f)));g.drawLine(x[std::clamp(src,0,2)],cy,x[std::clamp(dst,0,2)],cy,2+std::min(6.0f,activity*20));
+    for(int i=0;i<3;++i){g.setColour(panel);g.fillEllipse(x[i]-28,cy-28,56,56);g.setColour(i==src?copperBright:i==dst?teal:textDim);g.drawEllipse(x[i]-28,cy-28,56,56,2);g.setFont(titleFont(18));g.drawText(juce::String::charToString((juce::juce_wchar)('A'+i)),(int)x[i]-20,(int)cy-18,40,36,juce::Justification::centred);}
+    r.removeFromTop(15);g.setColour(textSecondary);g.setFont(font(12));g.drawFittedText("Contact transfers motion only beyond the gap. The source reacts as the destination receives energy. Both resonators must be enabled in NETWORK.",r.removeFromTop(65),juce::Justification::centredLeft,3);r.removeFromTop(18);
+    auto graph=r.removeFromTop(190).toFloat();g.setColour(inset);g.fillRoundedRectangle(graph,6);g.setColour(textDim.withAlpha(.5f));g.drawHorizontalLine((int)graph.getCentreY(),graph.getX()+10,graph.getRight()-10);g.drawVerticalLine((int)graph.getCentreX(),graph.getY()+10,graph.getBottom()-10);
+    dsp::ContactParams p;p.gap=value(ids::contactGap);p.stiffness=value(ids::contactStiffness);p.hardness=value(ids::contactHardness);p.damping=value(ids::contactDamping);p.friction=value(ids::contactFriction);p.asymmetry=value(ids::contactAsymmetry);p.amount=value(ids::contactAmount);
+    juce::Path path;for(int i=0;i<160;++i){float displacement=2*i/159.0f-1;float force=dsp::CollisionRoute::force(displacement,0,p);float px=graph.getX()+10+(graph.getWidth()-20)*i/159.0f,py=graph.getCentreY()-force*graph.getHeight()*1.8f;if(i==0)path.startNewSubPath(px,py);else path.lineTo(px,py);}g.setColour(copperBright);g.strokePath(path,juce::PathStrokeType(2));
+    r.removeFromTop(12);g.setColour(textSecondary);g.setFont(font(11));g.drawFittedText("CONTACT FORCE / SOURCE DISPLACEMENT\nThe curve shows the bounded force before network loss scaling. Live route brightness follows measured collision activity.",r.removeFromTop(64),juce::Justification::centredLeft,4);
+    g.setColour(textDim);g.drawFittedText("Try a small gap with High quality for buzzing bridges; use a wider gap and asymmetric contact for occasional rattles. A route from a resonator to itself is silent.",r.removeFromTop(80),juce::Justification::centredLeft,4);
+}
+}

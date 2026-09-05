@@ -13,7 +13,7 @@ namespace
 
 void ResonatorNetwork::prepare (float sr)
 {
-    sampleRate = sr;
+    sampleRate = sr;contact.prepare(sr);
     gSmooth = 1.0f - std::exp (-1.0f / (0.004f * sr));
     for (auto& s : slots) s.prepare (sr);
     const int maxRoute = (int) (0.05f * sr) + 16;
@@ -28,6 +28,7 @@ void ResonatorNetwork::prepare (float sr)
 void ResonatorNetwork::reset()
 {
     for (auto& s : slots) s.reset();
+    contact.reset();for(auto& x:contactInjection)x=0;
     for (auto& d : routeDelay) d.clear();
     for (auto& f : routeLP) f.reset();
     loopDelay.clear();
@@ -151,6 +152,11 @@ void ResonatorNetwork::update (const NetworkParams& p, bool snapLength)
         if (ResonatorSlot::isModalType (r.type)) couple[i] = 0.15f;
         else couple[i] = std::clamp (1.0f - (0.7f + 0.3f * clamp01 (r.feedback)), 0.05f, 1.0f);
     }
+
+    auto cp=p.contact;
+    cp.enabled=cp.enabled&&wantRunning[std::clamp(cp.source,0,2)]&&wantRunning[std::clamp(cp.destination,0,2)];
+    contact.update(cp);
+    for(int i=0;i<3;++i)contactLoss[i]=.15f*(ResonatorSlot::isModalType(p.res[i].type)?.1f:std::max(.002f,.3f*(1-clamp01(p.res[i].feedback))));
 
     // ---- gain targets ------------------------------------------------------------------------
     gTarget[G_injA] = injA; gTarget[G_injB] = injB; gTarget[G_injC] = injC;

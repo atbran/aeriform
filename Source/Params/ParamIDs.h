@@ -401,6 +401,18 @@ enum class P : int
     filter3Slope,
     filter3Vowel,
     filter3Mix,
+    contactOn,
+    contactSource,
+    contactDestination,
+    contactGap,
+    contactStiffness,
+    contactHardness,
+    contactDamping,
+    contactFriction,
+    contactAsymmetry,
+    contactAmount,
+    contactPolarity,
+    contactQuality,
     Count
 };
 
@@ -803,6 +815,18 @@ inline constexpr const char* filter3Morph = "filter3_morph";
 inline constexpr const char* filter3Slope = "filter3_slope";
 inline constexpr const char* filter3Vowel = "filter3_vowel";
 inline constexpr const char* filter3Mix = "filter3_mix";
+inline constexpr const char* contactOn = "contact_on";
+inline constexpr const char* contactSource = "contact_source";
+inline constexpr const char* contactDestination = "contact_destination";
+inline constexpr const char* contactGap = "contact_gap";
+inline constexpr const char* contactStiffness = "contact_stiffness";
+inline constexpr const char* contactHardness = "contact_hardness";
+inline constexpr const char* contactDamping = "contact_damping";
+inline constexpr const char* contactFriction = "contact_friction";
+inline constexpr const char* contactAsymmetry = "contact_asymmetry";
+inline constexpr const char* contactAmount = "contact_amount";
+inline constexpr const char* contactPolarity = "contact_polarity";
+inline constexpr const char* contactQuality = "contact_quality";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1199,6 +1223,18 @@ inline constexpr const char* const all[kNumParams] = {
     "filter3_slope",
     "filter3_vowel",
     "filter3_mix",
+    "contact_on",
+    "contact_source",
+    "contact_destination",
+    "contact_gap",
+    "contact_stiffness",
+    "contact_hardness",
+    "contact_damping",
+    "contact_friction",
+    "contact_asymmetry",
+    "contact_amount",
+    "contact_polarity",
+    "contact_quality",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

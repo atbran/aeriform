@@ -539,6 +539,8 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
     // ---- network + body ----------------------------------------------------------------------------
     filters.update(p,baseNote,ampEnv.getLevel(),n);
     buildNetworkParams (p, baseNote);
+    auto& cp=netParams.contact;cp.enabled=p.getb(P::contactOn);cp.source=p.geti(P::contactSource);cp.destination=p.geti(P::contactDestination);
+    cp.gap=p.get(P::contactGap);cp.stiffness=p.get(P::contactStiffness);cp.hardness=p.get(P::contactHardness);cp.damping=p.get(P::contactDamping);cp.friction=p.get(P::contactFriction);cp.asymmetry=p.get(P::contactAsymmetry);cp.amount=p.get(P::contactAmount);cp.polarity=p.geti(P::contactPolarity)?-1.0f:1.0f;cp.quality=p.geti(P::contactQuality);
     network.update (netParams, snapNextLength);
     snapNextLength = false;
     {
