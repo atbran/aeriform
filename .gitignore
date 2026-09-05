@@ -1,0 +1,12 @@
+build/
+build-*/
+out/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+*.log
+Thumbs.db
+.DS_Store
+external/JUCE/

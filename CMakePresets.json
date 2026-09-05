@@ -1,0 +1,51 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 22, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "mingw-release",
+      "displayName": "MinGW-w64 GCC / Ninja (Release)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/mingw-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "MinGW-w64 GCC / Ninja (Debug)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/mingw-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "msvc",
+      "displayName": "Visual Studio 2022 x64",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/msvc"
+    },
+    {
+      "name": "unix-release",
+      "displayName": "macOS / Linux (Release)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/unix-release",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "mingw-release", "configurePreset": "mingw-release" },
+    { "name": "mingw-debug",   "configurePreset": "mingw-debug" },
+    { "name": "msvc-release",  "configurePreset": "msvc", "configuration": "Release" },
+    { "name": "unix-release",  "configurePreset": "unix-release" }
+  ],
+  "testPresets": [
+    { "name": "mingw-release", "configurePreset": "mingw-release", "output": { "outputOnFailure": true } }
+  ]
+}
