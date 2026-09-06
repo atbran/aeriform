@@ -1,0 +1,666 @@
+[0/2] Re-checking globbed directories...
+[1/14] Building CXX object CMakeFiles/Aeriform.dir/Source/GUI/Displays.cpp.obj
+In file included from D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/juce_audio_processors.h:144,
+                 from D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.h:4,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:1:
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:304:18: warning: 'virtual void juce::AudioProcessor::processBlockBypassed(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  304 |     virtual void processBlockBypassed (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:23:10: note:   by 'virtual void AeriformProcessor::processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   23 |     void processBlockBypassed (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:280:18: warning: 'virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  280 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:22:10: note:   by 'virtual void AeriformProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   22 |     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:2:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h: In static member function 'static float aeriform::dsp::Wavefolder::foldStage(aeriform::FoldMode, float, float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   79 |         switch (m)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:3:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp: In constructor 'aeriform::NetworkDiagram::NetworkDiagram(AeriformProcessor&, bool)':
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::path' [-Wmissing-field-initializers]
+  195 |                 { ids::netCB, "C > B", 2, 1 }, { ids::netCA, "C > A", 2, 0 }, { ids::netAC, "A > C", 0, 2 } } };
+      |                                                                                                               ^
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::mid' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::path' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::mid' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::path' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::mid' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::path' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::mid' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::path' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::mid' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::path' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:195:111: warning: missing initializer for member 'aeriform::NetworkDiagram::Route::mid' [-Wmissing-field-initializers]
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp: In member function 'virtual void aeriform::NetworkDiagram::paint(juce::Graphics&)':
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:323:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  323 |         switch (inject)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/GUI/Displays.cpp:381:12: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  381 |     switch (tap)
+      |            ^
+[2/14] Building CXX object CMakeFiles/Aeriform.dir/Source/DSP/ResonatorNetwork.cpp.obj
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp:1:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp: In member function 'void aeriform::dsp::ResonatorNetwork::update(const aeriform::dsp::NetworkParams&, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp:67:12: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   67 |     switch (p.mode)
+      |            ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp:89:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   89 |         switch (p.inject)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp:121:12: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  121 |     switch (p.tap)
+      |            ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp:153:21: warning: declaration of 'r' shadows a previous local [-Wshadow]
+  153 |         const auto& r = p.res[i];
+      |                     ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.cpp:48:17: note: shadowed declaration is here
+   48 |     const float r = clamp01 (p.repipe);
+      |                 ^
+[3/14] Building CXX object CMakeFiles/Aeriform.dir/Source/DSP/Voice.cpp.obj
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:7,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:8,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.cpp:1:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h: In member function 'float aeriform::dsp::NoiseLab::next(float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Off' not handled in switch [-Wswitch-enum]
+   88 |         switch (model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Breath' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Wave' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Complex' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Reed' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Lip' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Bow' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Jet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Mallet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Pluck' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Scrape' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Impact' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Sidechain' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:8:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h: In member function 'float aeriform::dsp::PhysicalExciter::next()':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Off' not handled in switch [-Wswitch-enum]
+   79 |         switch (model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Breath' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Wave' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Complex' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseWhite' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoisePink' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBrown' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBlue' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseViolet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBand' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseVelvet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseCrackle' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseSteam' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseWind' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseAerosol' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseMetallic' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Sidechain' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h: In member function 'float aeriform::dsp::ExciterSlot::next(float, float, float, float, float, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseWhite' not handled in switch [-Wswitch-enum]
+   56 |         switch (params.model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoisePink' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBrown' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBlue' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseViolet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBand' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseVelvet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseCrackle' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseSteam' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseWind' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseAerosol' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseMetallic' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Reed' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Lip' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Bow' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Jet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Mallet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Pluck' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Scrape' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Impact' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:9:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Interaction.h: In member function 'float aeriform::dsp::Interaction::next(float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Interaction.h:47:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   47 |         switch (p.mode)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:11:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h: In static member function 'static float aeriform::dsp::Wavefolder::foldStage(aeriform::FoldMode, float, float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   79 |         switch (m)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:2,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:13:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h: In member function 'void aeriform::dsp::StereoResonatorNetwork::update(const aeriform::dsp::NetworkParams&, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:23:18: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   23 |         if(target==0&&blend<=0)rightRunning=false;
+      |            ~~~~~~^~~
+[4/14] Building CXX object CMakeFiles/Aeriform.dir/Source/GUI/ContactPage.cpp.obj
+In file included from D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/juce_audio_processors.h:144,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/Knob.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/PanelBase.h:4,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/Pages.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/ContactPage.h:2,
+                 from D:/dev/build/gpt-aeriform-test/Source/GUI/ContactPage.cpp:1:
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:304:18: warning: 'virtual void juce::AudioProcessor::processBlockBypassed(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  304 |     virtual void processBlockBypassed (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/GUI/Knob.h:4:
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:23:10: note:   by 'virtual void AeriformProcessor::processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   23 |     void processBlockBypassed (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:280:18: warning: 'virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  280 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:22:10: note:   by 'virtual void AeriformProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   22 |     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/GUI/ContactPage.cpp:2:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+[5/14] Building CXX object CMakeFiles/AeriformTests.dir/Tests/UserRegressionTests.cpp.obj
+<command-line>: warning: "JucePlugin_Desc" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_Name" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_VersionCode" redefined
+<command-line>: note: this is the location of the previous definition
+In file included from D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/juce_audio_processors.h:144,
+                 from D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/TestHelpers.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/UserRegressionTests.cpp:2:
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:304:18: warning: 'virtual void juce::AudioProcessor::processBlockBypassed(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  304 |     virtual void processBlockBypassed (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:23:10: note:   by 'virtual void AeriformProcessor::processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   23 |     void processBlockBypassed (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:280:18: warning: 'virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  280 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:22:10: note:   by 'virtual void AeriformProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   22 |     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Tests/UserRegressionTests.cpp:3:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+[6/14] Building CXX object CMakeFiles/AeriformTests.dir/Tests/DspTests.cpp.obj
+<command-line>: warning: "JucePlugin_Desc" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_Name" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_VersionCode" redefined
+<command-line>: note: this is the location of the previous definition
+In file included from D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/juce_audio_processors.h:144,
+                 from D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/TestHelpers.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:2:
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:304:18: warning: 'virtual void juce::AudioProcessor::processBlockBypassed(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  304 |     virtual void processBlockBypassed (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:23:10: note:   by 'virtual void AeriformProcessor::processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   23 |     void processBlockBypassed (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:280:18: warning: 'virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  280 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:22:10: note:   by 'virtual void AeriformProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   22 |     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:7,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:8,
+                 from D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:8:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h: In member function 'float aeriform::dsp::NoiseLab::next(float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Off' not handled in switch [-Wswitch-enum]
+   88 |         switch (model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Breath' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Wave' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Complex' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Reed' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Lip' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Bow' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Jet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Mallet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Pluck' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Scrape' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Impact' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Sidechain' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:8:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h: In member function 'float aeriform::dsp::PhysicalExciter::next()':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Off' not handled in switch [-Wswitch-enum]
+   79 |         switch (model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Breath' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Wave' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Complex' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseWhite' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoisePink' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBrown' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBlue' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseViolet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBand' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseVelvet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseCrackle' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseSteam' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseWind' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseAerosol' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseMetallic' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Sidechain' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h: In member function 'float aeriform::dsp::ExciterSlot::next(float, float, float, float, float, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseWhite' not handled in switch [-Wswitch-enum]
+   56 |         switch (params.model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoisePink' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBrown' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBlue' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseViolet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBand' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseVelvet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseCrackle' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseSteam' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseWind' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseAerosol' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseMetallic' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Reed' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Lip' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Bow' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Jet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Mallet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Pluck' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Scrape' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Impact' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:9:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Interaction.h: In member function 'float aeriform::dsp::Interaction::next(float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Interaction.h:47:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   47 |         switch (p.mode)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:11:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h: In static member function 'static float aeriform::dsp::Wavefolder::foldStage(aeriform::FoldMode, float, float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   79 |         switch (m)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:2,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:13:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h: In member function 'void aeriform::dsp::StereoResonatorNetwork::update(const aeriform::dsp::NetworkParams&, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:23:18: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   23 |         if(target==0&&blend<=0)rightRunning=false;
+      |            ~~~~~~^~~
+In file included from D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:1:
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp: In function 'void aeriform_test_fast_tanh_is_bounded_and_accurate()':
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:35:63: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   35 |     CHECK (sanitize (std::numeric_limits<float>::quiet_NaN()) == 0.0f);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+D:/dev/build/gpt-aeriform-test/Tests/TestFramework.h:52:17: note: in definition of macro 'CHECK'
+   52 |          if (! (cond)) aeriform::test::reportFailure (#cond, __FILE__, __LINE__); } while (0)
+      |                 ^~~~
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:36:62: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   36 |     CHECK (sanitize (std::numeric_limits<float>::infinity()) == 0.0f);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+D:/dev/build/gpt-aeriform-test/Tests/TestFramework.h:52:17: note: in definition of macro 'CHECK'
+   52 |          if (! (cond)) aeriform::test::reportFailure (#cond, __FILE__, __LINE__); } while (0)
+      |                 ^~~~
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp: In function 'void aeriform_test_adsr_reaches_full_level_and_returns_to_silence()':
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:74:27: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   74 |     CHECK (env.getLevel() == 0.0f);
+      |            ~~~~~~~~~~~~~~~^~~~~~~
+D:/dev/build/gpt-aeriform-test/Tests/TestFramework.h:52:17: note: in definition of macro 'CHECK'
+   52 |          if (! (cond)) aeriform::test::reportFailure (#cond, __FILE__, __LINE__); } while (0)
+      |                 ^~~~
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp: In function 'void aeriform_test_voice_is_silent_after_release()':
+D:/dev/build/gpt-aeriform-test/Tests/DspTests.cpp:193:17: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  193 |     CHECK (peak == 0.0f);
+      |            ~~~~~^~~~~~~
+D:/dev/build/gpt-aeriform-test/Tests/TestFramework.h:52:17: note: in definition of macro 'CHECK'
+   52 |          if (! (cond)) aeriform::test::reportFailure (#cond, __FILE__, __LINE__); } while (0)
+      |                 ^~~~
+[7/14] Building CXX object CMakeFiles/AeriformTests.dir/Tests/StereoNetworkTests.cpp.obj
+<command-line>: warning: "JucePlugin_Desc" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_Name" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_VersionCode" redefined
+<command-line>: note: this is the location of the previous definition
+In file included from D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/juce_audio_processors.h:144,
+                 from D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/TestHelpers.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/StereoNetworkTests.cpp:2:
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:304:18: warning: 'virtual void juce::AudioProcessor::processBlockBypassed(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  304 |     virtual void processBlockBypassed (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:23:10: note:   by 'virtual void AeriformProcessor::processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   23 |     void processBlockBypassed (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:280:18: warning: 'virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  280 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:22:10: note:   by 'virtual void AeriformProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   22 |     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:2,
+                 from D:/dev/build/gpt-aeriform-test/Tests/StereoNetworkTests.cpp:3:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h: In member function 'void aeriform::dsp::StereoResonatorNetwork::update(const aeriform::dsp::NetworkParams&, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:23:18: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   23 |         if(target==0&&blend<=0)rightRunning=false;
+      |            ~~~~~~^~~
+[8/14] Building CXX object CMakeFiles/Aeriform.dir/Source/DSP/SynthEngine.cpp.obj
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:7,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:8,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/SynthEngine.cpp:2:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h: In member function 'float aeriform::dsp::NoiseLab::next(float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Off' not handled in switch [-Wswitch-enum]
+   88 |         switch (model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Breath' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Wave' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Complex' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Reed' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Lip' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Bow' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Jet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Mallet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Pluck' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Scrape' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Impact' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Sidechain' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/NoiseLab.h:88:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:8:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h: In member function 'float aeriform::dsp::PhysicalExciter::next()':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Off' not handled in switch [-Wswitch-enum]
+   79 |         switch (model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Breath' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Wave' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Complex' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseWhite' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoisePink' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBrown' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBlue' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseViolet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseBand' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseVelvet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseCrackle' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseSteam' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseWind' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseAerosol' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'NoiseMetallic' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Sidechain' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/PhysicalExciters.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h: In member function 'float aeriform::dsp::ExciterSlot::next(float, float, float, float, float, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseWhite' not handled in switch [-Wswitch-enum]
+   56 |         switch (params.model)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoisePink' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBrown' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBlue' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseViolet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseBand' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseVelvet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseCrackle' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseSteam' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseWind' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseAerosol' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'NoiseMetallic' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Reed' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Lip' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Bow' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Jet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Mallet' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Pluck' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Scrape' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Impact' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/Exciters/ExciterSlot.h:56:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:9:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Interaction.h: In member function 'float aeriform::dsp::Interaction::next(float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Interaction.h:47:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   47 |         switch (p.mode)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:11:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h: In static member function 'static float aeriform::dsp::Wavefolder::foldStage(aeriform::FoldMode, float, float, float)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/Wavefolder.h:79:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+   79 |         switch (m)
+      |                ^
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:2,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/Voice.h:13:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:6:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h: In member function 'void aeriform::dsp::StereoResonatorNetwork::update(const aeriform::dsp::NetworkParams&, bool)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/StereoResonatorNetwork.h:23:18: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   23 |         if(target==0&&blend<=0)rightRunning=false;
+      |            ~~~~~~^~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Effects/SpectralFreeze.h:2,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/SynthEngine.cpp:9:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Effects/FixedFFT.h: At global scope:
+D:/dev/build/gpt-aeriform-test/Source/DSP/Effects/FixedFFT.h:16:43: warning: conversion to 'long long unsigned int' from 'int' may change the sign of the result [-Wsign-conversion]
+   16 |     void transform(std::array<Complex,size>& data,bool inverse=false) const noexcept {
+      |                                           ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Effects/FixedFFT.h:23:24: warning: conversion to 'long long unsigned int' from 'int' may change the sign of the result [-Wsign-conversion]
+   23 |     std::array<int,size> reverse{};
+      |                        ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/Effects/FixedFFT.h:24:28: warning: conversion to 'long long unsigned int' from 'int' may change the sign of the result [-Wsign-conversion]
+   24 |     std::array<Complex,size/2> twiddle{};
+      |                        ~~~~^~
+[9/14] Linking CXX static library Aeriform_artefacts\Release\libEXP_Aeriform_SharedCode.a
+[10/14] Building CXX object CMakeFiles/AeriformTests.dir/Tests/CollisionTests.cpp.obj
+<command-line>: warning: "JucePlugin_Desc" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_Name" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "JucePlugin_VersionCode" redefined
+<command-line>: note: this is the location of the previous definition
+In file included from D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/juce_audio_processors.h:144,
+                 from D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/TestHelpers.h:3,
+                 from D:/dev/build/gpt-aeriform-test/Tests/CollisionTests.cpp:2:
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:304:18: warning: 'virtual void juce::AudioProcessor::processBlockBypassed(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  304 |     virtual void processBlockBypassed (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:23:10: note:   by 'virtual void AeriformProcessor::processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   23 |     void processBlockBypassed (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/external/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:280:18: warning: 'virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)' was hidden [-Woverloaded-virtual=]
+  280 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+D:/dev/build/gpt-aeriform-test/Source/Plugin/PluginProcessor.h:22:10: note:   by 'virtual void AeriformProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)'
+   22 |     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Tests/CollisionTests.cpp:3:
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h: In member function 'void aeriform::dsp::CollisionRoute::update(aeriform::dsp::ContactParams, int)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/CollisionRoute.h:26:116: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+   26 |         if(!transition&&(a.p.source!=p.source||a.p.destination!=p.destination||a.p.quality!=p.quality||a.p.polarity!=p.polarity)) {b.set(p);transition=true;fade=0;}
+      |                                                                                                        ~~~~~~~~~~~~^~~~~~~~~~~~
+In file included from D:/dev/build/gpt-aeriform-test/Source/DSP/Resonator.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:5,
+                 from D:/dev/build/gpt-aeriform-test/Tests/CollisionTests.cpp:4:
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h: In member function 'void aeriform::dsp::ModalBank::update(const Params&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'OpenPipe' not handled in switch [-Wswitch-enum]
+   51 |             switch (p.type)
+      |                    ^
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'ClosedPipe' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'String' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Comb' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'DispersiveTube' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ModalResonator.h:51:20: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h: In member function 'void aeriform::dsp::ResonatorNetwork::next(float, float, float, float&, float&)':
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:113:48: warning: comparing floating-point with '==' or '!=' is unsafe [-Wfloat-equal]
+  113 |         for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
+      |                                ~~~~~~~~~~~~~~~~^~~
+D:/dev/build/gpt-aeriform-test/Source/DSP/ResonatorNetwork.h:145:16: warning: enumeration value 'Count' not handled in switch [-Wswitch-enum]
+  145 |         switch (loopSrc)
+      |                ^
+[11/14] Linking CXX executable Aeriform_artefacts\Release\Standalone\EXP_Aeriform.exe
+[12/14] Linking CXX shared module Aeriform_artefacts\Release\VST3\EXP_Aeriform.vst3\Contents\x86_64-win\EXP_Aeriform.vst3
+removing moduleinfo.json
+[13/14] Linking CXX executable AeriformTests.exe

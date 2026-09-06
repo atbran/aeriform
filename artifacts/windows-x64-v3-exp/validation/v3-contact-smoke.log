@@ -1,0 +1,22 @@
+[ RUN  ] collision_instantaneous_scattering_does_not_create_energy
+[  OK  ] collision_instantaneous_scattering_does_not_create_energy
+[ RUN  ] collision_oversampling_suppresses_folded_harmonics
+    contact third-harmonic alias suppression 1x -> 4x: 77.62 dB
+[  OK  ] collision_oversampling_suppresses_folded_harmonics
+[ RUN  ] collision_routes_switch_smoothly_and_remain_bounded_without_output_limiter
+[  OK  ] collision_routes_switch_smoothly_and_remain_bounded_without_output_limiter
+[ RUN  ] collision_host_controls_change_audio_and_restore_state
+    contact audio difference relative to bypass: -0.79 dB
+[  OK  ] collision_host_controls_change_audio_and_restore_state
+[ RUN  ] collision_page_renders
+[  OK  ] collision_page_renders
+[ RUN  ] collision_pickup_scattering_is_contractive_and_alias_filtered
+    audible contact pickup alias suppression: 107.91 dB
+[  OK  ] collision_pickup_scattering_is_contractive_and_alias_filtered
+[ RUN  ] collision_matched_resonators_change_timbre_in_mono
+    matched-mono contact amount/tone comparison: -18.93 dB
+    matched-mono contact amount/tone comparison: -4.10 dB
+    matched-mono contact amount/tone comparison: -7.46 dB
+[  OK  ] collision_matched_resonators_change_timbre_in_mono
+
+7 test(s) run, 496792 check(s), 0 failure(s)
