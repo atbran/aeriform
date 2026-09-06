@@ -17,6 +17,7 @@ private:
     };
     AeriformProcessor& processor;
     Controls* controls;
-    void timerCallback() override { if(isShowing()) repaint(); }
+    juce::TextButton audition{"AUDITION RETURN"};
+    void timerCallback() override { audition.setToggleState(processor.getReturnAudition()==AeriformProcessor::ReturnAudition::Room,juce::dontSendNotification);if(isShowing()) repaint(); }
 };
 }

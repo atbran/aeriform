@@ -1,5 +1,10 @@
 # AERIFORM - Task Tracker
 
+## Next implementation priority: audible bank and room
+
+Read [the detailed audibility implementation plan](docs/AUDIBILITY_IMPLEMENTATION_PLAN.md) before the next feature pass. The user reports that Sympathetic Bank barely changes timbre and Coupled Room is inaudible. Prioritize excitation/gain correction, return audition, stronger independently bounded room coupling, and measured/listened acceptance before adding more unrelated features. The plan covers shared shimmer dependencies, compatibility, realtime constraints, tests and implementation order. The first audibility implementation is now in the experimental source: decay-independent bank excitation, source-funded room return, early reflections, isolated-return audition, and actual input/output meters. Read docs/AUDIBILITY_RESULTS.md for validation and remaining listening work. The development pause has expired. Preserve the separate validation task and its no-push work.
+
+
 Living document. Updated as work progresses.
 
 ## v2.1 overhaul: dual exciters, wavefolder, resonator network - DONE (2026-09-05)
@@ -154,3 +159,11 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - 492 stable parameters. Spectral-freeze DSP and host parameters are connected; four focused tests pass (1339488 checks), including zero intercepted C++ allocations/frees on repeated captures. Dedicated spectral GUI remains pending after an earlier usage-limit rejection; no placeholder page is shipped.
 - Full regression before spectral integration: 126 tests, 7618053 checks, zero failures (`build/shimmer-all-tests.log`). Release-checkpoint validation is recorded with the binary artifacts.
 - Remaining feature work: dedicated spectral GUI, multiband saturation, FX target, additional demonstration presets, final realtime allocation/lock fixes and all-feature performance validation.
+
+## Audibility revision — validated source checkpoint (2026-09-06)
+
+- Bank onset/sustained excitation, stereo feed, total-energy bound, useful damping and count normalization implemented. Room early/late output and source-funded physical return implemented. Temporary return audition and real input/output meters are available on both pages.
+- 139 tests / 17,142,923 checks pass. Forty original presets have bit-identical audio samples against the verified frozen baseline. VST3 host checker and pluginval strictness 10 pass.
+- See docs/AUDIBILITY_RESULTS.md for measurements, CPU sample, comparison setup and limits. Human listening approval remains pending. New test packaging goes under artifacts/windows-x64-audibility; older artifacts/windows-x64 remains the previous published reference.
+- Preserve Tests/status-report-testing.txt and the independent validation branches/work. They were updated by the separate validation task and are outside this production checkpoint. Do not include its no-push history in a publication.
+- Remaining original feature work: dedicated spectral GUI, multiband saturation, normal-input FX target (inspect github/effect-version first), final combined-feature realtime/performance audit and demonstration presets.

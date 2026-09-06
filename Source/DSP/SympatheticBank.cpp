@@ -1,9 +1,9 @@
 #include "SympatheticBank.h"
 namespace aeriform::dsp {
 SympatheticBank::SympatheticBank() noexcept {captured.fill(-1);lastHeld.fill(-1);for(auto& x:published)x.store(-1);for(auto& x:requested)x.store(-1);for(auto& x:publishedHeld)x.store(-1);}
-void SympatheticBank::prepare(float sampleRate) noexcept {sr=sampleRate;step=1/(.015f*sr);reset();tune(true);}
-void SympatheticBank::clearEnergy() noexcept {for(auto& m:modes){m.re=m.im=0;m.weight=0;}energy.fill(0);}
-void SympatheticBank::reset() noexcept {clearEnergy();held.fill(0);sustain.fill(false);wet=freezeAmount=0;for(auto& x:publishedHeld)x.store(-1,std::memory_order_relaxed);}
+void SympatheticBank::prepare(float sampleRate) noexcept {sr=sampleRate;step=1/(.015f*sr);envelopeAttack=1-std::exp(-1/(.0005f*sr));envelopeRelease=std::exp(-1/(.07f*sr));reset();tune(true);}
+void SympatheticBank::clearEnergy() noexcept {for(auto& m:modes){m.re=m.im=0;m.weight=0;}energy.fill(0);fastEnvelope=peakEnvelope=0;controllerGain=1;}
+void SympatheticBank::reset() noexcept {clearEnergy();held.fill(0);sustain.fill(false);wet=freezeAmount=0;outputNorm=1;clipCount=0;for(auto& x:publishedHeld)x.store(-1,std::memory_order_relaxed);}
 SympatheticBank::Chord SympatheticBank::heldChord() const noexcept {
     Chord chord;chord.fill(-1);int count=0;
     for(int note=0;note<128&&count<12;++note){bool down=false;for(int ch=0;ch<16;++ch)down|=held[(size_t)(ch*128+note)]!=0;if(down)chord[(size_t)count++]=note;}return chord;
@@ -33,9 +33,20 @@ void SympatheticBank::tune(bool immediate) noexcept {
         note+=p.detune*((i*7)%13-6)/600.0f;const float hz=std::clamp(midiNoteToHz(note),16.0f,sr*.44f);
         float& f=frequencyHz[(size_t)i];f=immediate||f<=0?hz:std::exp(lerp(std::log(f),std::log(hz),frequencySmooth));
         auto& m=modes[(size_t)i];const double w=2*3.141592653589793*f/sr;m.cosine=std::cos(w);m.sine=std::sin(w);
-        const double seconds=std::max(.02,p.decayMs*.001/(1+39*p.damper)*(1-.95*p.damping*std::sqrt(std::min(1.0f,f/10000))));m.radius=std::exp(-6.907755278982137/(seconds*sr));
+        const double seconds=std::max(.02,p.decayMs*.001/(1+39*p.damper)*std::pow(.04,p.damping*(.2+.8*std::sqrt(std::min(1.0f,f/4000)))));m.radius=std::exp(-6.907755278982137/(seconds*sr));
         const float pan=p.spread*((i*7)%12/5.5f-1);const float angle=(pan+1)*.25f*kPi;m.panL=std::cos(angle);m.panR=std::sin(angle);m.gain=std::exp2((p.brightness-.5f)*2*(i/11.0f));
     }
+    float normSquared=0;
+    for(int i=0;i<p.count;++i) {
+        normSquared+=modes[(size_t)i].gain*modes[(size_t)i].gain;
+        for(int j=0;j<i;++j) {
+            const float separation=std::abs(frequencyHz[(size_t)i]-frequencyHz[(size_t)j]);
+            const float coherence=std::exp(-separation/5.0f);
+            normSquared+=2*coherence*modes[(size_t)i].gain*modes[(size_t)j].gain;
+        }
+    }
+    outputNormTarget=std::sqrt(std::max(1.0f,normSquared));
+    if(immediate)outputNorm=outputNormTarget;
 }
 void SympatheticBank::handleMidi(const juce::MidiMessage& m) noexcept {
     const int ch=std::clamp(m.getChannel()-1,0,15);
@@ -44,17 +55,54 @@ void SympatheticBank::handleMidi(const juce::MidiMessage& m) noexcept {
     else if(m.isController()){int cc=m.getControllerNumber(),value=m.getControllerValue();if(cc==64){sustain[(size_t)ch]=value>=64;if(value<64)for(int n=0;n<128;++n){auto& h=held[(size_t)(ch*128+n)];if(h==2)h=0;}}else if(cc==120||cc==123){if(cc==120)clearEnergy();for(int n=0;n<128;++n)held[(size_t)(ch*128+n)]=0;sustain[(size_t)ch]=false;}}
     auto chord=heldChord();for(int i=0;i<12;++i)publishedHeld[(size_t)i].store(chord[(size_t)i],std::memory_order_relaxed);if(chord[0]>=0)lastHeld=chord;if(p.tuning==7)tune();
 }
-void SympatheticBank::next(float input,int voiceCount,float& left,float& right) noexcept {
-    left=right=0;wet+=std::clamp((p.enabled?1.0f:0.0f)-wet,-step,step);if(wet<1e-7f)return;
+void SympatheticBank::next(float inputL,float inputR,int /*voices*/,float& left,float& right) noexcept {
+    left=right=0;
+    wet+=std::clamp((p.enabled?1.0f:0.0f)-wet,-step,step);
+    if(wet<1e-7f){clearEnergy();return;}
     freezeAmount+=std::clamp((p.freeze?1.0f:0.0f)-freezeAmount,-step,step);
-    float x=std::tanh(sanitize(input)*p.send)/std::max(1,voiceCount);if(std::abs(input)<threshold)x=0;
-    float weights=0;
-    for(int i=0;i<12;++i){auto& m=modes[(size_t)i];m.weight+=std::clamp((i<p.count?1.0f:0.0f)-m.weight,-step,step);weights+=m.weight;if(m.weight<=0){m.re=m.im=0;energy[(size_t)i]=0;continue;}const double r=m.radius+(1-m.radius)*freezeAmount;
-        const double re=r*(m.re*m.cosine-m.im*m.sine)+m.weight*(1-r)*x;m.im=r*(m.re*m.sine+m.im*m.cosine);m.re=re;
-        if(!std::isfinite(m.re)||!std::isfinite(m.im)){m.re=m.im=0;}
-        energy[(size_t)i]+=.002f*((float)std::hypot(m.re,m.im)-energy[(size_t)i]);
-        if(m.weight>0){const float y=(float)m.re*m.gain*m.weight;left+=y*m.panL;right+=y*m.panR;}
+    const float sourceL=sanitize(inputL),sourceR=sanitize(inputR);
+    const float sourcePeak=std::max(std::abs(sourceL),std::abs(sourceR));
+    const float gate=sourcePeak>=threshold?1.0f:0.0f;
+    const float xL=std::tanh(sourceL*p.send)*gate,xR=std::tanh(sourceR*p.send)*gate;
+    // Mid/side enter orthogonal modal coordinates: antiphase input still excites the bank.
+    const float mid=.5f*(xL+xR),side=.5f*(xL-xR);
+    fastEnvelope+=envelopeAttack*(std::max(std::abs(xL),std::abs(xR))-fastEnvelope);
+    const float onset=std::max(0.0f,fastEnvelope-peakEnvelope);
+    peakEnvelope=std::max(fastEnvelope,peakEnvelope*envelopeRelease);
+    // A source-derived rise deposits a short pulse. Sustained injection is calibrated
+    // per second, independently of T60. Neither path generates anything from silence.
+    const double inputRe=(60.0/sr*mid+3.0*onset)*(1-freezeAmount);
+    const double inputIm=60.0/sr*side*(1-freezeAmount);
+    double stored=0,weightsSquared=0;
+    for(int i=0;i<12;++i) {
+        auto& m=modes[(size_t)i];
+        m.weight+=std::clamp((i<p.count?1.0f:0.0f)-m.weight,-step,step);
+        if(m.weight<=0){m.re=m.im=0;energy[(size_t)i]=0;continue;}
+        const double r=m.radius+(1-m.radius)*freezeAmount;
+        const double re=r*(m.re*m.cosine-m.im*m.sine);
+        m.im=r*(m.re*m.sine+m.im*m.cosine);m.re=re;
+        stored+=m.re*m.re+m.im*m.im;weightsSquared+=m.weight*m.weight;
     }
-    const float gain=wet*p.returnLevel*4/(std::max(1.0f,weights)*std::max(1.0f,std::exp2((p.brightness-.5f)*2)));left*=gain;right*=gain;
+    // Triangle-inequality budget on the complete complex state vector. Incoming
+    // energy softens near capacity; existing tails are never gain-controlled.
+    // norm(z + gain*u) <= norm(z) + budget*norm(u)/(budget+norm(u)) < capacity.
+    constexpr double capacity=.75;
+    const double budget=std::max(0.0,capacity-std::sqrt(stored));
+    const double requestedNorm=std::sqrt(weightsSquared*(inputRe*inputRe+inputIm*inputIm));
+    const double inputGain=requestedNorm>0?budget/(budget+requestedNorm):1.0;
+    controllerGain=(float)inputGain;
+    outputNorm+=(outputNormTarget-outputNorm)*step;
+    for(int i=0;i<12;++i) {
+        auto& m=modes[(size_t)i];if(m.weight<=0)continue;
+        m.re+=m.weight*inputGain*inputRe;m.im+=m.weight*inputGain*inputIm;
+        double magnitude=std::hypot(m.re,m.im);
+        if(!std::isfinite(magnitude)){m.re=m.im=0;magnitude=0;++clipCount;}
+        else if(magnitude>1.0){m.re/=magnitude;m.im/=magnitude;magnitude=1;++clipCount;}
+        energy[(size_t)i]+=.002f*((float)magnitude-energy[(size_t)i]);
+        const float y=(float)m.re*m.gain*m.weight;
+        left+=y*m.panL;right+=y*m.panR;
+    }
+    const float gain=wet*p.returnLevel*.7f/std::max(1.0f,outputNorm);
+    left*=gain;right*=gain;
 }
 }

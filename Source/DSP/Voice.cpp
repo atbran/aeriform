@@ -41,7 +41,7 @@ namespace
 // ---------------------------------------------------------------------------
 void Voice::prepare (double sr, int index)
 {
-    sampleRate = sr;
+    sampleRate = sr;roomCoupling.prepare((float)sr);
     voiceIndex = index;
     const uint32_t seed = 0xA5F1C3u + (uint32_t) index * 0x9E3779B9u;
     rng.seed (seed);
@@ -95,7 +95,7 @@ void Voice::reset()
     noteId = -1;
     lastMono = lastFolded = lastPressure = 0.0f;
     gainRampL = gainRampR = 0.0f;
-    loopRet = 0.0f;
+    loopRet = 0.0f;roomCoupling.reset();
     scope = nullptr;
 }
 
@@ -112,7 +112,7 @@ void Voice::startNote (int midiNote, float vel, float glideFromNote, bool legato
         decimator.reset(); extUp.reset(); loopUp.reset();sideDecimator.reset();
         bodyL.reset(); bodyR.reset();
         gainRampL = gainRampR = 0.0f;
-        loopRet = 0.0f;
+        loopRet = 0.0f;roomCoupling.reset();
     }
     active = true;
     currentNote = midiNote;
@@ -543,7 +543,6 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
     auto& cp=netParams.contact;cp.enabled=p.getb(P::contactOn);cp.source=p.geti(P::contactSource);cp.destination=p.geti(P::contactDestination);
     cp.gap=p.get(P::contactGap);cp.stiffness=p.get(P::contactStiffness);cp.hardness=p.get(P::contactHardness);cp.damping=p.get(P::contactDamping);cp.friction=p.get(P::contactFriction);cp.asymmetry=p.get(P::contactAsymmetry);cp.amount=p.get(P::contactAmount);cp.polarity=p.geti(P::contactPolarity)?-1.0f:1.0f;cp.quality=p.geti(P::contactQuality);
     StereoNetworkParams stereo;stereo.enabled=p.geti(P::stereoMode)>0;stereo.divergence=p.get(P::stereoDivergence);stereo.coupling=p.get(P::stereoCoupling);stereo.exciterSpread=p.get(P::stereoExciterSpread);stereo.pickupSpread=p.get(P::stereoPickupSpread);stereo.dampingDivergence=p.get(P::stereoDamping);stereo.rotation=p.get(P::stereoRotation);stereo.width=p.get(P::stereoWidth);stereo.monoBass=p.get(P::stereoMonoBass);network.setStereo(stereo,n);
-    float roomLoss=1;for(int slot=0;slot<3;++slot)if(netParams.on[slot]||(slot>0&&netParams.repipe>.001f))roomLoss=std::min(roomLoss,ResonatorSlot::isModalType(netParams.res[slot].type)?.1f:std::max(.002f,.3f*(1-netParams.res[slot].feedback)));roomInputScale=.8f*roomLoss;
     network.update (netParams, snapNextLength);
     snapNextLength = false;
     {
@@ -601,6 +600,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
             if (loopToChain) loopUp.upsample (loopRet, osLoop);
             const float* shared = sharedNoise != nullptr ? sharedNoise + (size_t) (pos + i) * (size_t) os : zeroNoise;
 
+            float freshSourcePower=0;
             // ---- oversampled exciter chain ----------------------------------------
             for (int k = 0; k < os; ++k)
             {
@@ -615,6 +615,11 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                     else if (interactionMode == InteractionMode::Sync) syncA = exB.wrapped() && interactionAmount > 0.01f;
                 }
                 const float a = filters.at(FilterPosition::ExciterA,exA.next (osExt[k], shared[k], breath, fm, pm, syncA));
+                // Neither room audio nor the energy-loop return has entered here.
+                if(roomReturn) {
+                    const float sourceA=exA.getLastOutput(),sourceB=exB.getLastOutput();
+                    freshSourcePower+=.5f*(std::min(4.0f,sourceA*sourceA)+std::min(4.0f,sourceB*sourceB))/(float)os;
+                }
                 osSide[k]=.5f*(a-b);
                 float m = filters.at(FilterPosition::Combined,interaction.next (a, b));
                 if (loopToChain && loopDest == LoopDest::ShaperIn) m += osLoop[k];
@@ -653,7 +658,8 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
             // ---- resonator network -------------------------------------------------------
             float l, r;
             const float loopNet = (netParams.loopOn && loopDest == LoopDest::NetworkIn) ? loopRet : 0.0f;
-            network.next (x + couplingIn+(roomReturn?roomReturn[pos+i]*roomInputScale:0), loopNet, pressureNow, l, r);
+            const float roomInput=roomReturn?roomCoupling.next(roomReturn[pos+i],freshSourcePower):0;
+            network.next (x + couplingIn+roomInput, loopNet, pressureNow, l, r);
             loopRet = network.loopReturn();
 
             // ---- body / formant filter ------------------------------------------------------

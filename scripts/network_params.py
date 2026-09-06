@@ -40,7 +40,7 @@ def register(F,C,B,I):
 
 
  B('symOn','sym_on','Sympathetic Bank Enabled','Network',False,'One shared bank of twelve tuned modes responds to all voices.')
- F('symSend','sym_send','Sympathetic Send','Network',0,1,.4,'%','Percent','Voice sum send, normalized by active voice count.')
+ F('symSend','sym_send','Sympathetic Send','Network',0,1,.4,'%','Percent','Stereo voice send with source-derived attacks and a bounded modal energy budget.')
  F('symReturn','sym_return','Sympathetic Return','Network',0,2,.4,'%','Percent','Shared bank return level before the global effects.')
  F('symDamper','sym_damper','Damper Position','Network',0,1,0,'%','Percent','Raises damping to quickly stop sympathetic ringing.')
  F('symDecay','sym_decay','Sympathetic Decay','Network',100,60000,6000,'ms','Ms','Approximate time for an isolated mode to decay by 60 dB before damping.',centre=6000)
@@ -68,7 +68,7 @@ def register(F,C,B,I):
  F('roomDiffusion','room_diffusion','Room Diffusion','Network',0,1,.7,'%','Percent','Mixing between reflection paths.')
  F('roomAir','room_air','Air Absorption','Network',0,1,.3,'%','Percent','Frequency-dependent absorption along the room paths.')
  F('roomSend','room_send','Room Voice Send','Network',0,1,.4,'%','Percent','Voice sum sent to the shared room, normalized by active voice count.')
- F('roomNetworkReturn','room_network_return','Room Network Return','Network',0,1,.2,'%','Percent','Bounded room energy returned to each voice through resonator-loss scaling.')
+ F('roomNetworkReturn','room_network_return','Room Network Return','Network',0,1,.2,'%','Percent','Delayed room excitation, limited by an energy budget funded only by the voice exciters.')
  F('roomReturnDelay','room_return_delay','Room Return Delay','Network',1,250,15,'ms','Ms','Return path delay. Causal minimum is 32 samples, independent of host buffer size.',centre=30)
  F('roomReturnFilter','room_return_filter','Room Return Filter','Network',100,12000,3000,'Hz','Hz','Return low-pass filter, with a fixed 30 Hz DC/high-pass filter.',centre=2000)
  F('roomFeedback','room_feedback','Room Feedback','Network',0,1,.6,'%','Percent','Internal room feedback. Input gain follows loop loss for bounded excitation.')

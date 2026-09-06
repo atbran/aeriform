@@ -1,0 +1,162 @@
+[
+  {
+    "patch": "Airy_Flute",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Bass_Pipe",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Bowed_Metal",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Brass_Horn",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Broken_Transmission",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Cathedral_Organ",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Ceramic_Bells",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Crossfed_Bells",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Dark_Cinematic_Pad",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Energy_Loop_Drone",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Evolving_Drone",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Feedback_Organism",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Folded_Static",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Glass_Reed_Lead",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Glass_Resonator",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Granular_Wind",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Industrial_Horn",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Init",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Mallet_Triad",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Metallic_Ambience",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Metallic_Steam",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Noise_Machine",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Orbit_Crossmod",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Percussive_Click",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Plucked_Tube",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Reed_Chain",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Reed_Song",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Repipe_Morph",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Resonator_Cloud",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Serial_Bodies",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Sidechain_Fold",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Soft_Breath_Pad",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Steam_Vent",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Strange_Attractor",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Sub_Drone_Engine",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Subharmonic_Pipe",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Unstable_Feedback",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Unstable_Membrane",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Warm_Wooden_Pipe",
+    "sample_bytes_identical": true
+  },
+  {
+    "patch": "Whistle_Lead",
+    "sample_bytes_identical": true
+  }
+]

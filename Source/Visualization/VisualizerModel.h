@@ -78,6 +78,7 @@ public:
     std::atomic<float> exciterBEnv   { 0.0f };
     std::atomic<bool> spectralFrozen{false};
     std::array<std::atomic<float>,64> spectralEnergy{};
+    std::atomic<float> bankInputRms{0},bankOutputRms{0},roomInputRms{0},roomOutputRms{0};
     std::atomic<float> roomEnergy{0},roomReturnEnergy{0};
     std::atomic<int> roomSafetyClips{0};
     std::array<std::atomic<float>,3> resonatorTargetHz{};

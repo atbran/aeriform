@@ -73,6 +73,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
 AeriformEditor::~AeriformEditor()
 {
     stopTimer();
+    processor.setReturnAudition(AeriformProcessor::ReturnAudition::Off);
     processor.getPresetManager().onPresetChanged = nullptr;
     setLookAndFeel (nullptr);
 }

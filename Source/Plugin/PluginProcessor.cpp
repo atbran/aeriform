@@ -18,7 +18,7 @@ AeriformProcessor::AeriformProcessor()
       morphEngine(apvts,morphVisualizer)
 {
     presetManager.toolsToXml=[this]{return patchTools.toXml();};
-    presetManager.toolsFromXml=[this](const juce::XmlElement* xml){patchTools.fromXml(xml);};
+    presetManager.toolsFromXml=[this](const juce::XmlElement* xml){setReturnAudition(ReturnAudition::Off);patchTools.fromXml(xml);};
 }
 
 AeriformProcessor::~AeriformProcessor() = default;
@@ -26,6 +26,7 @@ AeriformProcessor::~AeriformProcessor() = default;
 // ---------------------------------------------------------------------------
 void AeriformProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    setReturnAudition(ReturnAudition::Off);
     currentSampleRate = sampleRate;
     engine.prepare (sampleRate, juce::jmax (1, samplesPerBlock));
     preparedBlock=juce::jmax(1,samplesPerBlock);
@@ -41,6 +42,7 @@ void AeriformProcessor::releaseResources()
 
 void AeriformProcessor::reset()
 {
+    setReturnAudition(ReturnAudition::Off);
     engine.reset();morphEngine.reset();morphOutput.reset();heldNotes.fill(0);wasDeep=false;
 }
 
@@ -98,6 +100,8 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
 }
 
 void AeriformProcessor::processMorph(juce::AudioBuffer<float>& out,const juce::AudioBuffer<float>* input,juce::MidiBuffer& midi,const juce::AudioPlayHead::PositionInfo& position) {
+    const auto audition=getReturnAudition();
+    engine.setReturnAudition(audition);morphEngine.setReturnAudition(audition);
     if(!patchTools.enabled()) {
         engine.setEffectiveValues(nullptr);engine.process(out,input,midi,position,&midiLearn,isNonRealtime());wasDeep=false;return;
     }
@@ -174,6 +178,7 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
     if (! xml.hasTagName (kStateTag))
         return;
 
+    setReturnAudition(ReturnAudition::Off);
     const int version = xml.getIntAttribute ("version", 1);
     juce::ignoreUnused (version);   // future migrations branch on this
 

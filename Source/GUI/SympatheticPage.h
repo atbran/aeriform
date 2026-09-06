@@ -17,6 +17,7 @@ private:
         std::array<Knob*,12> intervals;
     };
     AeriformProcessor& processor;Controls* controls;Intervals* intervals;
+    juce::TextButton audition{"AUDITION RETURN"};
     void timerCallback() override;
 };
 }

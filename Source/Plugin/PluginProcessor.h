@@ -55,6 +55,9 @@ public:
     void setCapturedChord(const aeriform::SynthEngine::CapturedChord& c) noexcept {engine.setCapturedChord(c);morphEngine.setCapturedChord(c);}
     aeriform::PatchStateManager& getPatchTools() noexcept { return patchTools; }
 
+    using ReturnAudition=aeriform::SynthEngine::ReturnAudition;
+    void setReturnAudition(ReturnAudition target) noexcept {returnAudition.store(target,std::memory_order_relaxed);}
+    ReturnAudition getReturnAudition() const noexcept {return returnAudition.load(std::memory_order_relaxed);}
     float getEditorScale() const noexcept { return editorScale.load(); }
     void setEditorScale (float s) noexcept { editorScale.store (juce::jlimit (0.5f, 3.0f, s)); }
     int getEditorSection(int page) const noexcept {return editorSections[(size_t)std::clamp(page,0,5)].load();}
@@ -93,6 +96,7 @@ private:
     bool wasDeep=false;
     int preparedBlock=512;
     void processMorph(juce::AudioBuffer<float>&,const juce::AudioBuffer<float>*,juce::MidiBuffer&,const juce::AudioPlayHead::PositionInfo&);
+    std::atomic<ReturnAudition> returnAudition{ReturnAudition::Off};
     std::atomic<float> editorScale { 1.0f };
     std::array<std::atomic<int>,6> editorSections{};
     std::atomic<int> editorPage { 5 };

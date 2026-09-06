@@ -35,6 +35,10 @@ public:
                   MidiLearn* midiLearn,
                   bool isNonRealtime);
 
+    enum class ReturnAudition { Off, Sympathetic, Room };
+    // Audio-thread selection. Taps are actual pre-effect stereo returns, channels 0/1 bank, 2/3 room.
+    void setReturnAudition(ReturnAudition) noexcept;
+    const juce::AudioBuffer<float>& getReturnTaps() const noexcept;
     using EffectiveValues=std::array<float,(size_t)kNumParams>;
     void setEffectiveValues(const EffectiveValues* values, bool skipOutputStage=false) noexcept;
     void processRange(juce::AudioBuffer<float>&,const juce::AudioBuffer<float>*,juce::MidiBuffer&,

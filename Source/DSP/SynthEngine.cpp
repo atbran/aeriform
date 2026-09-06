@@ -27,7 +27,10 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
     std::array<Voice, kMaxVoices> voices;
     juce::MPEInstrument mpe;
-    juce::AudioBuffer<float> mixBuffer, extBuffer;
+    juce::AudioBuffer<float> mixBuffer, extBuffer, returnTaps;
+    ReturnAudition audition=ReturnAudition::Off;
+    std::array<float,2> auditionWeights{};
+    double bankInputEnergy=0,roomInputEnergy=0;
     std::vector<float> sharedNoise;          // engine-wide noise stream at the oversampled rate
     std::vector<float> captureRing;          // last 250 ms of sidechain input for Freeze
     int captureWrite = 0, freezeStart = 0, freezeLen = 0, freezePos = 0;
@@ -117,6 +120,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         maxBlock = juce::jmax (1, block);
         mixBuffer.setSize (2, maxBlock, false, true, true);
         extBuffer.setSize (1, maxBlock, false, true, true);
+        returnTaps.setSize(4,maxBlock,false,true,true);auditionWeights.fill(0);
         sharedNoise.assign ((size_t) maxBlock * (size_t) Oversampler::kMaxFactor, 0.0f);
         captureRing.assign ((size_t) (sr * 0.25) + 16, 0.0f);
         captureWrite = 0; frozen = false;
@@ -152,7 +156,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         delay.reset();resonantDelay.reset();
         reverb.reset();shimmer.reset();spectral.reset();
         output.reset();sympathetic.reset();room.reset();globalFilters.reset();
-        couplingIn = 0.0f;
+        couplingIn = 0.0f;auditionWeights.fill(0);
     }
 
     void allNotesOff()
@@ -524,14 +528,14 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             sum += v.getLastMono();
         }
         couplingIn = fastTanh (sum);
-        if(sympathetic.active()){const int count=activeVoiceCount();for(int i=0;i<numSamples;++i){float l,r;sympathetic.next(.5f*(L[i]+R[i]),count,l,r);L[i]+=l;R[i]+=r;}}
+        if(sympathetic.active()){const int count=activeVoiceCount();for(int i=0;i<numSamples;++i){float l,r;bankInputEnergy+=(double)L[i]*L[i]+(double)R[i]*R[i];sympathetic.next(L[i],R[i],count,l,r);returnTaps.setSample(0,start+i,l);returnTaps.setSample(1,start+i,r);L[i]+=l;R[i]+=r;}}
     }
 
     void renderSegment(int start,int numSamples) {
         if(!room.active()){renderVoiceSegment(start,numSamples);return;}
         for(int offset=0;offset<numSamples;offset+=CoupledRoom::quantum){const int n=std::min(CoupledRoom::quantum,numSamples-offset);const int count=activeVoiceCount();room.makeReturn(roomReturnBuffer.data(),n,count);renderVoiceSegment(start+offset,n,roomReturnBuffer.data());
             float* left=mixBuffer.getWritePointer(0)+start+offset;float* right=mixBuffer.getWritePointer(1)+start+offset;
-            for(int i=0;i<n;++i){float l,r;room.next(left[i],right[i],count,l,r);left[i]+=l;right[i]+=r;}}
+            for(int i=0;i<n;++i){float l,r;roomInputEnergy+=(double)left[i]*left[i]+(double)right[i]*right[i];room.next(left[i],right[i],count,l,r);returnTaps.setSample(2,start+offset+i,l);returnTaps.setSample(3,start+offset+i,r);left[i]+=l;right[i]+=r;}}
     }
 
     void prepareSidechain (const juce::AudioBuffer<float>* extIn, int numSamples)
@@ -617,6 +621,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             for (int i = 0; i < n; ++i) sharedNoise[(size_t) i] = sharedRng.next();
         }
 
+        returnTaps.clear();bankInputEnergy=roomInputEnergy=0;
         mixBuffer.clear (0, 0, numSamples);
         mixBuffer.clear (1, 0, numSamples);
 
@@ -631,6 +636,12 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         }
         renderSegment (cursor, numSamples - cursor);
 
+        double bankOutputEnergy=0,roomOutputEnergy=0;
+        for(int i=0;i<numSamples;++i)for(int ch=0;ch<2;++ch){const double a=returnTaps.getSample(ch,i),b=returnTaps.getSample(ch+2,i);bankOutputEnergy+=a*a;roomOutputEnergy+=b*b;}
+        vis.bankInputRms.store((float)std::sqrt(bankInputEnergy/(2*numSamples)),std::memory_order_relaxed);
+        vis.bankOutputRms.store((float)std::sqrt(bankOutputEnergy/(2*numSamples)),std::memory_order_relaxed);
+        vis.roomInputRms.store((float)std::sqrt(roomInputEnergy/(2*numSamples)),std::memory_order_relaxed);
+        vis.roomOutputRms.store((float)std::sqrt(roomOutputEnergy/(2*numSamples)),std::memory_order_relaxed);
         // ---- global modulation of effect mixes ----------------------------------------
         {
             ModSources gs = globalSources;
@@ -680,6 +691,20 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         vis.spectralFrozen.store(spectral.isFrozen(),std::memory_order_relaxed);for(int band=0;band<64;++band)vis.spectralEnergy[(size_t)band].store(spectral.bandEnergy(band),std::memory_order_relaxed);
 
         for(int i=0;i<numSamples;++i){L[i]=globalFilters.atWeighted(FilterPosition::PostEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PostEffects,R[i],3,filterFrames[(size_t)i]);}
+        // Monitor only after the complete graph has run: audition never starves a send
+        // or changes feedback/effect state. The ordinary final output protection follows.
+        if(audition!=ReturnAudition::Off||auditionWeights[0]>0||auditionWeights[1]>0) {
+            const float step=1.0f/(.02f*(float)sampleRate);
+            for(int i=0;i<numSamples;++i) {
+                for(int target=0;target<2;++target) {
+                    const float goal=(int)audition==target+1?1.0f:0.0f;
+                    auditionWeights[(size_t)target]+=std::clamp(goal-auditionWeights[(size_t)target],-step,step);
+                }
+                const float dry=std::max(0.0f,1-auditionWeights[0]-auditionWeights[1]);
+                L[i]=dry*L[i]+auditionWeights[0]*returnTaps.getSample(0,i)+auditionWeights[1]*returnTaps.getSample(2,i);
+                R[i]=dry*R[i]+auditionWeights[0]*returnTaps.getSample(1,i)+auditionWeights[1]*returnTaps.getSample(3,i);
+            }
+        }
         if (!skipOutputStage) {
         output.setParams (params.get (P::outGain), params.get (P::outHighpass), params.getb (P::limiterOn));
         output.process (L, R, numSamples);
@@ -798,6 +823,8 @@ void SynthEngine::process (juce::AudioBuffer<float>& output, const juce::AudioBu
 }
 
 void SynthEngine::setEffectiveValues(const EffectiveValues* v,bool skip) noexcept {impl->effective=v;impl->skipOutputStage=skip;}
+void SynthEngine::setReturnAudition(ReturnAudition target) noexcept {impl->audition=target;}
+const juce::AudioBuffer<float>& SynthEngine::getReturnTaps() const noexcept {return impl->returnTaps;}
 void SynthEngine::processRange(juce::AudioBuffer<float>& out,const juce::AudioBuffer<float>* in,juce::MidiBuffer& midi,
                               const juce::AudioPlayHead::PositionInfo& pos,MidiLearn* learn,bool offline,int offset) {
     impl->process(out,in,midi,pos,learn,offline,offset);

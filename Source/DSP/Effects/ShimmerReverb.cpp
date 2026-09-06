@@ -1,6 +1,6 @@
 #include "ShimmerReverb.h"
 namespace aeriform::dsp {
-void ShimmerReverb::prepare(float rate){sr=rate;step=1/(.02f*sr);feedbackSmooth=1-std::exp(-1/(.03f*sr));room.prepare(sr);for(int i=0;i<2;++i)shift[(size_t)i].prepare(sr,i*.23f);reset();setParams(p,(int)sr);}
+void ShimmerReverb::prepare(float rate){sr=rate;step=1/(.02f*sr);feedbackSmooth=1-std::exp(-1/(.03f*sr));room.prepare(sr,false);for(int i=0;i<2;++i)shift[(size_t)i].prepare(sr,i*.23f);reset();setParams(p,(int)sr);}
 void ShimmerReverb::reset() noexcept {room.reset();for(auto& s:shift)s.reset();for(auto& f:lowpass)f.reset();for(auto& f:highpass)f.reset();returned.fill(0);wet=feedback=0;wasActive=false;}
 void ShimmerReverb::setParams(ShimmerParams next,int samples) noexcept {
     p=next;p.feedback=clamp01(p.feedback);p.mix=clamp01(p.mix);p.spread=clamp01(p.spread);

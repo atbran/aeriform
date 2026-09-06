@@ -13,7 +13,8 @@ struct RoomParams {
 class CoupledRoom {
 public:
     static constexpr int lines=8,quantum=32;
-    void prepare(float sampleRate);
+    // Voiced output belongs to the instrument room. Shimmer explicitly keeps the legacy core.
+    void prepare(float sampleRate,bool audibleVoicing=true);
     void reset() noexcept;
     void update(RoomParams,int samples=32) noexcept;
     bool active() const noexcept {return p.enabled||wet>1e-7f;}
@@ -28,12 +29,16 @@ private:
     std::array<OnePole,lines> wall;
     std::array<float,lines> targetLength{},length{};
     FractionalDelay returnRing;
+    std::array<FractionalDelay,2> earlyDelay;
+    std::array<OnePole,2> earlyTone;
+    bool voiced=true;
     OnePole returnLowpass;
     DcBlocker returnHighpass;
     RoomParams p;
     float sr=48000,wet=0,freezeAmount=0,step=.001f,lengthSmooth=.001f,returnDelay=720,returnDelayTarget=720,energyValue=0,returnValue=0;
     bool previousClear=false,wasActive=false;
     int clipCount=0;
+    float returnVoiceGain=1;
     void clearBuffers() noexcept;
 };
 }

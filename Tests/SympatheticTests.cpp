@@ -23,8 +23,8 @@ AERIFORM_TEST(sympathetic_held_notes_capture_pedals_and_preparation) {
     b.handleMidi(juce::MidiMessage::controllerEvent(2,64,127));b.handleMidi(juce::MidiMessage::noteOff(2,60));CHECK(b.currentHeldChord()[0]==60);b.handleMidi(juce::MidiMessage::controllerEvent(2,64,0));CHECK(b.currentHeldChord()[0]==64);
     SympatheticBank restored;restored.requestCapturedChord(chord);restored.prepare(96000);CHECK(restored.capturedChord()==chord);p.tuning=8;p.capture=false;settle(restored,p);CHECK(restored.capturedChord()==chord);CHECK_NEAR(restored.frequency(2),midiNoteToHz(67),.1);
 }
-AERIFORM_TEST(sympathetic_multi_voice_excitation_is_normalized) {
-    for(int voices:{1,8,16}){SympatheticBank b;b.prepare(48000);SympatheticParams p;p.enabled=true;p.count=12;p.send=1;p.returnLevel=2;p.brightness=1;p.decayMs=100;p.thresholdDb=-96;p.tuning=5;p.intervals.fill(0);settle(b,p);run(b,48000,130.8128f,48000,(float)voices,voices);CHECK(b.modeEnergy(0)<1.01f/voices);}
+AERIFORM_TEST(sympathetic_coherent_multi_voice_excitation_is_energy_bounded) {
+    for(int voices:{1,8,16}){SympatheticBank b;b.prepare(48000);SympatheticParams p;p.enabled=true;p.count=12;p.send=1;p.returnLevel=2;p.brightness=1;p.decayMs=100;p.thresholdDb=-96;p.tuning=5;p.intervals.fill(0);settle(b,p);run(b,48000,130.8128f,48000,(float)voices,voices);double energy=0;for(int i=0;i<12;++i)energy+=std::pow(b.modeEnergy(i),2);CHECK(energy<=.75001*.75001);CHECK(b.safetyClips()==0);}
 }
 AERIFORM_TEST(sympathetic_host_audio_and_chord_state) {
     auto render=[](bool on){TestHost h;h.set(ids::symOn,on?1:0);h.set(ids::symTuning,7);h.set(ids::symCount,3);h.set(ids::symSend,1);h.set(ids::symReturn,2);for(int note:{48,52,55})h.noteOn(note);std::vector<float>x;CHECK(h.render(.5,&x).finite);return x;};auto a=render(false),b=render(true);double diff=0;for(size_t i=0;i<a.size();++i)diff+=std::pow(a[i]-b[i],2);CHECK(diff>1e-6);

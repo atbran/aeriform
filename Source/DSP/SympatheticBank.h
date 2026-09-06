@@ -19,7 +19,10 @@ public:
     void allNotesOff() noexcept {held.fill(0);sustain.fill(false);for(auto& n:publishedHeld)n.store(-1,std::memory_order_relaxed);}
     void update(SympatheticParams,int samples=32) noexcept;
     void handleMidi(const juce::MidiMessage&) noexcept;
-    void next(float mono,int voiceCount,float& left,float& right) noexcept;
+    void next(float mono,int voices,float& left,float& right) noexcept {next(mono,mono,voices,left,right);}
+    void next(float inputL,float inputR,int voices,float& left,float& right) noexcept;
+    float excitationGain() const noexcept {return controllerGain;}
+    int safetyClips() const noexcept {return clipCount;}
     void requestCapturedChord(const Chord&) noexcept;
     Chord capturedChord() const noexcept;
     Chord currentHeldChord() const noexcept {Chord c;for(int i=0;i<12;++i)c[(size_t)i]=publishedHeld[(size_t)i].load(std::memory_order_relaxed);return c;}
@@ -38,6 +41,9 @@ private:
     unsigned consumedRequest=0;
     SympatheticParams p;
     float sr=48000,wet=0,freezeAmount=0,step=.001f,threshold=0,frequencySmooth=.1f;
+    float fastEnvelope=0,peakEnvelope=0,envelopeAttack=0,envelopeRelease=0;
+    float outputNorm=1,outputNormTarget=1,controllerGain=1;
+    int clipCount=0;
     bool previousClear=false,previousCapture=false;
     void clearEnergy() noexcept;
     void tune(bool immediate=false) noexcept;

@@ -222,6 +222,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/KnobModulationTests.cpp
         Tests/UserRegressionTests.cpp
         Tests/SympatheticTests.cpp
+        Tests/AudibilityTests.cpp
         Tests/StereoNetworkTests.cpp
         Tests/CollisionTests.cpp
         Tests/ModularFilterTests.cpp

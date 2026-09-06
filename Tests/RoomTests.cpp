@@ -13,7 +13,7 @@ AERIFORM_TEST(room_return_timing_is_independent_of_chunk_size) {
 }
 AERIFORM_TEST(room_is_bounded_without_master_limiter_at_multiple_rates_and_voice_counts) {
     for(float sr:{44100.0f,48000.0f,96000.0f})for(int voices:{1,8,16}){CoupledRoom room;room.prepare(sr);RoomParams p;p.enabled=true;p.feedback=1;p.size=1;p.send=1;p.level=2;p.networkReturn=1;p.wallDamping=0;p.airAbsorption=0;p.returnDelayMs=1;settleRoom(room,p);float returned[32];double energy=0;
-        for(int t=0;t<(int)sr;t+=32){room.makeReturn(returned,32,voices);for(int i=0;i<32;++i){float l,r;const float x=voices*.8f*std::sin((t+i)*.09f);CHECK(std::abs(returned[i])<=.020001f/voices);room.next(x+returned[i]*voices,x,voices,l,r);CHECK(std::isfinite(l)&&std::isfinite(r));CHECK(std::abs(l)<4&&std::abs(r)<4);energy+=l*l+r*r;}}
+        for(int t=0;t<(int)sr;t+=32){room.makeReturn(returned,32,voices);for(int i=0;i<32;++i){float l,r;const float x=voices*.8f*std::sin((t+i)*.09f);CHECK(std::abs(returned[i])<=1.00001f);room.next(x+returned[i]*voices,x,voices,l,r);CHECK(std::isfinite(l)&&std::isfinite(r));CHECK(std::abs(l)<4&&std::abs(r)<4);energy+=l*l+r*r;}}
         CHECK(energy>1e-5);CHECK(room.safetyClips()==0);
     }
 }
