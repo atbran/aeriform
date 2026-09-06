@@ -5,6 +5,7 @@
 #include "../GUI/FiltersPage.h"
 #include "../GUI/ContactPage.h"
 #include "../GUI/SympatheticPage.h"
+#include "../GUI/RoomPage.h"
 #include "../GUI/WorkspacePage.h"
 
 using namespace aeriform;
@@ -31,7 +32,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
 
     pages[0] = std::make_unique<MainPage> (p);
     pages[1] = std::make_unique<ExcitersPage> (p);
-    auto network=std::make_unique<WorkspacePage>(p,2);network->addSection("RESONATORS / ROUTING",std::make_unique<NetworkPage>(p));network->addSection("CONTACT / STEREO",std::make_unique<ContactPage>(p));network->addSection("SYMPATHETIC BANK",std::make_unique<SympatheticPage>(p));network->showSection(p.getEditorSection(2));pages[2]=std::move(network);
+    auto network=std::make_unique<WorkspacePage>(p,2);network->addSection("RESONATORS / ROUTING",std::make_unique<NetworkPage>(p));network->addSection("CONTACT / STEREO",std::make_unique<ContactPage>(p));network->addSection("SYMPATHETIC BANK",std::make_unique<SympatheticPage>(p));network->addSection("COUPLED ROOM",std::make_unique<RoomPage>(p));network->showSection(p.getEditorSection(2));pages[2]=std::move(network);
     pages[3] = std::make_unique<MotionPage> (p);
     auto space=std::make_unique<WorkspacePage>(p,4);space->addSection("EFFECTS",std::make_unique<SpacePage>(p));space->addSection("MODULAR FILTERS",std::make_unique<FiltersPage>(p));space->showSection(p.getEditorSection(4));pages[4]=std::move(space);
     pages[5] = std::make_unique<PerformancePage>(p);

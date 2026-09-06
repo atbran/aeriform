@@ -76,6 +76,8 @@ public:
     std::atomic<float> governorGain  { 1.0f };
     std::atomic<float> exciterAEnv   { 0.0f };
     std::atomic<float> exciterBEnv   { 0.0f };
+    std::atomic<float> roomEnergy{0},roomReturnEnergy{0};
+    std::atomic<int> roomSafetyClips{0};
     std::array<std::atomic<float>,3> resonatorTargetHz{};
     std::array<std::atomic<float>,12> sympatheticEnergy{},sympatheticFrequency{};
     std::atomic<float> collisionActivity{0},stereoLeftEnergy{0},stereoRightEnergy{0};

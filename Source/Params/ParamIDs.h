@@ -451,6 +451,21 @@ enum class P : int
     symInterval11,
     symInterval12,
     netBypass,
+    roomOn,
+    roomSize,
+    roomShape,
+    roomWallDamping,
+    roomDiffusion,
+    roomAir,
+    roomSend,
+    roomNetworkReturn,
+    roomReturnDelay,
+    roomReturnFilter,
+    roomFeedback,
+    roomWidth,
+    roomLevel,
+    roomFreeze,
+    roomClear,
     Count
 };
 
@@ -903,6 +918,21 @@ inline constexpr const char* symInterval10 = "sym_interval10";
 inline constexpr const char* symInterval11 = "sym_interval11";
 inline constexpr const char* symInterval12 = "sym_interval12";
 inline constexpr const char* netBypass = "net_bypass";
+inline constexpr const char* roomOn = "room_on";
+inline constexpr const char* roomSize = "room_size";
+inline constexpr const char* roomShape = "room_shape";
+inline constexpr const char* roomWallDamping = "room_wall_damping";
+inline constexpr const char* roomDiffusion = "room_diffusion";
+inline constexpr const char* roomAir = "room_air";
+inline constexpr const char* roomSend = "room_send";
+inline constexpr const char* roomNetworkReturn = "room_network_return";
+inline constexpr const char* roomReturnDelay = "room_return_delay";
+inline constexpr const char* roomReturnFilter = "room_return_filter";
+inline constexpr const char* roomFeedback = "room_feedback";
+inline constexpr const char* roomWidth = "room_width";
+inline constexpr const char* roomLevel = "room_level";
+inline constexpr const char* roomFreeze = "room_freeze";
+inline constexpr const char* roomClear = "room_clear";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1349,6 +1379,21 @@ inline constexpr const char* const all[kNumParams] = {
     "sym_interval11",
     "sym_interval12",
     "net_bypass",
+    "room_on",
+    "room_size",
+    "room_shape",
+    "room_wall_damping",
+    "room_diffusion",
+    "room_air",
+    "room_send",
+    "room_network_return",
+    "room_return_delay",
+    "room_return_filter",
+    "room_feedback",
+    "room_width",
+    "room_level",
+    "room_freeze",
+    "room_clear",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

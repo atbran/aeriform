@@ -543,6 +543,7 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
     auto& cp=netParams.contact;cp.enabled=p.getb(P::contactOn);cp.source=p.geti(P::contactSource);cp.destination=p.geti(P::contactDestination);
     cp.gap=p.get(P::contactGap);cp.stiffness=p.get(P::contactStiffness);cp.hardness=p.get(P::contactHardness);cp.damping=p.get(P::contactDamping);cp.friction=p.get(P::contactFriction);cp.asymmetry=p.get(P::contactAsymmetry);cp.amount=p.get(P::contactAmount);cp.polarity=p.geti(P::contactPolarity)?-1.0f:1.0f;cp.quality=p.geti(P::contactQuality);
     StereoNetworkParams stereo;stereo.enabled=p.geti(P::stereoMode)>0;stereo.divergence=p.get(P::stereoDivergence);stereo.coupling=p.get(P::stereoCoupling);stereo.exciterSpread=p.get(P::stereoExciterSpread);stereo.pickupSpread=p.get(P::stereoPickupSpread);stereo.dampingDivergence=p.get(P::stereoDamping);stereo.rotation=p.get(P::stereoRotation);stereo.width=p.get(P::stereoWidth);stereo.monoBass=p.get(P::stereoMonoBass);network.setStereo(stereo,n);
+    float roomLoss=1;for(int slot=0;slot<3;++slot)if(netParams.on[slot]||(slot>0&&netParams.repipe>.001f))roomLoss=std::min(roomLoss,ResonatorSlot::isModalType(netParams.res[slot].type)?.1f:std::max(.002f,.3f*(1-netParams.res[slot].feedback)));roomInputScale=.8f*roomLoss;
     network.update (netParams, snapNextLength);
     snapNextLength = false;
     {
@@ -568,7 +569,7 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
 
 // ---------------------------------------------------------------------------
 void Voice::render (float* left, float* right, int numSamples, const VoiceParams& p,
-                    const ModSources& globalSources, const float* externalIn, const float* sharedNoise, float couplingIn)
+                    const ModSources& globalSources, const float* externalIn, const float* sharedNoise, float couplingIn,const float* roomReturn)
 {
     if (! active) return;
 
@@ -652,7 +653,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
             // ---- resonator network -------------------------------------------------------
             float l, r;
             const float loopNet = (netParams.loopOn && loopDest == LoopDest::NetworkIn) ? loopRet : 0.0f;
-            network.next (x + couplingIn, loopNet, pressureNow, l, r);
+            network.next (x + couplingIn+(roomReturn?roomReturn[pos+i]*roomInputScale:0), loopNet, pressureNow, l, r);
             loopRet = network.loopReturn();
 
             // ---- body / formant filter ------------------------------------------------------

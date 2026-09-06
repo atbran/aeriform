@@ -71,7 +71,7 @@ public:
     /** externalIn: base-rate sidechain samples (or nullptr), sharedNoise: engine noise at the oversampled rate
         (numSamples * osFactor samples), couplingIn: sympathetic coupling input. */
     void render (float* left, float* right, int numSamples, const VoiceParams& p,
-                 const ModSources& globalSources, const float* externalIn, const float* sharedNoise, float couplingIn);
+                 const ModSources& globalSources, const float* externalIn, const float* sharedNoise, float couplingIn,const float* roomReturn=nullptr);
 
     bool isActive() const noexcept { return active; }
     bool isReleasing() const noexcept { return fader.isReleasing(); }
@@ -142,7 +142,7 @@ private:
     float lastFreq = 440.0f, lastPressure = 0.0f, lastMono = 0.0f, lastFolded = 0.0f;
     float pressureScale = 0.0f, breathScale = 1.0f, envAmount = 1.0f, ampGain = 0.5f;
     float gainRampL = 0.0f, gainRampR = 0.0f, gainStepL = 0.0f, gainStepR = 0.0f;
-    float dynAmount = 0.0f, loopRet = 0.0f;
+    float dynAmount = 0.0f, loopRet = 0.0f,roomInputScale=0;
     bool  snapNextLength = true, syncBtoA = false;
     InteractionMode interactionMode = InteractionMode::Crossfade;
     LoopDest loopDest = LoopDest::FolderIn;

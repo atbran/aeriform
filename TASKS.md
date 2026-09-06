@@ -124,3 +124,11 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - Repipe pitch-reset report not reproduced at parameter or DSP-target level; independent slot/exciter pitch can affect the perceived fundamental. Test and limits documented.
 - Full regression: 111 tests, 2266122 checks, zero failures (build/user-feedback-all-tests.log).
 - Remaining original work: shared room feedback, resonant delay/shimmer/spectral freeze/multiband saturation, FX target, demonstrator presets, realtime allocation/lock fixes, final performance matrix/validators/docs.
+
+
+## Coupled room checkpoint
+
+- 459 stable parameters; shared eight-line room with bounded, delayed resonator return, live NETWORK controls, freeze/clear and an appended demonstration preset. Original factory definitions retained.
+- Full regression: 116 tests, 4119984 checks, zero failures (`build/room-all-tests.log`). Room screenshot rendered and inspected; state and saved section restoration pass.
+- Room-to-network return is deliberately conservative and currently subtle; coefficient and measurement details are in docs/RESONATOR_NETWORK.md.
+- Additional effects, FX target, final realtime/performance audit and validators remain unfinished.

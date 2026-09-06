@@ -1,6 +1,7 @@
 #include "SynthEngine.h"
 #include "Voice.h"
 #include "SympatheticBank.h"
+#include "CoupledRoom.h"
 #include "Effects/Chorus.h"
 #include "Effects/Delay.h"
 #include "Effects/Reverb.h"
@@ -41,6 +42,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     StereoDelay delay;
     FdnReverb reverb;
     OutputStage output;
+    CoupledRoom room;
+    std::array<float,CoupledRoom::quantum> roomReturnBuffer{};
     SympatheticBank sympathetic;
     ModularFilters globalFilters;
     std::vector<ModularFilters::FrameWeights> filterFrames;
@@ -122,7 +125,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         chorus.prepare (sr);
         delay.prepare (sr);
         reverb.prepare (sr);
-        output.prepare (sr);sympathetic.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
+        output.prepare (sr);sympathetic.prepare((float)sr);room.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
         noteStackSize = 0;
@@ -142,7 +145,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         chorus.reset();
         delay.reset();
         reverb.reset();
-        output.reset();sympathetic.reset();globalFilters.reset();
+        output.reset();sympathetic.reset();room.reset();globalFilters.reset();
         couplingIn = 0.0f;
     }
 
@@ -495,7 +498,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         globalSources[(size_t) ModSource::SidechainEnv] = std::min (1.0f, sidechainEnv * 3.0f);
     }
 
-    void renderSegment (int start, int numSamples)
+    void renderVoiceSegment (int start, int numSamples,const float* roomInput=nullptr)
     {
         if (numSamples <= 0) return;
         startPendingIfReady();
@@ -511,11 +514,18 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         for (auto& v : voices)
         {
             if (! v.isActive()) continue;
-            v.render (L, R, numSamples, params, globalSources, ext, noise, couple);
+            v.render (L, R, numSamples, params, globalSources, ext, noise, couple,roomInput);
             sum += v.getLastMono();
         }
         couplingIn = fastTanh (sum);
         if(sympathetic.active()){const int count=activeVoiceCount();for(int i=0;i<numSamples;++i){float l,r;sympathetic.next(.5f*(L[i]+R[i]),count,l,r);L[i]+=l;R[i]+=r;}}
+    }
+
+    void renderSegment(int start,int numSamples) {
+        if(!room.active()){renderVoiceSegment(start,numSamples);return;}
+        for(int offset=0;offset<numSamples;offset+=CoupledRoom::quantum){const int n=std::min(CoupledRoom::quantum,numSamples-offset);const int count=activeVoiceCount();room.makeReturn(roomReturnBuffer.data(),n,count);renderVoiceSegment(start+offset,n,roomReturnBuffer.data());
+            float* left=mixBuffer.getWritePointer(0)+start+offset;float* right=mixBuffer.getWritePointer(1)+start+offset;
+            for(int i=0;i<n;++i){float l,r;room.next(left[i],right[i],count,l,r);left[i]+=l;right[i]+=r;}}
     }
 
     void prepareSidechain (const juce::AudioBuffer<float>* extIn, int numSamples)
@@ -589,6 +599,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         const double bpm = pos.getBpm().hasValue() ? *pos.getBpm() : 120.0;
         readParams (bpm > 1.0 ? bpm : 120.0);
+        RoomParams rp;rp.enabled=params.getb(P::roomOn);rp.size=params.get(P::roomSize);rp.shape=params.get(P::roomShape);rp.wallDamping=params.get(P::roomWallDamping);rp.diffusion=params.get(P::roomDiffusion);rp.airAbsorption=params.get(P::roomAir);rp.send=params.get(P::roomSend);rp.networkReturn=params.get(P::roomNetworkReturn);rp.returnDelayMs=params.get(P::roomReturnDelay);rp.returnFilterHz=params.get(P::roomReturnFilter);rp.feedback=params.get(P::roomFeedback);rp.width=params.get(P::roomWidth);rp.level=params.get(P::roomLevel);rp.freeze=params.getb(P::roomFreeze);rp.clear=params.getb(P::roomClear);room.update(rp,numSamples);
         SympatheticParams sp;sp.enabled=params.getb(P::symOn);sp.send=params.get(P::symSend);sp.returnLevel=params.get(P::symReturn);sp.damper=params.get(P::symDamper);sp.decayMs=params.get(P::symDecay);sp.damping=params.get(P::symDamping);sp.brightness=params.get(P::symBrightness);sp.detune=params.get(P::symDetune);sp.spread=params.get(P::symSpread);sp.tuning=params.geti(P::symTuning);sp.root=params.geti(P::symRoot);sp.count=params.geti(P::symCount);sp.thresholdDb=params.get(P::symThreshold);sp.freeze=params.getb(P::symFreeze);sp.clear=params.getb(P::symClear);sp.capture=params.getb(P::symCapture);for(int i=0;i<12;++i)sp.intervals[(size_t)i]=params.geti((P)((int)P::symInterval1+i));sympathetic.update(sp,numSamples);
         noteOnsThisBlock = 0;
 
@@ -731,6 +742,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             vis.resonatorRunning[(size_t) r].store (newest != nullptr && newest->isResonatorRunning (r) ? 1 : 0, std::memory_order_relaxed);
         }
         for(int i=0;i<12;++i){vis.sympatheticEnergy[(size_t)i].store(sympathetic.modeEnergy(i),std::memory_order_relaxed);vis.sympatheticFrequency[(size_t)i].store(sympathetic.frequency(i),std::memory_order_relaxed);}
+        vis.roomEnergy.store(room.energy(),std::memory_order_relaxed);vis.roomReturnEnergy.store(room.returnEnergy(),std::memory_order_relaxed);vis.roomSafetyClips.store(room.safetyClips(),std::memory_order_relaxed);
         vis.networkEnergy.store (newest != nullptr ? newest->getNetworkEnergy() : 0.0f, std::memory_order_relaxed);
         vis.governorGain.store (newest != nullptr ? newest->getGovernor() : 1.0f, std::memory_order_relaxed);
         vis.exciterAEnv.store (newest != nullptr ? newest->getExciterEnvelope (0) : 0.0f, std::memory_order_relaxed);

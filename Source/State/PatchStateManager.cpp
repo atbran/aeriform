@@ -37,7 +37,7 @@ PatchStateManager::PatchStateManager(AeriformProcessor& p):processor(p) {
 int PatchStateManager::indexOf(const juce::String& id) const { for(int i=0;i<kNumParams;++i) if(id==ids::all[i])return i;return -1; }
 bool PatchStateManager::administrative(P p) noexcept {
     const char* id=ids::id(p);
-    return p==P::symClear||p==P::symCapture||starts(id,"morph_")||starts(id,"random_")||starts(id,"out_")||starts(id,"voice_")||starts(id,"mpe_")||std::strcmp(id,"quality")==0||p==P::bendRange;
+    return p==P::roomClear||p==P::symClear||p==P::symCapture||starts(id,"morph_")||starts(id,"random_")||starts(id,"out_")||starts(id,"voice_")||starts(id,"mpe_")||std::strcmp(id,"quality")==0||p==P::bendRange;
 }
 bool PatchStateManager::protectedRandom(P p) noexcept {
     const char* id=ids::id(p);

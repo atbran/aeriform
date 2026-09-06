@@ -63,6 +63,7 @@ set(AERIFORM_SOURCES
     Source/Plugin/PluginEditor.cpp
     Source/Params/ParameterLayout.cpp
     Source/DSP/SynthEngine.cpp
+    Source/DSP/CoupledRoom.cpp
     Source/DSP/SympatheticBank.cpp
     Source/DSP/ModularFilters.cpp
     Source/DSP/Voice.cpp
@@ -84,6 +85,7 @@ set(AERIFORM_SOURCES
     Source/GUI/PresetBar.cpp
     Source/GUI/ModMatrixPanel.cpp
     Source/GUI/Displays.cpp
+    Source/GUI/RoomPage.cpp
     Source/GUI/SympatheticPage.cpp
     Source/GUI/ContactPage.cpp
     Source/GUI/FiltersPage.cpp
@@ -207,6 +209,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/PresetLevelTests.cpp
         Tests/ReliabilityTests.cpp
         Tests/PatchToolsTests.cpp
+        Tests/RoomTests.cpp
         Tests/KnobModulationTests.cpp
         Tests/UserRegressionTests.cpp
         Tests/SympatheticTests.cpp

@@ -545,6 +545,14 @@ const std::vector<FactoryPreset>& factoryPresets()
             .mod (4, ModSource::Aftertouch, ModDest::Pressure, 0.3f)
             .space (0.15f, 0.25f, 0.35f).delay (d1_8D, 0.35f).reverb (0.6f, 0.5f, 0.4f).v });
 
+        // Append only: original factory ordinals are persistent favourite IDs.
+        list.push_back ({ "Reed in a Small Room", "Experimental", Build().p(outGain,-4)
+            .p(exaModel,(float)ExciterModel::Reed).p(exaPhStiffness,.45f).p(exaPhSpeed,.7f)
+            .env(15,250,.75f,800).tube(.94f,.35f,.6f,ResMode::OpenPipe,.3f,.2f)
+            .p(roomOn,1).p(roomSize,.45f).p(roomShape,.65f).p(roomDiffusion,.85f)
+            .p(roomSend,1).p(roomLevel,1.25f).p(roomFeedback,.8f).p(roomWallDamping,.25f)
+            .p(roomNetworkReturn,.75f).p(roomReturnDelay,12).space(0,0,0).v });
+
         return list;
     }();
     return presets;

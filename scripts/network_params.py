@@ -60,6 +60,23 @@ def register(F,C,B,I):
 
  B('netBypass','net_bypass','Bypass Resonators','Network',False,'Route excitation directly past the resonators. Also happens automatically when no resonator is enabled. Overrides Repipe while bypassed.')
 
+
+ B('roomOn','room_on','Coupled Room Enabled','Network',False,'One shared small-room model receives voices and returns bounded energy to the physical network.')
+ F('roomSize','room_size','Room Size','Network',0,1,.3,'%','Percent','Physical path length scale of the eight-line room.')
+ F('roomShape','room_shape','Room Shape','Network',0,1,.5,'%','Percent','Aspect and path-length pattern of the room.')
+ F('roomWallDamping','room_wall_damping','Wall Damping','Network',0,1,.4,'%','Percent','Loss of high frequencies at room reflections.')
+ F('roomDiffusion','room_diffusion','Room Diffusion','Network',0,1,.7,'%','Percent','Mixing between reflection paths.')
+ F('roomAir','room_air','Air Absorption','Network',0,1,.3,'%','Percent','Frequency-dependent absorption along the room paths.')
+ F('roomSend','room_send','Room Voice Send','Network',0,1,.4,'%','Percent','Voice sum sent to the shared room, normalized by active voice count.')
+ F('roomNetworkReturn','room_network_return','Room Network Return','Network',0,1,.2,'%','Percent','Bounded room energy returned to each voice through resonator-loss scaling.')
+ F('roomReturnDelay','room_return_delay','Room Return Delay','Network',1,250,15,'ms','Ms','Return path delay. Causal minimum is 32 samples, independent of host buffer size.',centre=30)
+ F('roomReturnFilter','room_return_filter','Room Return Filter','Network',100,12000,3000,'Hz','Hz','Return low-pass filter, with a fixed 30 Hz DC/high-pass filter.',centre=2000)
+ F('roomFeedback','room_feedback','Room Feedback','Network',0,1,.6,'%','Percent','Internal room feedback. Input gain follows loop loss for bounded excitation.')
+ F('roomWidth','room_width','Room Width','Network',0,1,1,'%','Percent','Width of the audible room return.')
+ F('roomLevel','room_level','Room Output Level','Network',0,2,.3,'%','Percent','Audible stereo room output; independent of network return strength.')
+ B('roomFreeze','room_freeze','Room Freeze','Network',False,'Hold the room by stopping excitation and removing damping; paths settle to integer lengths.')
+ B('roomClear','room_clear','Clear Room Energy','Network',False,'Each toggle clears all room and return-delay energy.')
+
 CHOICES={
  'SympatheticTunings':['Chromatic','Major','Minor','Pentatonic','Whole tone','Custom intervals','Harmonic series','Held notes','Captured chord'],
  'PhysicalStereoModes':['Economy','Physical stereo'],
