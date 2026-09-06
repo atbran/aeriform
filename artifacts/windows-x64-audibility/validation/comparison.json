@@ -1,0 +1,60 @@
+{
+  "reference_commit": "d40798c",
+  "source_status": "audibility WIP",
+  "comparisons": [
+    {
+      "patch": "Init",
+      "module": "bank",
+      "dry_bit_identical": true,
+      "before_delta_db": -52.20073125020136,
+      "before_matched_delta_db": -52.27042561476354,
+      "after_delta_db": -13.794295216376982,
+      "after_matched_delta_db": -14.051092807308457
+    },
+    {
+      "patch": "Init",
+      "module": "room",
+      "dry_bit_identical": true,
+      "before_delta_db": -33.40473953409282,
+      "before_matched_delta_db": -33.40499417262714,
+      "after_delta_db": -16.763921612955375,
+      "after_matched_delta_db": -16.81829421842151
+    },
+    {
+      "patch": "Plucked_Tube",
+      "module": "bank",
+      "dry_bit_identical": true,
+      "before_delta_db": -45.379723997174125,
+      "before_matched_delta_db": -45.67318210770282,
+      "after_delta_db": -9.032750059325897,
+      "after_matched_delta_db": -9.519924894359795
+    },
+    {
+      "patch": "Plucked_Tube",
+      "module": "room",
+      "dry_bit_identical": true,
+      "before_delta_db": -32.55121373012813,
+      "before_matched_delta_db": -32.55640737554548,
+      "after_delta_db": -16.817134697649752,
+      "after_matched_delta_db": -16.866206744642685
+    },
+    {
+      "patch": "Metallic_Steam",
+      "module": "bank",
+      "dry_bit_identical": true,
+      "before_delta_db": -71.18019721539191,
+      "before_matched_delta_db": -71.18529836767786,
+      "after_delta_db": -17.417787619429493,
+      "after_matched_delta_db": -17.47777503717715
+    },
+    {
+      "patch": "Metallic_Steam",
+      "module": "room",
+      "dry_bit_identical": true,
+      "before_delta_db": -33.16431893033852,
+      "before_matched_delta_db": -33.228575773218544,
+      "after_delta_db": -17.49076353035431,
+      "after_matched_delta_db": -17.52539290264507
+    }
+  ]
+}
