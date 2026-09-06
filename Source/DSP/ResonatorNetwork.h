@@ -104,7 +104,13 @@ public:
             if(filters){o[2]=filters->at(FilterPosition::ResCOutput,o[2],filterLane);t2[2]=filters->at(FilterPosition::ResCOutput,t2[2],filterLane+1);}
         }
 
-        contact.next(o,contactInjection);
+        float contactPickup[3]{};
+        contact.next(o,contactInjection,contactPickup);
+        // The audible junction is not attenuated by the receiving resonator's
+        // loop loss. Only the physical injection above uses that stability bound.
+        // Add the same contact displacement to both pickup taps so width cannot
+        // accidentally remove the impact from the left channel.
+        for(int i=0;i<3;++i)if(contactPickup[i]!=0){o[i]+=contactPickup[i];t2[i]+=contactPickup[i];}
 
         // ---- cross-feedback for the next sample --------------------------------------
         {

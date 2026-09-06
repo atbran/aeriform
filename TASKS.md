@@ -1,3 +1,16 @@
+## v3 EXP features implemented (2026-09-06)
+
+Contact pickup-stop audibility, contact route feedback, Economy control disabling, dedicated spectral freeze UI, and three-band saturation DSP/parameters/UI are implemented. Version 3.0.0 / 509 parameters. Release EXE/VST3 build, 12 focused tests, and instrument VST3 host check passed. Packaging the feature checkpoint for the separate testing agent. Latest user instruction: prioritize feature completion; run only compilation and cursory smoke checks here. The separate testing agent owns comprehensive acceptance and will report findings. No v3 release certification is claimed. See docs/V3_TESTING_HANDOFF.md for changed paths and precise contracts.
+
+## Current user priorities (supersedes older scope lists, 2026-09-06)
+
+- Finish contact/collision first, with demonstrably meaningful audio/timbre changes and clear routing/activity feedback.
+- Then finish the spectral-freeze UI/behavior and implement low/mid/high multiband saturation with crossovers, per-band drive/model/mix/output, global mix and oversampling quality.
+- The separate FX application/plugin is owned by somebody else. Do not implement it here or merge its branch as feature work.
+- The user's cheaper autonomous agents own broad testing. docs/V3_TESTING_HANDOFF.md specifies requested evidence; the user will supply the overnight report. Reuse that work, run focused implementation checks, and fix confirmed issues without duplicating the entire testing campaign.
+- Additional presets are low priority. Preserve existing preset compatibility.
+- User listening feedback: the revised modules are much clearer, and Physical stereo has a substantial effect. Contact/collision remains too subtle. Economy intentionally uses the original single network.
+
 # AERIFORM - Task Tracker
 
 ## Next implementation priority: audible bank and room

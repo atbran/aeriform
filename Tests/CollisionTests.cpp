@@ -39,3 +39,21 @@ AERIFORM_TEST(collision_page_renders) {
     TestHost h;h.set(ids::contactOn,1);std::unique_ptr<juce::AudioProcessorEditor> base(h.processor.createEditor());auto* e=dynamic_cast<AeriformEditor*>(base.get());CHECK(e!=nullptr);if(!e)return;e->showPage(7);
     juce::Image image(juce::Image::ARGB,e->getWidth(),e->getHeight(),true);juce::Graphics g(image);e->paintEntireComponent(g,true);auto f=juce::File::getCurrentWorkingDirectory().getChildFile("docs/experimental/contact.png");auto stream=f.createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}
 }
+
+AERIFORM_TEST(collision_pickup_scattering_is_contractive_and_alias_filtered) {
+    Noise rng;rng.seed(7781);
+    for(int i=0;i<10000;++i){ContactParams p;p.gap=(rng.next()+1)*.3f;p.stiffness=(rng.next()+1)*.5f;p.hardness=1+(rng.next()+1)*1.5f;p.damping=(rng.next()+1)*.5f;p.friction=(rng.next()+1)*.5f;p.asymmetry=rng.next();p.polarity=i%2?1:-1;
+        float a=rng.next(),b=rng.next(),sa,sb;CollisionRoute::scatter(a,b,p,sa,sb);CHECK(sa*sa+sb*sb<=a*a+b*b+1e-5f);}
+    constexpr int n=8192,bin=1500,alias=n-3*bin;double magnitude[3]{};
+    for(int q=0;q<3;++q){CollisionRoute route;route.prepare(48000);ContactParams p;p.enabled=true;p.amount=1;p.gap=.4f;p.stiffness=.5f;p.hardness=2;p.quality=q;route.update(p);std::complex<double> sum{};
+        for(int i=0;i<2*n;++i){float input[3]{.3f*(float)std::sin(2*3.141592653589793*bin*i/n),0,0},force[3]{},pickup[3]{};route.next(input,force,pickup);if(i>=n)sum+=(double)(input[0]+pickup[0])*std::exp(std::complex<double>(0,-2*3.141592653589793*alias*i/n));}magnitude[q]=std::abs(sum);}
+    const double suppression=20*std::log10(magnitude[0]/std::max(1e-15,magnitude[2]));std::printf("    audible contact pickup alias suppression: %.2f dB\n",suppression);CHECK(suppression>12);
+}
+AERIFORM_TEST(collision_matched_resonators_change_timbre_in_mono) {
+    auto render=[](float amount,float friction){ResonatorNetwork net;net.prepare(48000);NetworkParams p;p.mode=NetMode::Parallel;p.on[1]=true;p.width=0;p.pan[0]=p.pan[1]=0;p.contact.enabled=amount>0;p.contact.amount=amount;p.contact.gap=.25f;p.contact.friction=friction;p.contact.quality=2;p.contact.stiffness=.4f;
+        p.res[0].freqHz=p.res[1].freqHz=220;net.update(p,true);std::vector<float> x;for(int i=0;i<48000;++i){float l,r;net.next(.08f*std::sin(kTwoPi*220*i/48000)+.03f*std::sin(kTwoPi*660*i/48000),0,0,l,r);if(i>=24000)x.push_back((l+r)*.5f);}return x;};
+    auto dry=render(0,0),normal=render(.3f,0),strong=render(1,0),buzz=render(1,.8f);
+    double reference=0;for(float v:dry)reference+=v*v;
+    for(auto* x:{&normal,&strong,&buzz}){double energy=0;for(float v:*x)energy+=v*v;const double gain=std::sqrt(reference/std::max(1e-20,energy));double difference=0;for(size_t i=0;i<x->size();++i)difference+=std::pow((*x)[i]*gain-dry[i],2);std::printf("    matched-mono contact amount/tone comparison: %.2f dB\n",10*std::log10(difference/reference));CHECK(difference/reference>.004);}
+    double changed=0;for(size_t i=0;i<buzz.size();++i)changed+=std::pow(buzz[i]-strong[i],2);CHECK(changed/reference>.01);
+}

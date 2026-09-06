@@ -24,3 +24,17 @@ AERIFORM_TEST(spectral_blur_shift_decay_and_bypass_have_real_effects) {
     auto base=render(0,0,0),up=render(12,0,0),blur=render(0,1,0),decay=render(0,0,150);double baseEnergy=0,decayEnergy=0,blurDiff=0;for(size_t i=0;i<base.size();++i){baseEnergy+=base[i]*base[i];decayEnergy+=decay[i]*decay[i];blurDiff+=std::pow(base[i]-blur[i],2);}CHECK(decayEnergy<baseEnergy*.001);CHECK(blurDiff>1e-4);const double hz=estimatePeakFrequency(up,48000,750);std::printf("    spectral octave measured %.3f\n",hz);CHECK(std::abs(centsBetween(hz,750))<15);
     auto f=std::make_unique<SpectralFreeze>();f->prepare(48000);float l=.3f,r=-.2f;f->process(&l,&r,1);CHECK_NEAR(l,.3f,0);CHECK_NEAR(r,-.2f,0);
 }
+
+// Short implementation smoke only; release acceptance belongs to the external testing task.
+#include "DSP/Effects/MultibandSaturation.h"
+#include "Plugin/PluginEditor.h"
+AERIFORM_TEST(v3_features_host_smoke_and_effect_pages) {
+    TestHost host;host.set(ids::satOn,1);host.set(ids::satLowDrive,12);host.set(ids::satMidDrive,18);host.set(ids::satHighDrive,24);host.set(ids::satMidModel,1);host.set(ids::satHighModel,3);host.noteOn(60);
+    auto live=host.render(.2);CHECK(live.finite);CHECK(live.rms>1e-5);CHECK(live.peak<4);
+    host.set(ids::sfOn,1);host.render(.1);host.set(ids::sfCapture,1);host.render(.1);CHECK(host.processor.getVisualizerModel().spectralFrozen.load());
+    host.set(ids::sfRelease,1);host.render(.1);CHECK(!host.processor.getVisualizerModel().spectralFrozen.load());
+    for(int quality=0;quality<3;++quality){host.set(ids::satQuality,(float)quality);CHECK(host.render(.08).finite);}
+    juce::MemoryBlock state;host.processor.getStateInformation(state);TestHost restored;restored.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK_NEAR(restored.get(ids::satHighDrive),24,1e-5);CHECK_NEAR(restored.get(ids::satHighModel),3,0);
+    for(int section:{4,5}){host.processor.setEditorSection(4,section);std::unique_ptr<juce::AudioProcessorEditor> editor(host.processor.createEditor());auto* typed=dynamic_cast<AeriformEditor*>(editor.get());CHECK(typed!=nullptr);if(!typed)continue;typed->showPage(4);juce::Image image(juce::Image::ARGB,editor->getWidth(),editor->getHeight(),true);juce::Graphics g(image);editor->paintEntireComponent(g,true);auto file=juce::File::getCurrentWorkingDirectory().getChildFile(section==4?"docs/experimental/spectral-v3.png":"docs/experimental/saturation-v3.png");auto stream=file.createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}}
+    MultibandSaturation sat;sat.prepare(48000);float l=.31f,r=-.27f;sat.process(&l,&r,1);CHECK_NEAR(l,.31f,0);CHECK_NEAR(r,-.27f,0);
+}

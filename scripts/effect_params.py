@@ -34,3 +34,16 @@ def register(F,C,B,I):
  F('sfRandom','sf_random','Spectral Random Phase','Space',0,1,0,'%','Percent','Deterministic per-frame phase diffusion for a less stationary texture.')
  F('sfDecay','sf_decay','Spectral Decay','Space',0,60000,0,'ms','Ms','Held spectrum decay time to minus 60 dB. Zero holds indefinitely.',centre=6000)
  F('sfMix','sf_mix','Spectral Mix','Space',0,1,1,'%','Percent','Linear live/held blend. Live audio has no added delay when not holding.')
+
+ B('satOn','sat_on','Multiband Saturation Enabled','Space',False,'Three phase-compensated bands after spectral freeze and before the final movable filters. Bypass fades to the original dry signal.')
+ F('satLow','sat_low','Saturation Low Crossover','Space',40,4000,250,'Hz','Hz','Lower LR4 split. Automatically stays below the upper crossover by at least a 1.25 ratio.',centre=250)
+ F('satHigh','sat_high','Saturation High Crossover','Space',200,16000,2500,'Hz','Hz','Upper LR4 split. Low-band phase compensation preserves flat neutral reconstruction.',centre=2500)
+ F('satMix','sat_mix','Saturation Mix','Space',0,1,1,'%','Percent','Blend against the phase-aligned neutral band sum. Disable the effect for sample-exact raw bypass.')
+ C('satQuality','sat_quality','Saturation Oversampling','Space','QualityModes',1,'Eco 1x, Normal 2x, High 4x. Quality changes briefly fade to raw bypass before switching filters.')
+ for band,label in [('Low','Low'),('Mid','Mid'),('High','High')]:
+  prefix='sat'+band
+  ident='sat_'+band.lower()
+  F(prefix+'Drive',ident+'_drive',label+' Band Drive','Space',0,36,0,'dB','Db','Input drive with partial gain compensation. Zero dB leaves this band undistorted.')
+  C(prefix+'Model',ident+'_model',label+' Band Model','Space','SaturationModels',0,'Soft tanh, asymmetric warm saturation, hard clip, or sine fold. Model changes crossfade.')
+  F(prefix+'Mix',ident+'_mix',label+' Band Mix','Space',0,1,1,'%','Percent','Phase-aligned neutral/processed band blend.')
+  F(prefix+'Output',ident+'_output',label+' Band Output','Space',-24,12,0,'dB','Db','Output trim for the processed band, before band mix and global mix.')

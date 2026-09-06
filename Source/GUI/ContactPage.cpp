@@ -12,6 +12,11 @@ void ContactPage::Controls::resized(){auto r=getContentArea().reduced(12);enable
     knobRow(r.removeFromTop(108),{gap,stiffness,hardness},12);r.removeFromTop(24);knobRow(r.removeFromTop(108),{damping,friction,asymmetry},12);r.removeFromTop(24);
     auto bottom=r.removeFromTop(112);amount->setBounds(bottom.removeFromLeft(bottom.getWidth()/3));bottom.removeFromLeft(16);quality->setBounds(bottom.removeFromTop(46));bottom.removeFromTop(12);polarity->setBounds(bottom.removeFromTop(46));
 }
+void ContactPage::timerCallback(){
+    const bool physical=processor.getAPVTS().getRawParameterValue(ids::stereoMode)->load()>.5f;
+    for(auto* knob:{stereoControls->divergence,stereoControls->coupling,stereoControls->exciter,stereoControls->pickup,stereoControls->damping,stereoControls->rotation,stereoControls->width,stereoControls->bass})knob->setEnabled(physical);
+    repaint();
+}
 void ContactPage::showStereo(bool on){stereoVisible=on;controls->setVisible(!on);stereoControls->setVisible(on);switchView.setButtonText(on?"EDIT CONTACT / COLLISION":"EDIT PHYSICAL STEREO");repaint();}
 ContactPage::StereoControls::StereoControls(AeriformProcessor& p):ParamPanel(p,"TRUE STEREO NETWORK",teal){
     mode=control<ChoiceBox>(p,ids::stereoMode,"Network mode");divergence=knob(ids::stereoDivergence,"Length divergence");coupling=knob(ids::stereoCoupling,"Cross coupling");exciter=knob(ids::stereoExciterSpread,"Exciter spread");pickup=knob(ids::stereoPickupSpread,"Pickup spread");damping=knob(ids::stereoDamping,"Damping divergence");rotation=knob(ids::stereoRotation,"Rotation");width=knob(ids::stereoWidth,"Width");bass=knob(ids::stereoMonoBass,"Mono bass");
@@ -31,11 +36,19 @@ void ContactPage::paint(juce::Graphics& g){auto r=getLocalBounds().withTrimmedLe
     for(int i=0;i<3;++i)x[i]=nodes.getX()+spacing*(i+.5f);
     g.setColour(copper.withAlpha(std::clamp(.2f+activity*10,0.0f,1.0f)));g.drawLine(x[std::clamp(src,0,2)],cy,x[std::clamp(dst,0,2)],cy,2+std::min(6.0f,activity*20));
     for(int i=0;i<3;++i){g.setColour(panel);g.fillEllipse(x[i]-28,cy-28,56,56);g.setColour(i==src?copperBright:i==dst?teal:textDim);g.drawEllipse(x[i]-28,cy-28,56,56,2);g.setFont(titleFont(18));g.drawText(juce::String::charToString((juce::juce_wchar)('A'+i)),(int)x[i]-20,(int)cy-18,40,36,juce::Justification::centred);}
-    r.removeFromTop(15);g.setColour(textSecondary);g.setFont(font(12));g.drawFittedText("Contact transfers motion only beyond the gap. The source reacts as the destination receives energy. Both resonators must be enabled in NETWORK.",r.removeFromTop(65),juce::Justification::centredLeft,3);r.removeFromTop(18);
+    juce::String status;
+    auto& model=processor.getVisualizerModel();
+    if(value(ids::contactOn)<.5f)status="CONTACT OFF";
+    else if(src==dst)status="INACTIVE: choose two different resonators";
+    else if(!model.resonatorRunning[(size_t)src].load()||!model.resonatorRunning[(size_t)dst].load())status="WAITING: play a note with both route slots running";
+    else if(value(ids::contactAmount)<.0001f||value(ids::contactStiffness)<.0001f)status="INACTIVE: raise Amount and Stiffness";
+    else status=activity>.00005f?"CONTACT ACTIVE":"BELOW GAP: lower Gap or increase excitation";
+    g.setColour(activity>.00005f?teal:textSecondary);g.setFont(font(12));g.drawFittedText(status,r.removeFromTop(36),juce::Justification::centredLeft,2);
+    r.removeFromTop(5);g.setColour(textSecondary);g.setFont(font(12));g.drawFittedText("Contact adds a nonlinear stop at the pickup and a bounded physical reaction between two resonators. Both slots must be running in NETWORK.",r.removeFromTop(65),juce::Justification::centredLeft,3);r.removeFromTop(18);
     auto graph=r.removeFromTop(190).toFloat();g.setColour(inset);g.fillRoundedRectangle(graph,6);g.setColour(textDim.withAlpha(.5f));g.drawHorizontalLine((int)graph.getCentreY(),graph.getX()+10,graph.getRight()-10);g.drawVerticalLine((int)graph.getCentreX(),graph.getY()+10,graph.getBottom()-10);
     dsp::ContactParams p;p.gap=value(ids::contactGap);p.stiffness=value(ids::contactStiffness);p.hardness=value(ids::contactHardness);p.damping=value(ids::contactDamping);p.friction=value(ids::contactFriction);p.asymmetry=value(ids::contactAsymmetry);p.amount=value(ids::contactAmount);
-    juce::Path path;for(int i=0;i<160;++i){float displacement=2*i/159.0f-1;float force=dsp::CollisionRoute::force(displacement,0,p);float px=graph.getX()+10+(graph.getWidth()-20)*i/159.0f,py=graph.getCentreY()-force*graph.getHeight()*1.8f;if(i==0)path.startNewSubPath(px,py);else path.lineTo(px,py);}g.setColour(copperBright);g.strokePath(path,juce::PathStrokeType(2));
-    r.removeFromTop(12);g.setColour(textSecondary);g.setFont(font(11));g.drawFittedText("CONTACT FORCE / SOURCE DISPLACEMENT\nThe curve shows the bounded force before network loss scaling. Live route brightness follows measured collision activity.",r.removeFromTop(64),juce::Justification::centredLeft,4);
-    g.setColour(textDim);g.drawFittedText("Try a small gap with High quality for buzzing bridges; use a wider gap and asymmetric contact for occasional rattles. A route from a resonator to itself is silent.",r.removeFromTop(80),juce::Justification::centredLeft,4);
+    juce::Path path;for(int i=0;i<160;++i){float displacement=2*i/159.0f-1;float sa,sb;dsp::CollisionRoute::scatter(displacement,0,p,sa,sb);float force=p.amount*(2-p.amount)*(sa-displacement);float px=graph.getX()+10+(graph.getWidth()-20)*i/159.0f,py=graph.getCentreY()-force*graph.getHeight()*.24f;if(i==0)path.startNewSubPath(px,py);else path.lineTo(px,py);}g.setColour(copperBright);g.strokePath(path,juce::PathStrokeType(2));
+    r.removeFromTop(12);g.setColour(textSecondary);g.setFont(font(11));g.drawFittedText("PICKUP CHANGE / SOURCE DISPLACEMENT\nThe curve shows the audible source correction. Route brightness follows the measured pickup change; physical injection remains loss-bounded.",r.removeFromTop(64),juce::Justification::centredLeft,4);
+    g.setColour(textDim);g.drawFittedText("Gap has a squared response for finer control of quiet signals. Try friction for buzz, damping for a muted stop, or a wider gap for occasional impacts.",r.removeFromTop(80),juce::Justification::centredLeft,4);
 }
 }

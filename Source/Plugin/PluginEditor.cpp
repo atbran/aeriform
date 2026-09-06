@@ -8,6 +8,8 @@
 #include "../GUI/RoomPage.h"
 #include "../GUI/ResonantDelayPage.h"
 #include "../GUI/ShimmerPage.h"
+#include "../GUI/SpectralPage.h"
+#include "../GUI/SaturationPage.h"
 #include "../GUI/WorkspacePage.h"
 
 using namespace aeriform;
@@ -36,7 +38,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     pages[1] = std::make_unique<ExcitersPage> (p);
     auto network=std::make_unique<WorkspacePage>(p,2);network->addSection("RESONATORS / ROUTING",std::make_unique<NetworkPage>(p));network->addSection("CONTACT / STEREO",std::make_unique<ContactPage>(p));network->addSection("SYMPATHETIC BANK",std::make_unique<SympatheticPage>(p));network->addSection("COUPLED ROOM",std::make_unique<RoomPage>(p));network->showSection(p.getEditorSection(2));pages[2]=std::move(network);
     pages[3] = std::make_unique<MotionPage> (p);
-    auto space=std::make_unique<WorkspacePage>(p,4);space->addSection("EFFECTS",std::make_unique<SpacePage>(p));space->addSection("MODULAR FILTERS",std::make_unique<FiltersPage>(p));space->addSection("RESONANT DELAY",std::make_unique<ResonantDelayPage>(p));space->addSection("SHIMMER",std::make_unique<ShimmerPage>(p));space->showSection(p.getEditorSection(4));pages[4]=std::move(space);
+    auto space=std::make_unique<WorkspacePage>(p,4);space->addSection("EFFECTS",std::make_unique<SpacePage>(p));space->addSection("MODULAR FILTERS",std::make_unique<FiltersPage>(p));space->addSection("RESONANT DELAY",std::make_unique<ResonantDelayPage>(p));space->addSection("SHIMMER",std::make_unique<ShimmerPage>(p));space->addSection("SPECTRAL FREEZE",std::make_unique<SpectralPage>(p));space->addSection("SATURATION",std::make_unique<SaturationPage>(p));space->showSection(p.getEditorSection(4));pages[4]=std::move(space);
     pages[5] = std::make_unique<PerformancePage>(p);
     undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
     redoButton.onClick=[this]{processor.getPatchTools().undo.redo();};

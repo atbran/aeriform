@@ -22,6 +22,6 @@ private:
     Controls* controls;StereoControls* stereoControls;bool stereoVisible=false;
     juce::TextButton switchView{"EDIT PHYSICAL STEREO"};
     AeriformProcessor& processor;
-    void timerCallback() override {repaint();}
+    void timerCallback() override;
 };
 }

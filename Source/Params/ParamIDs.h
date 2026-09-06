@@ -499,6 +499,23 @@ enum class P : int
     sfRandom,
     sfDecay,
     sfMix,
+    satOn,
+    satLow,
+    satHigh,
+    satMix,
+    satQuality,
+    satLowDrive,
+    satLowModel,
+    satLowMix,
+    satLowOutput,
+    satMidDrive,
+    satMidModel,
+    satMidMix,
+    satMidOutput,
+    satHighDrive,
+    satHighModel,
+    satHighMix,
+    satHighOutput,
     Count
 };
 
@@ -999,6 +1016,23 @@ inline constexpr const char* sfShift = "sf_shift";
 inline constexpr const char* sfRandom = "sf_random";
 inline constexpr const char* sfDecay = "sf_decay";
 inline constexpr const char* sfMix = "sf_mix";
+inline constexpr const char* satOn = "sat_on";
+inline constexpr const char* satLow = "sat_low";
+inline constexpr const char* satHigh = "sat_high";
+inline constexpr const char* satMix = "sat_mix";
+inline constexpr const char* satQuality = "sat_quality";
+inline constexpr const char* satLowDrive = "sat_low_drive";
+inline constexpr const char* satLowModel = "sat_low_model";
+inline constexpr const char* satLowMix = "sat_low_mix";
+inline constexpr const char* satLowOutput = "sat_low_output";
+inline constexpr const char* satMidDrive = "sat_mid_drive";
+inline constexpr const char* satMidModel = "sat_mid_model";
+inline constexpr const char* satMidMix = "sat_mid_mix";
+inline constexpr const char* satMidOutput = "sat_mid_output";
+inline constexpr const char* satHighDrive = "sat_high_drive";
+inline constexpr const char* satHighModel = "sat_high_model";
+inline constexpr const char* satHighMix = "sat_high_mix";
+inline constexpr const char* satHighOutput = "sat_high_output";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1493,6 +1527,23 @@ inline constexpr const char* const all[kNumParams] = {
     "sf_random",
     "sf_decay",
     "sf_mix",
+    "sat_on",
+    "sat_low",
+    "sat_high",
+    "sat_mix",
+    "sat_quality",
+    "sat_low_drive",
+    "sat_low_model",
+    "sat_low_mix",
+    "sat_low_output",
+    "sat_mid_drive",
+    "sat_mid_model",
+    "sat_mid_mix",
+    "sat_mid_output",
+    "sat_high_drive",
+    "sat_high_model",
+    "sat_high_mix",
+    "sat_high_output",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

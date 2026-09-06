@@ -4,9 +4,10 @@ void SpectralFreeze::prepare(float rate){sr=rate;step=1/(.02f*sr);fft.prepare();
 void SpectralFreeze::reset() noexcept {for(auto& c:channels){c.input.fill(0);c.output.fill(0);c.work.fill({});c.previousPhase.fill(0);c.magnitude.fill(0);c.omega.fill(0);c.phase.fill(0);c.blurred.fill(0);}write=history=captureCount=0;untilFrame=hop;wet=0;ratio=1;holding=captured=pendingCapture=wasActive=false;rng=0x5F00A123u;p.freeze=p.capture=p.release=false;}
 float SpectralFreeze::random() noexcept {rng^=rng<<13;rng^=rng>>17;rng^=rng<<5;return (float)(rng>>8)*(1.0f/16777216.0f);}
 void SpectralFreeze::setParams(SpectralParams next) noexcept {
-    if(next.freeze!=p.freeze||(next.enabled&&!p.enabled&&next.freeze)){holding=next.freeze;if(holding)pendingCapture=true;}
+    if(next.freeze!=p.freeze||(next.enabled&&!p.enabled&&next.freeze)){holding=next.freeze;pendingCapture=holding;}
     if(next.capture!=p.capture){holding=true;pendingCapture=true;}
-    if(next.release!=p.release)holding=false;
+    if(next.release!=p.release){holding=false;pendingCapture=false;}
+    if(!next.enabled)pendingCapture=false;
     next.blur=clamp01(next.blur);next.randomPhase=clamp01(next.randomPhase);next.mix=clamp01(next.mix);next.semitones=std::clamp(next.semitones,-24.0f,24.0f);next.decayMs=std::clamp(next.decayMs,0.0f,60000.0f);p=next;
 }
 float SpectralFreeze::bandEnergy(int band) const noexcept {const int from=1+std::clamp(band,0,63)*(bins-2)/64,to=1+(std::clamp(band,0,63)+1)*(bins-2)/64;float energy=0;for(int k=from;k<to;++k)energy+=channels[0].magnitude[(size_t)k]+channels[1].magnitude[(size_t)k];return energy/size;}
