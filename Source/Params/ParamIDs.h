@@ -480,6 +480,16 @@ enum class P : int
     rdSaturation,
     rdOffset,
     rdMix,
+    shOn,
+    shInterval,
+    shFeedback,
+    shDiffusion,
+    shDamping,
+    shSize,
+    shSpread,
+    shLowCut,
+    shHighCut,
+    shMix,
     Count
 };
 
@@ -961,6 +971,16 @@ inline constexpr const char* rdAmount = "rd_amount";
 inline constexpr const char* rdSaturation = "rd_saturation";
 inline constexpr const char* rdOffset = "rd_offset";
 inline constexpr const char* rdMix = "rd_mix";
+inline constexpr const char* shOn = "sh_on";
+inline constexpr const char* shInterval = "sh_interval";
+inline constexpr const char* shFeedback = "sh_feedback";
+inline constexpr const char* shDiffusion = "sh_diffusion";
+inline constexpr const char* shDamping = "sh_damping";
+inline constexpr const char* shSize = "sh_size";
+inline constexpr const char* shSpread = "sh_spread";
+inline constexpr const char* shLowCut = "sh_low_cut";
+inline constexpr const char* shHighCut = "sh_high_cut";
+inline constexpr const char* shMix = "sh_mix";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1436,6 +1456,16 @@ inline constexpr const char* const all[kNumParams] = {
     "rd_saturation",
     "rd_offset",
     "rd_mix",
+    "sh_on",
+    "sh_interval",
+    "sh_feedback",
+    "sh_diffusion",
+    "sh_damping",
+    "sh_size",
+    "sh_spread",
+    "sh_low_cut",
+    "sh_high_cut",
+    "sh_mix",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

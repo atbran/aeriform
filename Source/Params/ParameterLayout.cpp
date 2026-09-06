@@ -224,7 +224,7 @@ namespace
     juce::String fmtSemi (float v, int)
     {
         const int s = juce::roundToInt (v);
-        return (s > 0 ? "+" : "") + juce::String (s) + " st";
+        return (v > 0 ? "+" : "") + (std::abs(v-s)<.001f ? juce::String(s) : juce::String(v,2)) + " st";
     }
     juce::String fmtCents (float v, int)
     {

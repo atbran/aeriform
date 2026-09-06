@@ -5,6 +5,7 @@
 #include "Effects/Chorus.h"
 #include "Effects/Delay.h"
 #include "Effects/ResonantDelay.h"
+#include "Effects/ShimmerReverb.h"
 #include "Effects/Reverb.h"
 #include "Effects/OutputStage.h"
 #include "../MIDI/MidiLearn.h"
@@ -42,6 +43,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     Chorus chorus;
     StereoDelay delay;
     ResonantDelay resonantDelay;
+    ShimmerReverb shimmer;
     FdnReverb reverb;
     OutputStage output;
     CoupledRoom room;
@@ -126,7 +128,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         }
         chorus.prepare (sr);
         delay.prepare (sr);resonantDelay.prepare((float)sr);
-        reverb.prepare (sr);
+        reverb.prepare (sr);shimmer.prepare((float)sr);
         output.prepare (sr);sympathetic.prepare((float)sr);room.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
@@ -146,7 +148,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         monoNoteId = -1;
         chorus.reset();
         delay.reset();resonantDelay.reset();
-        reverb.reset();
+        reverb.reset();shimmer.reset();
         output.reset();sympathetic.reset();room.reset();globalFilters.reset();
         couplingIn = 0.0f;
     }
@@ -670,6 +672,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                           params.get (P::reverbDecay), params.get (P::reverbDamping), params.get (P::reverbPreDelay),
                           params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);
+        ShimmerParams sh;sh.enabled=params.getb(P::shOn);sh.semitones=params.get(P::shInterval);sh.feedback=params.get(P::shFeedback);sh.diffusion=params.get(P::shDiffusion);sh.damping=params.get(P::shDamping);sh.size=params.get(P::shSize);sh.spread=params.get(P::shSpread);sh.lowCutHz=params.get(P::shLowCut);sh.highCutHz=params.get(P::shHighCut);sh.mix=params.get(P::shMix);
+        shimmer.setParams(sh,numSamples);shimmer.process(L,R,numSamples);
 
         for(int i=0;i<numSamples;++i){L[i]=globalFilters.atWeighted(FilterPosition::PostEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PostEffects,R[i],3,filterFrames[(size_t)i]);}
         if (!skipOutputStage) {

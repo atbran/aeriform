@@ -139,3 +139,10 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - 473 stable parameters; normalized six-mode stereo feedback delay with sync, four colours, smooth tuning/dispersion, last-note tracking, saturation, offsets and mix. SPACE controls and Modal Echo Pluck preset connected.
 - Six focused tests: 1616330 checks, zero failures (`build/resdelay-tests.log`). Screenshot rendered and inspected. A float conversion causing fractional error at exact integer delay times was corrected.
 - User compiled an independent test build and cancelled the requested package; continue feature implementation. Shimmer source is in progress and not included in this checkpoint.
+
+
+## Shimmer checkpoint
+
+- 483 stable parameters; independent pitch-shifted reverb feedback and all SPACE controls, interval shortcuts and fractional semitone display connected.
+- Four focused tests: 1881052 checks, zero failures (`build/shimmer-tests.log`). Reference pitch, interval transitions, maximum-feedback bounds, actual shifted-tail output, host state and GUI tested; screenshot inspected.
+- Spectral freeze, multiband saturation, FX target and the final complete realtime/performance/host validation remain unfinished.
