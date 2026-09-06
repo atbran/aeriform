@@ -466,6 +466,20 @@ enum class P : int
     roomLevel,
     roomFreeze,
     roomClear,
+    rdOn,
+    rdTime,
+    rdSync,
+    rdDiv,
+    rdFeedback,
+    rdType,
+    rdTuning,
+    rdTrack,
+    rdDamping,
+    rdDispersion,
+    rdAmount,
+    rdSaturation,
+    rdOffset,
+    rdMix,
     Count
 };
 
@@ -933,6 +947,20 @@ inline constexpr const char* roomWidth = "room_width";
 inline constexpr const char* roomLevel = "room_level";
 inline constexpr const char* roomFreeze = "room_freeze";
 inline constexpr const char* roomClear = "room_clear";
+inline constexpr const char* rdOn = "rd_on";
+inline constexpr const char* rdTime = "rd_time";
+inline constexpr const char* rdSync = "rd_sync";
+inline constexpr const char* rdDiv = "rd_div";
+inline constexpr const char* rdFeedback = "rd_feedback";
+inline constexpr const char* rdType = "rd_type";
+inline constexpr const char* rdTuning = "rd_tuning";
+inline constexpr const char* rdTrack = "rd_track";
+inline constexpr const char* rdDamping = "rd_damping";
+inline constexpr const char* rdDispersion = "rd_dispersion";
+inline constexpr const char* rdAmount = "rd_amount";
+inline constexpr const char* rdSaturation = "rd_saturation";
+inline constexpr const char* rdOffset = "rd_offset";
+inline constexpr const char* rdMix = "rd_mix";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1394,6 +1422,20 @@ inline constexpr const char* const all[kNumParams] = {
     "room_level",
     "room_freeze",
     "room_clear",
+    "rd_on",
+    "rd_time",
+    "rd_sync",
+    "rd_div",
+    "rd_feedback",
+    "rd_type",
+    "rd_tuning",
+    "rd_track",
+    "rd_damping",
+    "rd_dispersion",
+    "rd_amount",
+    "rd_saturation",
+    "rd_offset",
+    "rd_mix",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

@@ -334,6 +334,8 @@ B('randomWild','random_wild','Wild','Master',False,'Expand musical randomization
 
 from network_params import register as register_network
 register_network(F,C,B,I)
+from effect_params import register as register_effects
+register_effects(F,C,B,I)
 
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]

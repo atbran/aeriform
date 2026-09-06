@@ -132,3 +132,10 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - Full regression: 116 tests, 4119984 checks, zero failures (`build/room-all-tests.log`). Room screenshot rendered and inspected; state and saved section restoration pass.
 - Room-to-network return is deliberately conservative and currently subtle; coefficient and measurement details are in docs/RESONATOR_NETWORK.md.
 - Additional effects, FX target, final realtime/performance audit and validators remain unfinished.
+
+
+## Resonant delay checkpoint
+
+- 473 stable parameters; normalized six-mode stereo feedback delay with sync, four colours, smooth tuning/dispersion, last-note tracking, saturation, offsets and mix. SPACE controls and Modal Echo Pluck preset connected.
+- Six focused tests: 1616330 checks, zero failures (`build/resdelay-tests.log`). Screenshot rendered and inspected. A float conversion causing fractional error at exact integer delay times was corrected.
+- User compiled an independent test build and cancelled the requested package; continue feature implementation. Shimmer source is in progress and not included in this checkpoint.

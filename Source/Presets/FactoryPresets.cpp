@@ -553,6 +553,13 @@ const std::vector<FactoryPreset>& factoryPresets()
             .p(roomSend,1).p(roomLevel,1.25f).p(roomFeedback,.8f).p(roomWallDamping,.25f)
             .p(roomNetworkReturn,.75f).p(roomReturnDelay,12).space(0,0,0).v });
 
+        list.push_back ({ "Modal Echo Pluck", "Experimental", Build().p(outGain,-3)
+            .p(exaModel,(float)ExciterModel::Pluck).p(exaPhHardness,.65f).p(exaPhBright,.7f)
+            .env(1,180,.15f,1000).tube(.94f,.4f,.6f,ResMode::String,.3f,.15f)
+            .p(rdOn,1).p(rdTime,280).p(rdFeedback,.7f).p(rdType,1).p(rdTuning,220)
+            .p(rdTrack,1).p(rdAmount,.75f).p(rdSaturation,.1f).p(rdMix,.45f).p(rdOffset,12)
+            .space(0,0,.12f).reverb(.5f,.4f,.45f).v });
+
         return list;
     }();
     return presets;

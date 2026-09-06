@@ -74,6 +74,7 @@ set(AERIFORM_SOURCES
     Source/DSP/ModMatrix.cpp
     Source/DSP/Effects/Chorus.cpp
     Source/DSP/Effects/Delay.cpp
+    Source/DSP/Effects/ResonantDelay.cpp
     Source/DSP/Effects/Reverb.cpp
     Source/DSP/Effects/OutputStage.cpp
     Source/Presets/PresetManager.cpp
@@ -86,6 +87,7 @@ set(AERIFORM_SOURCES
     Source/GUI/ModMatrixPanel.cpp
     Source/GUI/Displays.cpp
     Source/GUI/RoomPage.cpp
+    Source/GUI/ResonantDelayPage.cpp
     Source/GUI/SympatheticPage.cpp
     Source/GUI/ContactPage.cpp
     Source/GUI/FiltersPage.cpp
@@ -210,6 +212,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/ReliabilityTests.cpp
         Tests/PatchToolsTests.cpp
         Tests/RoomTests.cpp
+    Tests/ResonantDelayTests.cpp
         Tests/KnobModulationTests.cpp
         Tests/UserRegressionTests.cpp
         Tests/SympatheticTests.cpp

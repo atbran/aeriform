@@ -1,0 +1,11 @@
+# Experimental effects
+
+The original chorus, delay and reverb remain available and unchanged by default. New effects are disabled in existing patches. SPACE contains their controls. Post-effects modular filters and the common output stage follow the effects.
+
+## Resonant delay
+
+After the original delay and before reverb, this stereo delay passes each feedback return through six contracting complex modes. Four ratio families provide harmonic, metallic-bar, membrane and vowel-like colours. Normalized positive mode weights sum to one, each pole radius is below one, and its input coefficient is one minus radius. The dry/modal blend is convex. Feedback is capped at 0.98 and the new-input coefficient follows the remaining loop loss. A bounded, gain-compensated soft saturator and an independent state guard protect the loop; the master limiter is not required. More feedback reduces fresh-input level intentionally.
+
+Time glides over 40 ms, with independent left/right offsets up to 50 ms total. Sync resolves against the host tempo and a note division, then clamps to the 1–4000 ms delay range. Model changes glide modal frequencies without resetting phase. Dispersion stretches modal ratios rather than inserting a waveguide allpass. Last-note tracking references A3/MIDI 57 and excludes per-voice bend/glide/MPE; the effect is shared across voices. Tuning describes the internal mode frequencies, not a promise that the strongest repeat peak equals that frequency, since the delay also contributes a comb response.
+
+The first repeat preserves the source; subsequent repeats acquire modal colour. Bypass fades over 15 ms then clears energy. Dry/wet uses a linear blend and the dry signal has no added delay. Modal Echo Pluck demonstrates the effect. Six focused tests passed: 1616330 checks, zero failures (`build/resdelay-tests.log`). They check exact disabled output, impulse timing and repeat gains, max-feedback bounds across three rates/all four models, audible differences after the first repeat, modal targets, chunk independence, transition shutdown, host audio/state and page rendering (`experimental/resonant-delay.png`). Full regression last passed at the preceding room checkpoint; final effect validation remains pending.

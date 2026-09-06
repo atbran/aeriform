@@ -4,6 +4,7 @@
 #include "CoupledRoom.h"
 #include "Effects/Chorus.h"
 #include "Effects/Delay.h"
+#include "Effects/ResonantDelay.h"
 #include "Effects/Reverb.h"
 #include "Effects/OutputStage.h"
 #include "../MIDI/MidiLearn.h"
@@ -40,6 +41,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     LFO globalLfo[ids::numLFOs];
     Chorus chorus;
     StereoDelay delay;
+    ResonantDelay resonantDelay;
     FdnReverb reverb;
     OutputStage output;
     CoupledRoom room;
@@ -123,7 +125,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             globalLfo[i].resetFade();
         }
         chorus.prepare (sr);
-        delay.prepare (sr);
+        delay.prepare (sr);resonantDelay.prepare((float)sr);
         reverb.prepare (sr);
         output.prepare (sr);sympathetic.prepare((float)sr);room.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
@@ -143,7 +145,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         noteStackSize = 0;
         monoNoteId = -1;
         chorus.reset();
-        delay.reset();
+        delay.reset();resonantDelay.reset();
         reverb.reset();
         output.reset();sympathetic.reset();room.reset();globalFilters.reset();
         couplingIn = 0.0f;
@@ -657,6 +659,12 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         delay.setParams (clamp01 (params.get (P::delayMix) + globalMod[(size_t) ModDest::DelayMix]), delayMs, params.get (P::delayFeedback),
                          params.get (P::delayTone), params.getb (P::delayPingPong));
         delay.process (L, R, numSamples);
+
+        ResonantDelayParams rd;rd.enabled=params.getb(P::rdOn);rd.timeMs=params.get(P::rdTime);
+        if(params.getb(P::rdSync))rd.timeMs=(float)(60000.0/(bpm>1?bpm:120)*choices::syncDivisionBeats(params.geti(P::rdDiv)));
+        rd.feedback=params.get(P::rdFeedback);rd.type=params.geti(P::rdType);rd.tuningHz=params.get(P::rdTuning)*std::exp2((filterNote-57)*params.get(P::rdTrack)/12);
+        rd.damping=params.get(P::rdDamping);rd.dispersion=params.get(P::rdDispersion);rd.amount=params.get(P::rdAmount);rd.saturation=params.get(P::rdSaturation);rd.stereoOffsetMs=params.get(P::rdOffset);rd.mix=params.get(P::rdMix);
+        resonantDelay.setParams(rd);resonantDelay.process(L,R,numSamples);
 
         reverb.setParams (clamp01 (params.get (P::reverbMix) + globalMod[(size_t) ModDest::ReverbMix]), params.get (P::reverbSize),
                           params.get (P::reverbDecay), params.get (P::reverbDamping), params.get (P::reverbPreDelay),
