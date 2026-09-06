@@ -29,26 +29,46 @@ struct TestHost
     explicit TestHost (double sr = 48000.0, int block = 256) { prepare (sr, block); }
     TestHost (double sr, int block, bool withInput) { prepare (sr, block, withInput); }
 
-    bool useInput = false;
-    std::function<float (long sampleIndex)> inputSource;   // optional sidechain generator
+    // Aeriform FX has two input buses: 0 = main "Input", 1 = "Sidechain".
+    bool useMainInput = false;
+    bool useSidechain = false;
+    std::function<float (long sampleIndex)> inputSource;    // main-input generator (bus 0)
+    std::function<float (long sampleIndex)> sidechainSource; // sidechain generator (bus 1)
     long inputSampleCounter = 0;
+    long sidechainSampleCounter = 0;
 
+    void configureBuses()
+    {
+       #if AERIFORM_FX
+        juce::AudioProcessor::BusesLayout layout;
+        layout.inputBuses.add  (useMainInput ? juce::AudioChannelSet::stereo() : juce::AudioChannelSet::disabled());
+        layout.inputBuses.add  (useSidechain ? juce::AudioChannelSet::stereo() : juce::AudioChannelSet::disabled());
+        layout.outputBuses.add (juce::AudioChannelSet::stereo());
+        const bool ok = processor.setBusesLayout (layout);
+        jassert (ok); juce::ignoreUnused (ok);
+        processor.setRateAndBufferSizeDetails (sampleRate, blockSize);
+       #else
+        processor.setPlayConfigDetails (useSidechain ? 2 : 0, 2, sampleRate, blockSize);
+       #endif
+    }
+
+    /** withInput enables the main audio input (Aeriform FX); use enableSidechain() for the aux bus. */
     void prepare (double sr, int block, bool withInput = false)
     {
         sampleRate = sr;
         blockSize = block;
-        useInput = withInput;
-        if (withInput)
-        {
-            processor.enableAllBuses();
-            processor.setPlayConfigDetails (2, 2, sr, block);
-        }
-        else
-        {
-            processor.setPlayConfigDetails (0, 2, sr, block);
-        }
+        useMainInput = withInput;
+        configureBuses();
         processor.prepareToPlay (sr, block);
         buffer.setSize (2, block);
+    }
+
+    /** Enable / disable the aux Sidechain input bus and re-prepare. */
+    void enableSidechain (bool on = true)
+    {
+        useSidechain = on;
+        configureBuses();
+        processor.prepareToPlay (sampleRate, blockSize);
     }
 
     void set (const juce::String& id, float dspValue)
@@ -79,13 +99,23 @@ struct TestHost
     /** Renders one block; MIDI queued since the last block is delivered with it. */
     RenderStats renderBlock (std::vector<float>* monoOut = nullptr)
     {
+        const int mainInCh = processor.getChannelCountOfBus (true, 0);
+        const int scInCh   = processor.getBusCount (true) > 1 ? processor.getChannelCountOfBus (true, 1) : 0;
+        const int totalIn  = mainInCh + scInCh;
+        buffer.setSize (juce::jmax (2, totalIn), blockSize, false, false, true);
         buffer.clear();
-        if (useInput && inputSource)
+
+        if (useMainInput && inputSource && mainInCh > 0)
             for (int i = 0; i < blockSize; ++i)
             {
                 const float v = inputSource (inputSampleCounter++);
-                buffer.setSample (0, i, v);
-                buffer.setSample (1, i, v);
+                for (int c = 0; c < mainInCh; ++c) buffer.setSample (c, i, v);
+            }
+        if (useSidechain && sidechainSource && scInCh > 0)
+            for (int i = 0; i < blockSize; ++i)
+            {
+                const float v = sidechainSource (sidechainSampleCounter++);
+                for (int c = 0; c < scInCh; ++c) buffer.setSample (mainInCh + c, i, v);
             }
         processor.processBlock (buffer, midi);
         midi.clear();

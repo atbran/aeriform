@@ -37,22 +37,28 @@ if(APPLE)
     list(APPEND AERIFORM_FORMATS AU)
 endif()
 
+# ---------------------------------------------------------------------------
+# effect-version branch: Aeriform FX - a normal DAW insert effect. The host
+# identifies it as an audio effect (not an instrument); its main stereo input
+# is processed through the resonator system and the existing effects chain with
+# no MIDI required. MIDI is still accepted for optional modulation / MIDI-learn.
+# ---------------------------------------------------------------------------
 juce_add_plugin(Aeriform
-    PRODUCT_NAME                "AERIFORM"
+    PRODUCT_NAME                "Aeriform FX"
     COMPANY_NAME                "Aeriform Audio"
     COMPANY_WEBSITE             "https://example.invalid/aeriform"
-    BUNDLE_ID                   "com.aeriformaudio.aeriform"
+    BUNDLE_ID                   "com.aeriformaudio.aeriformfx"
     PLUGIN_MANUFACTURER_CODE    Aerf
-    PLUGIN_CODE                 Aefm
+    PLUGIN_CODE                 Aefx
     FORMATS                     ${AERIFORM_FORMATS}
-    IS_SYNTH                    TRUE
+    IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           FALSE
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD     ${AERIFORM_COPY_PLUGIN}
-    VST3_CATEGORIES             Instrument Synth
-    AU_MAIN_TYPE                kAudioUnitType_MusicDevice
+    VST3_CATEGORIES             Fx Modulation
+    AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_AUTO_MANIFEST          FALSE)
 
 juce_generate_juce_header(Aeriform)
@@ -95,6 +101,7 @@ target_sources(Aeriform PRIVATE ${AERIFORM_SOURCES})
 target_include_directories(Aeriform PRIVATE Source)
 
 target_compile_definitions(Aeriform PUBLIC
+    AERIFORM_FX=1
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
@@ -203,6 +210,7 @@ if(AERIFORM_BUILD_TESTS)
         Source Tests
         $<TARGET_PROPERTY:Aeriform,INCLUDE_DIRECTORIES>)
     target_compile_definitions(AeriformTests PRIVATE
+        AERIFORM_FX=1
         JucePlugin_Build_Standalone=1
         JucePlugin_Build_VST3=0
         JucePlugin_Build_AU=0
@@ -211,8 +219,8 @@ if(AERIFORM_BUILD_TESTS)
         JucePlugin_Build_Unity=0
         JucePlugin_Build_LV2=0
         JucePlugin_Build_VST=0
-        JucePlugin_Name="AERIFORM"
-        JucePlugin_Desc="AERIFORM"
+        JucePlugin_Name="Aeriform FX"
+        JucePlugin_Desc="Aeriform FX"
         JucePlugin_VersionString="${PROJECT_VERSION}"
         JucePlugin_Version=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
         JucePlugin_VersionCode=0x10000

@@ -7,6 +7,10 @@
 #include "../MIDI/MidiLearn.h"
 #include "../Visualization/VisualizerModel.h"
 
+#ifndef AERIFORM_FX
+ #define AERIFORM_FX 0
+#endif
+
 class AeriformProcessor : public juce::AudioProcessor
 {
 public:
@@ -25,6 +29,7 @@ public:
     bool hasEditor() const override { return true; }
 
     const juce::String getName() const override { return JucePlugin_Name; }
+    // MIDI is accepted for optional modulation / MIDI-learn but is never required for audio to pass.
     bool acceptsMidi() const override { return true; }
     bool producesMidi() const override { return false; }
     bool isMidiEffect() const override { return false; }
@@ -39,7 +44,8 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    /** Declares the audio input as a VST3 sidechain (aux) bus so hosts offer it for routing into the instrument. */
+    /** VST3 bus semantics: the instrument's only input is an aux sidechain; Aeriform FX
+        has a true main input (getPluginHasMainInput() -> true) plus the aux sidechain. */
     juce::VST3ClientExtensions* getVST3ClientExtensions() override { return &vst3Extensions; }
 
     // ---- AERIFORM API -----------------------------------------------------
@@ -65,9 +71,12 @@ public:
 private:
     struct SidechainExtensions : public juce::VST3ClientExtensions
     {
-        bool getPluginHasMainInput() const override { return false; }
+        bool getPluginHasMainInput() const override { return AERIFORM_FX != 0; }
     };
     SidechainExtensions vst3Extensions;
+
+    /** Bus layout for this build (Aeriform FX: main input + output + aux sidechain). */
+    static BusesProperties makeBusesProperties();
 
     juce::AudioProcessorValueTreeState apvts;
     aeriform::VisualizerModel visualizer;

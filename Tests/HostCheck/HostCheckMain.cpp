@@ -22,15 +22,20 @@ void check (bool ok, const char* what)
 
 struct RenderStats { float peak = 0.0f; double rms = 0.0; bool finite = true; };
 
-RenderStats render (juce::AudioPluginInstance& plugin, double sampleRate, int blockSize, double seconds, bool playNotes)
+// playNotes: send an 8-note chord (MIDI). feedInput: fill the main input bus with white noise
+// (a burst then silence) to exercise the Aeriform FX main-input signal path with no MIDI at all.
+RenderStats render (juce::AudioPluginInstance& plugin, double sampleRate, int blockSize, double seconds,
+                    bool playNotes, bool feedInput = false)
 {
-    plugin.setPlayConfigDetails (0, 2, sampleRate, blockSize);
+    plugin.setPlayConfigDetails (feedInput ? 2 : 0, 2, sampleRate, blockSize);
     plugin.prepareToPlay (sampleRate, blockSize);
 
     juce::AudioBuffer<float> buffer (2, blockSize);
     juce::MidiBuffer midi;
     const int totalBlocks = (int) std::ceil (seconds * sampleRate / blockSize);
     const int noteOffBlock = totalBlocks / 2;
+    const int inputStopBlock = totalBlocks / 2;   // input burst covers the first half only
+    juce::Random noiseRng (1234);
     RenderStats stats;
     double sumSq = 0.0; long n = 0;
 
@@ -45,6 +50,10 @@ RenderStats render (juce::AudioPluginInstance& plugin, double sampleRate, int bl
                 midi.addEvent (juce::MidiMessage::noteOff (1, note), 0);
 
         buffer.clear();
+        if (feedInput && b < inputStopBlock)
+            for (int ch = 0; ch < 2; ++ch)
+                for (int i = 0; i < blockSize; ++i)
+                    buffer.setSample (ch, i, 0.35f * (noiseRng.nextFloat() * 2.0f - 1.0f));
         plugin.processBlock (buffer, midi);
 
         for (int ch = 0; ch < 2; ++ch)
@@ -90,7 +99,8 @@ int main (int argc, char** argv)
     const auto& desc = *descriptions[0];
     std::printf ("  name=%s  manufacturer=%s  version=%s  isInstrument=%d\n",
                  desc.name.toRawUTF8(), desc.manufacturerName.toRawUTF8(), desc.version.toRawUTF8(), (int) desc.isInstrument);
-    check (desc.isInstrument, "descriptor reports an instrument");
+    check (! desc.isInstrument, "descriptor reports an audio effect (not an instrument)");
+    check (desc.name == "Aeriform FX", "descriptor name is \"Aeriform FX\"");
 
     juce::String error;
     auto instance = formats.createPluginInstance (desc, 48000.0, 512, error);
@@ -103,20 +113,34 @@ int main (int argc, char** argv)
         second.reset();
     }
 
-    check (instance->acceptsMidi(), "accepts MIDI");
+    check (instance->acceptsMidi(), "accepts MIDI (optional modulation / MIDI-learn)");
     check (instance->getParameters().size() > 50, "exposes parameters");
+    check (instance->getBusCount (true) >= 1 && instance->getChannelCountOfBus (true, 0) > 0, "has a main audio input bus");
 
-    // Silence with no notes
-    auto silent = render (*instance, 48000.0, 512, 0.5, false);
+    // Silence: no notes, no input -> no output
+    auto silent = render (*instance, 48000.0, 512, 0.5, false, false);
     check (silent.finite, "silent render finite");
-    check (silent.peak < 1.0e-3f, "no output without notes");
+    check (silent.peak < 1.0e-3f, "no output without notes or input");
 
+    // The acceptance test: main audio in, NO MIDI -> the resonator system transforms it,
+    // and a tail keeps sounding after the input stops.
     for (double sr : { 44100.0, 48000.0, 96000.0 })
         for (int bs : { 32, 256, 1024 })
         {
-            auto s = render (*instance, sr, bs, 2.0, true);
+            auto s = render (*instance, sr, bs, 2.0, false, true);
             char msg[160];
-            std::snprintf (msg, sizeof (msg), "render sr=%.0f bs=%d finite=%d peak=%.3f rms=%.4f", sr, bs, (int) s.finite, s.peak, s.rms);
+            std::snprintf (msg, sizeof (msg), "FX: main input processed, no MIDI  sr=%.0f bs=%d finite=%d peak=%.3f rms=%.4f",
+                           sr, bs, (int) s.finite, s.peak, s.rms);
+            check (s.finite && s.peak < 4.0f && s.rms > 1.0e-4, msg);
+        }
+
+    // MIDI still works as an optional extra excitation source.
+    for (double sr : { 44100.0, 48000.0, 96000.0 })
+        for (int bs : { 32, 256, 1024 })
+        {
+            auto s = render (*instance, sr, bs, 2.0, true, false);
+            char msg[160];
+            std::snprintf (msg, sizeof (msg), "optional MIDI voices  sr=%.0f bs=%d finite=%d peak=%.3f rms=%.4f", sr, bs, (int) s.finite, s.peak, s.rms);
             check (s.finite && s.peak < 4.0f && s.rms > 1.0e-4, msg);
         }
 

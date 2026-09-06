@@ -1,5 +1,6 @@
 #include "SynthEngine.h"
 #include "Voice.h"
+#include "NetworkParamsBuilder.h"
 #include "Effects/Chorus.h"
 #include "Effects/Delay.h"
 #include "Effects/Reverb.h"
@@ -7,9 +8,99 @@
 #include "../MIDI/MidiLearn.h"
 #include "../Params/ParameterLayout.h"
 
+#ifndef AERIFORM_FX
+ #define AERIFORM_FX 0
+#endif
+
 namespace aeriform
 {
 using namespace dsp;
+
+#if AERIFORM_FX
+// -----------------------------------------------------------------------------
+// Aeriform FX: the always-on main-input resonator path.
+//
+// One resonator network + body filter, excited continuously by the (input-gained)
+// DAW main input. There is no MIDI note, no amplitude envelope and no per-block
+// reset: an input transient rings the network and the energy decays naturally, so
+// the tail keeps sounding after the input stops. The resonator maths, tuning and
+// routing are exactly the polyphonic voice's - buildNetworkParams() is shared -
+// with the FX Root parameter standing in for the played note and the Pressure
+// control driving the reed / jet junctions.
+// -----------------------------------------------------------------------------
+struct FxResonatorPath
+{
+    dsp::ResonatorNetwork network;
+    dsp::SVF bodyL, bodyR;
+    dsp::NetworkParams netParams;
+    double sampleRate = 44100.0;
+    float bodyK = 1.0f, bodyGain = 0.0f, bodyMix = 0.0f;
+    float loopRet = 0.0f;
+    bool firstUpdate = true;
+
+    void prepare (double sr)
+    {
+        sampleRate = sr;
+        network.prepare ((float) sr);
+        bodyL.setSampleRate ((float) sr);
+        bodyR.setSampleRate ((float) sr);
+        reset();
+    }
+
+    void reset()
+    {
+        network.reset();
+        bodyL.reset();
+        bodyR.reset();
+        loopRet = 0.0f;
+        firstUpdate = true;
+    }
+
+    void updateControl (const dsp::VoiceParams& p, const dsp::ModValues& mod, float rootNote, float pressure)
+    {
+        dsp::buildNetworkParams (netParams, p, rootNote, pressure, mod);
+        network.update (netParams, firstUpdate);
+        firstUpdate = false;
+
+        const float rootHz = dsp::midiNoteToHz (rootNote);
+        const float bodyFreq = p.get (P::resBodyFreq) * std::exp2 (mod[(size_t) ModDest::BodyFreq] * 3.0f)
+                               * std::pow (rootHz / 261.63f, p.get (P::resBodyTrack));
+        const float qv = 0.5f + 12.0f * dsp::clamp01 (p.get (P::resBodyRes));
+        const float fc = std::clamp (bodyFreq, 40.0f, (float) sampleRate * 0.4f);
+        bodyL.set (fc, qv);
+        bodyR.set (fc, qv);
+        bodyK = 1.0f / qv;
+        bodyMix = dsp::clamp01 (p.get (P::resBodyMix) + mod[(size_t) ModDest::BodyMix]);
+        bodyGain = bodyMix * (1.0f + 2.0f * dsp::clamp01 (p.get (P::resBodyRes)));
+    }
+
+    /** Adds the wet resonator signal into L / R. exc = mono excitation (already input-gained). */
+    void process (float* L, float* R, const float* exc, int numSamples, float pressure)
+    {
+        for (int i = 0; i < numSamples; ++i)
+        {
+            float l, r;
+            const float loopNet = netParams.loopOn ? loopRet : 0.0f;
+            network.next (exc[i], loopNet, pressure, l, r);
+            loopRet = network.loopReturn();
+            if (bodyMix > 0.0005f)
+            {
+                l = l * (1.0f - 0.7f * bodyMix) + bodyL.bandpass (l) * bodyK * bodyGain;
+                r = r * (1.0f - 0.7f * bodyMix) + bodyR.bandpass (r) * bodyK * bodyGain;
+            }
+            L[i] += l;
+            R[i] += r;
+        }
+        if (! network.isFinite())
+        {
+            network.reset();
+            bodyL.reset();
+            bodyR.reset();
+            loopRet = 0.0f;
+        }
+    }
+};
+#endif // AERIFORM_FX
 
 struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 {
@@ -40,6 +131,13 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     OutputStage output;
     OnePole sidechainFollower;
     float sidechainEnv = 0.0f;
+
+#if AERIFORM_FX
+    FxResonatorPath fxPath;
+    juce::AudioBuffer<float> dryBuffer;    // untouched stereo main input, kept for the dry / wet mix
+    juce::AudioBuffer<float> fxExcBuffer;  // mono, input-gained main input feeding the FX resonator network
+    float fxInGain = 1.0f, fxMix = 1.0f, fxOutGain = 1.0f;   // per-sample-smoothed
+#endif
 
     unsigned startCounter = 0;
     int activeVoiceLimit = 8;
@@ -116,6 +214,14 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         reverb.prepare (sr);
         output.prepare (sr);
         sidechainFollower.setCutoff (20.0f, (float) sr);
+#if AERIFORM_FX
+        fxPath.prepare (sr);
+        dryBuffer.setSize (2, maxBlock, false, true, true);
+        fxExcBuffer.setSize (1, maxBlock, false, true, true);
+        fxInGain = dbToGain (raw (P::fxInputGain));
+        fxMix = clamp01 (raw (P::fxMix));
+        fxOutGain = dbToGain (raw (P::fxOutputGain));
+#endif
         for (auto& p : pending) p.active = false;
         noteStackSize = 0;
         monoNoteId = -1;
@@ -136,6 +242,9 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         reverb.reset();
         output.reset();
         couplingIn = 0.0f;
+#if AERIFORM_FX
+        fxPath.reset();
+#endif
     }
 
     void allNotesOff()
@@ -555,22 +664,95 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         }
     }
 
-    void process (juce::AudioBuffer<float>& out, const juce::AudioBuffer<float>* extIn, juce::MidiBuffer& midi,
+#if AERIFORM_FX
+    // Aeriform FX: capture the untouched stereo main input for the dry / wet mix and
+    // build the input-gained mono excitation that drives the resonator network.
+    void prepareFxInput (const juce::AudioBuffer<float>* mainIn, int numSamples)
+    {
+        float* dryL = dryBuffer.getWritePointer (0);
+        float* dryR = dryBuffer.getWritePointer (1);
+        float* exc  = fxExcBuffer.getWritePointer (0);
+
+        const float targetGain = dbToGain (raw (P::fxInputGain));
+        const float gainStep = (targetGain - fxInGain) / (float) numSamples;
+
+        if (mainIn != nullptr && mainIn->getNumChannels() > 0)
+        {
+            const int ch = mainIn->getNumChannels();
+            const float* inL = mainIn->getReadPointer (0);
+            const float* inR = mainIn->getReadPointer (ch > 1 ? 1 : 0);
+            for (int i = 0; i < numSamples; ++i)
+            {
+                dryL[i] = inL[i];
+                dryR[i] = inR[i];
+                fxInGain += gainStep;
+                exc[i] = 0.5f * (inL[i] + inR[i]) * fxInGain;
+            }
+        }
+        else
+        {
+            juce::FloatVectorOperations::clear (dryL, numSamples);
+            juce::FloatVectorOperations::clear (dryR, numSamples);
+            juce::FloatVectorOperations::clear (exc, numSamples);
+            fxInGain = targetGain;
+        }
+    }
+
+    // Aeriform FX: linear dry / wet crossfade (unity at both extremes; the dry signal
+    // has bypassed the resonators and every non-linear stage) then the FX output gain.
+    // Writes back into mixBuffer so the existing mono / stereo copy-out is unchanged.
+    void applyFxMixAndOutput (int numSamples)
+    {
+        float* L = mixBuffer.getWritePointer (0);
+        float* R = mixBuffer.getWritePointer (1);
+        const float* dryL = dryBuffer.getReadPointer (0);
+        const float* dryR = dryBuffer.getReadPointer (1);
+
+        const float targetMix = clamp01 (raw (P::fxMix));
+        const float targetOut = dbToGain (raw (P::fxOutputGain));
+        const float mixStep = (targetMix - fxMix) / (float) numSamples;
+        const float outStep = (targetOut - fxOutGain) / (float) numSamples;
+
+        for (int i = 0; i < numSamples; ++i)
+        {
+            fxMix += mixStep;
+            fxOutGain += outStep;
+            const float wetG = fxMix, dryG = 1.0f - fxMix;
+            L[i] = (L[i] * wetG + dryL[i] * dryG) * fxOutGain;
+            R[i] = (R[i] * wetG + dryR[i] * dryG) * fxOutGain;
+        }
+    }
+#endif // AERIFORM_FX
+
+    void process (juce::AudioBuffer<float>& out, const juce::AudioBuffer<float>* mainIn,
+                  const juce::AudioBuffer<float>* scIn, juce::MidiBuffer& midi,
                   const juce::AudioPlayHead::PositionInfo& pos, MidiLearn* learn, bool)
     {
         const int numSamples = out.getNumSamples();
         if (! prepared || numSamples <= 0) { out.clear(); return; }
         if (numSamples > maxBlock)
         {
+            // Slice an input view to [start, start+n). const_cast is safe: the engine only
+            // reads external input and copies it to internal buffers before writing output.
+            auto sliceView = [] (const juce::AudioBuffer<float>* src, int start, int n) -> juce::AudioBuffer<float>
+            {
+                if (src == nullptr || src->getNumChannels() == 0) return {};
+                return juce::AudioBuffer<float> (const_cast<float* const*> (src->getArrayOfReadPointers()),
+                                                 src->getNumChannels(), start, n);
+            };
             for (int start = 0; start < numSamples; start += maxBlock)
             {
                 const int n = juce::jmin (maxBlock, numSamples - start);
                 juce::AudioBuffer<float> sub (out.getArrayOfWritePointers(), out.getNumChannels(), start, n);
+                const juce::AudioBuffer<float> subMain = sliceView (mainIn, start, n);
+                const juce::AudioBuffer<float> subSc   = sliceView (scIn, start, n);
+
                 juce::MidiBuffer subMidi;
                 for (const auto meta : midi)
                     if (meta.samplePosition >= start && meta.samplePosition < start + n)
                         subMidi.addEvent (meta.getMessage(), meta.samplePosition - start);
-                process (sub, nullptr, subMidi, pos, learn, false);
+                process (sub, subMain.getNumChannels() > 0 ? &subMain : nullptr,
+                              subSc.getNumChannels() > 0 ? &subSc : nullptr, subMidi, pos, learn, false);
             }
             return;
         }
@@ -579,7 +761,10 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         readParams (bpm > 1.0 ? bpm : 120.0);
         noteOnsThisBlock = 0;
 
-        prepareSidechain (extIn, numSamples);
+        prepareSidechain (scIn, numSamples);
+#if AERIFORM_FX
+        prepareFxInput (mainIn, numSamples);
+#endif
 
         // shared noise stream (oversampled rate) for the Correlation control
         {
@@ -617,6 +802,18 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         float* L = mixBuffer.getWritePointer (0);
         float* R = mixBuffer.getWritePointer (1);
 
+#if AERIFORM_FX
+        // Aeriform FX: the DAW main input drives the resonator network here, so its
+        // wet output joins the mix bus *before* the existing effects chain (chorus /
+        // delay / reverb / output stage) and the numerical safety net below.
+        {
+            const float fxPressure = clamp01 (raw (P::excPressure));
+            const float fxRoot = (float) juce::jlimit (0, 127, (int) std::lround (raw (P::fxRootNote)));
+            fxPath.updateControl (params, globalMod, fxRoot, fxPressure);
+            fxPath.process (L, R, fxExcBuffer.getReadPointer (0), numSamples, fxPressure);
+        }
+#endif
+
         chorus.setParams (clamp01 (params.get (P::chorusMix) + globalMod[(size_t) ModDest::ChorusMix]), params.get (P::chorusRate),
                           params.get (P::chorusDepth), params.get (P::chorusWidth));
         chorus.process (L, R, numSamples);
@@ -635,6 +832,13 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         output.setParams (params.get (P::outGain), params.get (P::outHighpass), params.getb (P::limiterOn));
         output.process (L, R, numSamples);
+
+#if AERIFORM_FX
+        // Aeriform FX: dry / wet mix (against the untouched main input) and the FX
+        // output gain, applied before the safety net so peak / scope / NaN checks
+        // see the true plug-in output.
+        applyFxMixAndOutput (numSamples);
+#endif
 
         // ---- numerical safety net -------------------------------------------------------
         bool finite = true;
@@ -705,6 +909,19 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         }
         vis.networkEnergy.store (newest != nullptr ? newest->getNetworkEnergy() : 0.0f, std::memory_order_relaxed);
         vis.governorGain.store (newest != nullptr ? newest->getGovernor() : 1.0f, std::memory_order_relaxed);
+#if AERIFORM_FX
+        // With no voice playing, show the always-on FX resonator path on the meters instead.
+        if (newest == nullptr)
+        {
+            for (int r = 0; r < 3; ++r)
+            {
+                vis.resonatorEnergy[(size_t) r].store (fxPath.network.energy (r), std::memory_order_relaxed);
+                vis.resonatorRunning[(size_t) r].store (fxPath.network.slotRunning (r) ? 1 : 0, std::memory_order_relaxed);
+            }
+            vis.networkEnergy.store (fxPath.network.netEnergy(), std::memory_order_relaxed);
+            vis.governorGain.store (fxPath.network.governor(), std::memory_order_relaxed);
+        }
+#endif
         vis.exciterAEnv.store (newest != nullptr ? newest->getExciterEnvelope (0) : 0.0f, std::memory_order_relaxed);
         vis.exciterBEnv.store (newest != nullptr ? newest->getExciterEnvelope (1) : 0.0f, std::memory_order_relaxed);
 
@@ -735,10 +952,13 @@ void SynthEngine::prepare (double sampleRate, int maxBlockSize) { impl->prepare 
 void SynthEngine::reset() { impl->reset(); }
 void SynthEngine::allNotesOff() { impl->allNotesOff(); }
 
-void SynthEngine::process (juce::AudioBuffer<float>& output, const juce::AudioBuffer<float>* externalInput, juce::MidiBuffer& midi,
+void SynthEngine::process (juce::AudioBuffer<float>& output,
+                           const juce::AudioBuffer<float>* mainInput,
+                           const juce::AudioBuffer<float>* sidechainInput,
+                           juce::MidiBuffer& midi,
                            const juce::AudioPlayHead::PositionInfo& position, MidiLearn* midiLearn, bool isNonRealtime)
 {
-    impl->process (output, externalInput, midi, position, midiLearn, isNonRealtime);
+    impl->process (output, mainInput, sidechainInput, midi, position, midiLearn, isNonRealtime);
 }
 
 int SynthEngine::getActiveVoiceCount() const noexcept { return impl->activeVoiceCount(); }

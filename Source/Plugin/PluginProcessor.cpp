@@ -6,10 +6,25 @@ namespace
     constexpr const char* kStateTag = "AeriformState";
 }
 
+// Aeriform FX is a conventional insert effect: a real main stereo input and output,
+// plus the optional aux "Sidechain" input (disabled by default so a host never forces
+// a routing choice for it). The instrument build has only the aux sidechain input.
+auto AeriformProcessor::makeBusesProperties() -> BusesProperties
+{
+   #if AERIFORM_FX
+    return BusesProperties()
+        .withInput  ("Input",     juce::AudioChannelSet::stereo(), true)
+        .withOutput ("Output",    juce::AudioChannelSet::stereo(), true)
+        .withInput  ("Sidechain", juce::AudioChannelSet::stereo(), false);
+   #else
+    return BusesProperties()
+        .withOutput ("Output",    juce::AudioChannelSet::stereo(), true)
+        .withInput  ("Sidechain", juce::AudioChannelSet::stereo(), true);
+   #endif
+}
+
 AeriformProcessor::AeriformProcessor()
-    : AudioProcessor (BusesProperties()
-                          .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                          .withInput ("Sidechain", juce::AudioChannelSet::stereo(), true)),
+    : AudioProcessor (makeBusesProperties()),
       apvts (*this, nullptr, "AeriformParams", aeriform::createParameterLayout()),
       engine (apvts, visualizer),
       presetManager (apvts),
@@ -46,6 +61,17 @@ bool AeriformProcessor::isBusesLayoutSupported (const BusesLayout& layouts) cons
     if (! in.isDisabled() && in != juce::AudioChannelSet::stereo() && in != juce::AudioChannelSet::mono())
         return false;
 
+   #if AERIFORM_FX
+    // Effect: the main input is expected but a host may still probe it disabled.
+    // The optional second (Sidechain) bus may be disabled, mono or stereo.
+    if (layouts.inputBuses.size() > 1)
+    {
+        const auto sc = layouts.getChannelSet (true, 1);
+        if (! sc.isDisabled() && sc != juce::AudioChannelSet::stereo() && sc != juce::AudioChannelSet::mono())
+            return false;
+    }
+   #endif
+
     return true;
 }
 
@@ -55,15 +81,28 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     const auto startTicks = juce::Time::getHighResolutionTicks();
 
     const int numSamples = buffer.getNumSamples();
-    const int totalIn = getTotalNumInputChannels();
     const int totalOut = getTotalNumOutputChannels();
 
-    // View of the external input bus (no allocation: getBusBuffer aliases the host buffer).
-    // The engine copies it internally before rendering, because hosts may process in place.
-    auto inputBus = getBusBuffer (buffer, true, 0);
-    const juce::AudioBuffer<float>* extPtr = nullptr;
-    if (totalIn > 0 && getBus (true, 0) != nullptr && getBus (true, 0)->isEnabled() && inputBus.getNumChannels() > 0)
-        extPtr = &inputBus;
+    // Views of the input buses (no allocation: getBusBuffer aliases the host buffer).
+    // The engine copies every input internally before it writes any output, so
+    // in-place hosts (main input == main output memory) are safe.
+    auto busUsable = [this] (int index) -> bool
+    {
+        auto* b = getBus (true, index);
+        return b != nullptr && b->isEnabled() && getChannelCountOfBus (true, index) > 0;
+    };
+
+   #if AERIFORM_FX
+    auto mainInBus = getBusBuffer (buffer, true, 0);
+    juce::AudioBuffer<float> scInBus = getBusCount (true) > 1 ? getBusBuffer (buffer, true, 1)
+                                                             : juce::AudioBuffer<float>();
+    const juce::AudioBuffer<float>* mainPtr = busUsable (0) ? &mainInBus : nullptr;
+    const juce::AudioBuffer<float>* scPtr   = (getBusCount (true) > 1 && busUsable (1)) ? &scInBus : nullptr;
+   #else
+    auto scInBus = getBusBuffer (buffer, true, 0);
+    const juce::AudioBuffer<float>* mainPtr = nullptr;
+    const juce::AudioBuffer<float>* scPtr   = busUsable (0) ? &scInBus : nullptr;
+   #endif
 
     juce::AudioPlayHead::PositionInfo position;
     if (auto* ph = getPlayHead())
@@ -71,9 +110,9 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
             position = *info;
 
     // Render into the output bus. The engine writes (does not accumulate) into
-    // the output buffer, so the input copy is consumed by the engine first.
+    // the output buffer, so the input copies are consumed by the engine first.
     auto outBus = getBusBuffer (buffer, false, 0);
-    engine.process (outBus, extPtr, midi, position, &midiLearn, isNonRealtime());
+    engine.process (outBus, mainPtr, scPtr, midi, position, &midiLearn, isNonRealtime());
 
     for (int ch = outBus.getNumChannels(); ch < totalOut; ++ch)
         buffer.clear (ch, 0, numSamples);
@@ -87,10 +126,26 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
 
 void AeriformProcessor::processBlockBypassed (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
 {
-    // A bypassed synth outputs silence; release every held note so nothing hangs when un-bypassed.
     juce::ignoreUnused (midi);
     engine.allNotesOff();
+
+   #if AERIFORM_FX
+    // A bypassed effect passes its main input straight through. With in-place hosts the
+    // main input and output already share memory, so only copy when they differ.
+    auto in  = getBusBuffer (buffer, true, 0);
+    auto out = getBusBuffer (buffer, false, 0);
+    const int n = buffer.getNumSamples();
+    for (int ch = 0; ch < out.getNumChannels(); ++ch)
+    {
+        if (ch >= in.getNumChannels())
+            out.clear (ch, 0, n);
+        else if (out.getReadPointer (ch) != in.getReadPointer (ch))
+            out.copyFrom (ch, 0, in, ch, 0, n);
+    }
+   #else
+    // A bypassed synth outputs silence; the note release above stops anything hanging.
     buffer.clear();
+   #endif
 }
 
 // ---------------------------------------------------------------------------

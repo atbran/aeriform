@@ -191,14 +191,15 @@ AERIFORM_TEST (physical_exciters_respond_to_speed_and_pressure)
 AERIFORM_TEST (sidechain_exciter_model_passes_input_through_the_chain)
 {
     TestHost h (48000.0, 256);
-    h.prepare (48000.0, 256, true);
+    h.prepare (48000.0, 256, false);
+    h.enableSidechain();
     exciterOnly (h);
     h.set (ids::exaModel, (float) ExciterModel::Sidechain);
     h.set (ids::excLowpass, 20000.0f);
     h.set (ids::preEnv, 0.0f);
     const double hz = 330.0;
     long counter = 0;
-    h.inputSource = [&] (long i) { juce::ignoreUnused (i); return 0.5f * std::sin (2.0f * 3.14159265f * (float) hz * (float) (counter++) / 48000.0f); };
+    h.sidechainSource = [&] (long i) { juce::ignoreUnused (i); return 0.5f * std::sin (2.0f * 3.14159265f * (float) hz * (float) (counter++) / 48000.0f); };
     h.noteOn (60, 100);
     h.render (0.1);
     std::vector<float> mono;
