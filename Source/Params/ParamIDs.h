@@ -360,6 +360,10 @@ enum class P : int
     mod16Dst,
     mod16Depth,
     quality,
+    fxInputGain,
+    fxMix,
+    fxOutputGain,
+    fxRootNote,
     Count
 };
 
@@ -721,6 +725,10 @@ inline constexpr const char* mod16Src = "mod16_src";
 inline constexpr const char* mod16Dst = "mod16_dst";
 inline constexpr const char* mod16Depth = "mod16_depth";
 inline constexpr const char* quality = "quality";
+inline constexpr const char* fxInputGain = "fx_input_gain";
+inline constexpr const char* fxMix = "fx_mix";
+inline constexpr const char* fxOutputGain = "fx_output_gain";
+inline constexpr const char* fxRootNote = "fx_root_note";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1076,6 +1084,10 @@ inline constexpr const char* const all[kNumParams] = {
     "mod16_dst",
     "mod16_depth",
     "quality",
+    "fx_input_gain",
+    "fx_mix",
+    "fx_output_gain",
+    "fx_root_note",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

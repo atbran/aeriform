@@ -78,14 +78,23 @@ AERIFORM_TEST (smoke_extreme_parameter_combinations_stay_bounded)
     s = h.render (2.0);
     CHECK (s.finite);
 
-    // the opposite corner: everything at minimum
-    for (auto* p : h.processor.getParameters())
-        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p)) rp->setValueNotifyingHost (0.0f);
+    // the opposite corner: everything at minimum / maximum. The two FX gain trims are
+    // deliberate post-everything level controls (not a boundedness concern), so pin them.
+    auto sweepAll = [&h] (float norm)
+    {
+        for (auto* p : h.processor.getParameters())
+            if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p))
+            {
+                const juce::String pid = rp->getParameterID();
+                if (pid == ids::fxInputGain || pid == ids::fxOutputGain) { rp->setValueNotifyingHost (rp->convertTo0to1 (0.0f)); continue; }
+                rp->setValueNotifyingHost (norm);
+            }
+    };
+    sweepAll (0.0f);
     h.noteOn (60);
     s = h.render (1.0);
     CHECK (s.finite);
-    for (auto* p : h.processor.getParameters())
-        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p)) rp->setValueNotifyingHost (1.0f);
+    sweepAll (1.0f);
     h.noteOn (64);
     s = h.render (1.0);
     CHECK (s.finite);
@@ -175,13 +184,16 @@ AERIFORM_TEST (smoke_randomized_parameter_fuzz)
         double dcAcc = 0.0; long dcCount = 0;
         for (int b = 0; b < blocks; ++b)
         {
-            // randomise a handful of parameters every few blocks (all kinds, full ranges)
+            // randomise a handful of parameters every few blocks (all kinds, full ranges).
+            // Skip voiceCount and the two FX gain trims: pure output-gain knobs are not
+            // what this safety fuzz measures and would just scale the peak by a constant.
             if (rng.nextInt (3) == 0)
                 for (int k = 0; k < 6; ++k)
                 {
                     const int idx = rng.nextInt (kNumParams);
+                    if (idx == (int) P::voiceCount || idx == (int) P::fxInputGain || idx == (int) P::fxOutputGain) continue;
                     auto* p = h.processor.getAPVTS().getParameter (ids::all[idx]);
-                    if (p != nullptr && idx != (int) P::voiceCount) p->setValueNotifyingHost (rng.nextFloat());
+                    if (p != nullptr) p->setValueNotifyingHost (rng.nextFloat());
                 }
             if (rng.nextInt (4) == 0)
             {

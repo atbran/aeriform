@@ -10,9 +10,10 @@ using namespace aeriform::test;
 // attack counts.
 AERIFORM_TEST (smoke_factory_preset_levels_are_consistent)
 {
-    TestHost h (48000.0, 256, true);
+    TestHost h (48000.0, 256, false);
+    h.enableSidechain();
     dsp::Noise scNoise; scNoise.seed (11);
-    h.inputSource = [&] (long) { return scNoise.next() * 0.5f; };
+    h.sidechainSource = [&] (long) { return scNoise.next() * 0.5f; };
     auto& pm = h.processor.getPresetManager();
     struct Row { juce::String name; double rms; float peak; };
     std::vector<Row> rows;

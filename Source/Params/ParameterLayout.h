@@ -145,6 +145,8 @@ const ParamDef& paramDef (P p);
 const juce::StringArray& choiceStrings (ChoiceList list);
 
 /** Current state-format version written into saved state / preset files.
-    1 = v0.1 (single exciter / single resonator), 2 = v2.1 (dual exciters, folder, network). */
-inline constexpr int kStateVersion = 2;
+    1 = v0.1 (single exciter / single resonator), 2 = v2.1 (dual exciters, folder, network),
+    3 = Aeriform FX (adds fx_input_gain / fx_mix / fx_output_gain / fx_root_note; every
+        earlier ID and its meaning is unchanged, so v1 / v2 states load without migration). */
+inline constexpr int kStateVersion = 3;
 } // namespace aeriform

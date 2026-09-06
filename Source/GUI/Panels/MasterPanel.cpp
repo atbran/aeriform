@@ -18,11 +18,22 @@ MasterPanel::MasterPanel (AeriformProcessor& p) : ParamPanel (p, "MASTER", theme
     bend        = knob (bendRange, "Bend", {}, s);
     mpe         = control<Toggle> (processor, mpeEnabled, "MPE");
 
+#if AERIFORM_FX
+    outCaption = caption ("FX  INPUT / DRY-WET / OUTPUT / ROOT");
+#else
     outCaption = caption ("PERFORMANCE / OUTPUT");
+#endif
     quality = control<ChoiceBox> (processor, ids::quality, "Quality");
     outGain = knob (ids::outGain, "Output", {}, s);
     outHp   = knob (outHighpass, "High-Pass", {}, s);
     limiter = control<Toggle> (processor, limiterOn, "Limiter");
+
+#if AERIFORM_FX
+    fxInput  = knob (ids::fxInputGain,  "In",   {}, s);
+    fxWet    = knob (ids::fxMix,        "Mix",  {}, s);
+    fxOutput = knob (ids::fxOutputGain, "Out",  {}, s);
+    fxRoot   = knob (ids::fxRootNote,   "Root", {}, s);
+#endif
 }
 
 void MasterPanel::resized()
@@ -44,7 +55,7 @@ void MasterPanel::resized()
     mpe->setBounds (toggles.removeFromTop (22).withTrimmedTop (2));
     knobRow (row, { voices, glide, unison, detune });
 
-    // row 2: quality + spread / bend / output / high-pass + limiter
+    // row 2: quality + output controls + limiter
     r.removeFromTop (6);
     outCaption->setBounds (r.removeFromTop (capH));
     auto row2 = r.removeFromTop (rowH);
@@ -53,6 +64,15 @@ void MasterPanel::resized()
     row2.removeFromLeft (6);
     auto toggles2 = row2.removeFromRight (70);
     limiter->setBounds (toggles2.removeFromTop (22).withTrimmedTop (2));
+
+#if AERIFORM_FX
+    // Aeriform FX: the FX I/O strip takes the output row. out_gain / out_hp / unison
+    // spread / bend range stay automatable but are not shown on this compact panel.
+    knobRow (row2, { fxInput, fxWet, fxOutput, fxRoot });
+    for (auto* hidden : { spread, bend, outGain, outHp })
+        hidden->setBounds ({});
+#else
     knobRow (row2, { spread, bend, outGain, outHp });
+#endif
 }
 } // namespace aeriform

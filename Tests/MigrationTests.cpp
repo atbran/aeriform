@@ -136,14 +136,15 @@ AERIFORM_TEST (v02_state_round_trips_every_new_parameter)
     }
     auto xml = a.processor.createStateXml();
     CHECK (xml->getIntAttribute ("version") == kStateVersion);
-    CHECK (kStateVersion == 2);
+    CHECK (kStateVersion == 3);
 }
 
 AERIFORM_TEST (existing_factory_presets_still_load_and_sound_with_the_new_engine)
 {
-    TestHost h (48000.0, 256, true);   // with sidechain input so Sidechain presets sound too
+    TestHost h (48000.0, 256, false);
+    h.enableSidechain();               // aux sidechain so Sidechain-exciter presets sound too
     dsp::Noise scNoise; scNoise.seed (3);
-    h.inputSource = [&] (long) { return scNoise.next() * 0.5f; };
+    h.sidechainSource = [&] (long) { return scNoise.next() * 0.5f; };
     auto& pm = h.processor.getPresetManager();
     int checked = 0;
     for (int i = 0; i < (int) pm.getEntries().size(); ++i)

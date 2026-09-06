@@ -2,6 +2,48 @@
 
 Living document. Updated as work progresses.
 
+## effect-version branch: Aeriform FX (main-input effect) - DONE (2026-09-05)
+
+Turns Aeriform into a conventional DAW insert effect. Full write-up:
+[docs/AERIFORM_FX.md](docs/AERIFORM_FX.md).
+
+### What changed
+- **Plugin metadata** (`CMakeLists.txt`): `PRODUCT_NAME "Aeriform FX"`, `IS_SYNTH FALSE`,
+  `PLUGIN_CODE Aefx`, `VST3_CATEGORIES Fx Modulation`, `AU_MAIN_TYPE kAudioUnitType_MusicEffect`,
+  `AERIFORM_FX=1` compile flag. `getPluginHasMainInput()` -> true.
+- **Buses** (`PluginProcessor`): main stereo "Input" (bus 0) + "Output" + aux "Sidechain"
+  (bus 1, disabled by default). In-place safe (inputs copied before output is written).
+  `processBlockBypassed` now passes the main input through.
+- **Signal path** (`SynthEngine`): new always-on `FxResonatorPath` (one `ResonatorNetwork`
+  + body filter) fed by `Input Gain * mono(main input)`, joined into the mix bus before the
+  existing Chorus/Delay/Reverb/Output chain, then `fx_mix` dry/wet vs the untouched input,
+  then `fx_output_gain`. Never reset between blocks -> transients ring and decay naturally.
+- **Note independence**: `buildNetworkParams()` factored out of `Voice` into
+  `Source/DSP/NetworkParamsBuilder.h`; shared by the voice (per note) and the FX path
+  (per block, tuned to the new **FX Root** parameter, param-derived pressure, global mod).
+- **Params** (+4, appended; state version 2 -> 3): `fx_input_gain`, `fx_mix` (default 100 % wet),
+  `fx_output_gain`, `fx_root_note` (default 60). Every earlier ID keeps its index; v1/v2
+  states and presets load unchanged.
+- **GUI**: MASTER panel row 2 becomes the FX I/O strip (In / Mix / Out / Root).
+- **MIDI + internal exciters** remain available as optional extra excitation; not required.
+
+### Status (2026-09-05)
+- Build: OK (GCC 14.2 MinGW-w64, Release). VST3 `Aeriform FX.vst3` + Standalone + tests + host check.
+- `AeriformTests`: 68 unit tests, 0 failures (added `fx_main_input_is_processed_without_any_midi`,
+  `fx_dry_wet_input_and_output_gain`, `fx_resonator_parameters_reshape_the_input`,
+  `fx_stereo_input_is_processed_on_both_channels`; sidechain tests moved to the aux bus).
+- `AeriformTests --smoke`: 8 tests, 0 failures (fuzz now also randomises the FX path; worst peak 3.27 w/o limiter).
+- `AeriformHostCheck` on `Aeriform FX.vst3`: PASSED - reports as an audio effect named "Aeriform FX",
+  processes main input with no MIDI at 3 sample rates x 3 block sizes, silent with no input,
+  optional MIDI voices still render, editor opens/closes 3x with audio running.
+
+### Known behaviour / limitations
+- The wet (resonator) path is mono-excited (L+R sum) -> the network's existing stereo output;
+  the dry path is full stereo. Matches the engine's mono-excitation design; avoids a second network.
+- `fx_input_gain` / `fx_output_gain` are post-everything trims, not subject to the internal limiter.
+- The energy loop feeds the FX network input regardless of Loop Destination (no shaper/folder in the FX path).
+- MASTER panel hides `out_gain` / `out_hp` / unison spread / bend range on the FX build (still automatable).
+
 ## v2.1 overhaul: dual exciters, wavefolder, resonator network - DONE (2026-09-05)
 
 ### Baseline (recorded 2026-09-04 before any v2.1 change)

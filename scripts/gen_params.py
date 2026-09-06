@@ -323,6 +323,17 @@ for i in range(9, 17):
 C('quality', 'quality', 'Quality', 'Master', 'QualityModes', 1, 'Eco: 2x folder oversampling, 64-sample control rate. Normal: 2x, 32. High: 4x oversampling of the whole exciter chain.')
 
 # --------------------------------------------------------------------------
+# AERIFORM FX: main-input effect controls (effect-version branch).
+# Appended last so every earlier ID keeps its index; ignored by the instrument
+# signal path, so instrument presets and sessions are unaffected.
+# --------------------------------------------------------------------------
+S = 'Master'
+F('fxInputGain', 'fx_input_gain', 'FX Input', S, -36, 12, 0, 'dB', 'Db', 'Gain applied to the DAW main audio input before it drives the resonator system. Raising it pushes the physical model harder into its non-linear range.')
+F('fxMix', 'fx_mix', 'FX Mix', S, 0, 1, 1.0, '%', 'Percent', 'Dry / wet blend after the resonator system and existing effects. 0 % = the untouched main input, 100 % = the processed resonator output. The dry path never passes through the resonators or any non-linear stage.')
+F('fxOutputGain', 'fx_output_gain', 'FX Output', S, -36, 12, 0, 'dB', 'Db', 'Gain applied after the resonator system, the existing effects chain and the dry / wet mix.')
+I('fxRootNote', 'fx_root_note', 'FX Root', S, 12, 108, 60, '', 'Base note the resonators are tuned to when no MIDI note is held. Per-resonator Coarse / Fine / Ratio / Key Track offsets apply on top. 60 = middle C.')
+
+# --------------------------------------------------------------------------
 # validation + emit
 # --------------------------------------------------------------------------
 ids = [r['id'] for r in rows]

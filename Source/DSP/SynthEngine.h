@@ -28,8 +28,13 @@ public:
     void reset();
     void allNotesOff();
 
+    /** Renders one block.
+        mainInput      - the DAW main audio input (Aeriform FX); nullptr / empty for the instrument build.
+        sidechainInput - the aux / sidechain input (may be nullptr); feeds the existing sidechain features.
+        Either input view may be nullptr or have zero channels. */
     void process (juce::AudioBuffer<float>& output,
-                  const juce::AudioBuffer<float>* externalInput,
+                  const juce::AudioBuffer<float>* mainInput,
+                  const juce::AudioBuffer<float>* sidechainInput,
                   juce::MidiBuffer& midi,
                   const juce::AudioPlayHead::PositionInfo& position,
                   MidiLearn* midiLearn,

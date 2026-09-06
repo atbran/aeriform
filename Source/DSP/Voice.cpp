@@ -1,4 +1,5 @@
 #include "Voice.h"
+#include "NetworkParamsBuilder.h"
 
 namespace aeriform::dsp
 {
@@ -303,8 +304,17 @@ void Voice::buildExciterParams (ExciterSlot::Params& out, const VoiceParams& p, 
 
 void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
 {
-    auto mod = [this] (ModDest d) { return modValues[(size_t) d]; };
-    auto& n = netParams;
+    aeriform::dsp::buildNetworkParams (netParams, p, baseNote, lastPressure, modValues, varDamp, varBright, varShape);
+}
+
+// Shared implementation (see NetworkParamsBuilder.h): the Voice passes its per-note
+// state, the Aeriform FX path passes the FX Root note, a param-derived pressure and
+// the global modulation result with zero component variation.
+void buildNetworkParams (NetworkParams& n, const VoiceParams& p, float baseNote, float pressure,
+                         const ModValues& modValues, float varDamp, float varBright, float varShape) noexcept
+{
+    auto mod = [&modValues] (ModDest d) { return modValues[(size_t) d]; };
+    const float lastPressure = pressure;
     n.mode = p.getEnum (P::netMode, NetMode::Count);
     n.feedback = clamp01 (p.get (P::netFeedback) + mod (ModDest::NetFeedback));
     n.ab = p.get (P::netAB); n.ba = p.get (P::netBA); n.bc = p.get (P::netBC);

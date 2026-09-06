@@ -5,6 +5,13 @@ generator and a three-resonator feedback network.**
 VST3 + Standalone, 8-voice polyphonic (up to 16), MPE, sidechain excitation.
 C++20 / JUCE 7.0.12 / CMake. Version 2.1.
 
+> **`effect-version` branch — Aeriform FX.** This branch builds **Aeriform FX**, a
+> normal DAW insert *effect*: the main audio input is driven through the resonator
+> network and the existing effects chain (Input Gain → Resonators → FX → Dry/Wet →
+> Output Gain), with **no MIDI, sidechain routing or internal exciter required**.
+> The instrument's voice engine and every feature below still work (MIDI is
+> optional). See **[docs/AERIFORM_FX.md](docs/AERIFORM_FX.md)**.
+
 ![AERIFORM interface (MAIN page)](docs/screenshot.png)
 
 AERIFORM started (v0.1) as a breath-driven waveguide instrument: air, noise,

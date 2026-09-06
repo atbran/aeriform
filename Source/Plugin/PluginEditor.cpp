@@ -11,10 +11,18 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
 {
     setLookAndFeel (&lookAndFeel);
 
+   #if AERIFORM_FX
+    titleLabel.setText ("AERIFORM FX", juce::dontSendNotification);
+   #else
     titleLabel.setText ("AERIFORM", juce::dontSendNotification);
+   #endif
     titleLabel.setFont (titleFont (22.0f));
     titleLabel.setColour (juce::Label::textColourId, copperBright);
+   #if AERIFORM_FX
+    subtitleLabel.setText ("PHYSICAL-MODEL RESONATOR EFFECT PROCESSOR", juce::dontSendNotification);
+   #else
     subtitleLabel.setText ("COMPLEX EXCITER / RESONATOR NETWORK SYNTHESIZER", juce::dontSendNotification);
+   #endif
     subtitleLabel.setFont (font (9.5f, true));
     subtitleLabel.setColour (juce::Label::textColourId, textDim);
     statusLabel.setFont (monoFont (10.5f));
