@@ -1,0 +1,23 @@
+Scanning D:\dev\build\gpt-aeriform-test\build\mingw-release\Aeriform_artefacts\Release\VST3\EXP_Aeriform.vst3
+  [ OK ] scan finds exactly one plug-in in the bundle
+  name=EXP_Aeriform  manufacturer=Aeriform Audio  version=2.1.0  isInstrument=1
+  [ OK ] descriptor reports an instrument
+  [ OK ] instantiate #1 
+  [ OK ] instantiate #2 (repeated instantiation)
+  [ OK ] accepts MIDI
+  [ OK ] exposes parameters
+  [ OK ] silent render finite
+  [ OK ] no output without notes
+  [ OK ] render sr=44100 bs=32 finite=1 peak=0.655 rms=0.1302
+  [ OK ] render sr=44100 bs=256 finite=1 peak=0.649 rms=0.1308
+  [ OK ] render sr=44100 bs=1024 finite=1 peak=0.654 rms=0.1295
+  [ OK ] render sr=48000 bs=32 finite=1 peak=0.662 rms=0.1309
+  [ OK ] render sr=48000 bs=256 finite=1 peak=0.651 rms=0.1299
+  [ OK ] render sr=48000 bs=1024 finite=1 peak=0.651 rms=0.1309
+  [ OK ] render sr=96000 bs=32 finite=1 peak=0.618 rms=0.1198
+  [ OK ] render sr=96000 bs=256 finite=1 peak=0.619 rms=0.1205
+  [ OK ] render sr=96000 bs=1024 finite=1 peak=0.618 rms=0.1200
+  [ OK ] state is non-trivial
+  [ OK ] state restore returns parameter to saved value
+
+HOST CHECK PASSED (0 failure(s))

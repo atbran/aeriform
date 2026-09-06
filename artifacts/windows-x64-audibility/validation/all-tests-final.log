@@ -1,0 +1,457 @@
+[ RUN  ] smoke_render_at_three_sample_rates_and_block_sizes
+    sr=44100 bs=32 finite=1 peak=0.641 rms=0.1819 tail=0.0190 after=0.000066 voices=0
+    sr=44100 bs=256 finite=1 peak=0.641 rms=0.1819 tail=0.0197 after=0.000066 voices=0
+    sr=44100 bs=1024 finite=1 peak=0.641 rms=0.1821 tail=0.0196 after=0.000063 voices=0
+    sr=48000 bs=32 finite=1 peak=0.673 rms=0.1819 tail=0.0175 after=0.000062 voices=0
+    sr=48000 bs=256 finite=1 peak=0.673 rms=0.1819 tail=0.0175 after=0.000062 voices=0
+    sr=48000 bs=1024 finite=1 peak=0.673 rms=0.1820 tail=0.0170 after=0.000063 voices=0
+    sr=96000 bs=32 finite=1 peak=0.651 rms=0.1682 tail=0.0145 after=0.000061 voices=0
+    sr=96000 bs=256 finite=1 peak=0.651 rms=0.1682 tail=0.0145 after=0.000061 voices=0
+    sr=96000 bs=1024 finite=1 peak=0.651 rms=0.1681 tail=0.0154 after=0.000059 voices=0
+[  OK  ] smoke_render_at_three_sample_rates_and_block_sizes
+[ RUN  ] smoke_extreme_parameter_combinations_stay_bounded
+[  OK  ] smoke_extreme_parameter_combinations_stay_bounded
+[ RUN  ] smoke_rapid_preset_changes_and_automation_during_playback
+[  OK  ] smoke_rapid_preset_changes_and_automation_during_playback
+[ RUN  ] smoke_repeated_prepare_release_cycles
+[  OK  ] smoke_repeated_prepare_release_cycles
+[ RUN  ] smoke_randomized_parameter_fuzz
+    fuzz: 61 s of audio over 16 random configurations, worst block 14.18 ms (1099.7% of its real-time budget)
+    fuzz: worst peak with limiter 0.769, without limiter 1.839
+[  OK  ] smoke_randomized_parameter_fuzz
+[ RUN  ] smoke_cpu_measurement_eight_voices_with_effects
+    8 voices + effects @ 48 kHz / 256: rendered 10.0 s of audio in 1.297 s  ->  13.0 % of real time (8 voices active)
+    16 voices (unison 2) + effects @ 48 kHz / 256: 22.8 % of real time
+[  OK  ] smoke_cpu_measurement_eight_voices_with_effects
+[ RUN  ] modular_filters_bypass_and_all_models_are_bounded
+[  OK  ] modular_filters_bypass_and_all_models_are_bounded
+[ RUN  ] modular_filter_position_and_type_changes_crossfade
+[  OK  ] modular_filter_position_and_type_changes_crossfade
+[ RUN  ] modular_filter_every_placement_reaches_audio
+[  OK  ] modular_filter_every_placement_reaches_audio
+[ RUN  ] modular_in_loop_lowpass_tuning_is_measured
+    movable loop LP sr=44100 note=48 cutoff=1000 res=0.018 phase=9.967 measured=130.714 cents=-1.31
+    movable loop LP sr=44100 note=48 cutoff=4000 res=0.018 phase=2.415 measured=130.714 cents=-1.31
+    movable loop LP sr=44100 note=60 cutoff=1000 res=0.018 phase=10.127 measured=261.678 cents=+0.35
+    movable loop LP sr=44100 note=60 cutoff=4000 res=0.018 phase=2.418 measured=261.678 cents=+0.35
+    movable loop LP sr=44100 note=72 cutoff=1000 res=0.018 phase=10.648 measured=523.106 cents=-0.48
+    movable loop LP sr=44100 note=72 cutoff=4000 res=0.018 phase=2.428 measured=523.356 cents=+0.35
+    movable loop LP sr=48000 note=48 cutoff=1000 res=0.018 phase=10.851 measured=130.714 cents=-1.31
+    movable loop LP sr=48000 note=48 cutoff=4000 res=0.018 phase=2.640 measured=130.714 cents=-1.31
+    movable loop LP sr=48000 note=60 cutoff=1000 res=0.018 phase=11.026 measured=261.678 cents=+0.35
+    movable loop LP sr=48000 note=60 cutoff=4000 res=0.018 phase=2.643 measured=261.678 cents=+0.35
+    movable loop LP sr=48000 note=72 cutoff=1000 res=0.018 phase=11.592 measured=523.106 cents=-0.48
+    movable loop LP sr=48000 note=72 cutoff=4000 res=0.018 phase=2.655 measured=523.356 cents=+0.35
+    movable loop LP sr=96000 note=48 cutoff=1000 res=0.018 phase=21.725 measured=130.714 cents=-1.31
+    movable loop LP sr=96000 note=48 cutoff=4000 res=0.018 phase=5.374 measured=130.714 cents=-1.31
+    movable loop LP sr=96000 note=60 cutoff=1000 res=0.018 phase=22.075 measured=261.678 cents=+0.35
+    movable loop LP sr=96000 note=60 cutoff=4000 res=0.018 phase=5.380 measured=261.678 cents=+0.35
+    movable loop LP sr=96000 note=72 cutoff=1000 res=0.018 phase=23.204 measured=523.106 cents=-0.48
+    movable loop LP sr=96000 note=72 cutoff=4000 res=0.018 phase=5.402 measured=523.356 cents=+0.35
+[  OK  ] modular_in_loop_lowpass_tuning_is_measured
+[ RUN  ] modular_filter_page_renders
+[  OK  ] modular_filter_page_renders
+[ RUN  ] modular_filter_reset_is_deterministic_after_transition
+[  OK  ] modular_filter_reset_is_deterministic_after_transition
+[ RUN  ] modular_filter_phase_compensation_matches_measured_response
+[  OK  ] modular_filter_phase_compensation_matches_measured_response
+[ RUN  ] collision_instantaneous_scattering_does_not_create_energy
+[  OK  ] collision_instantaneous_scattering_does_not_create_energy
+[ RUN  ] collision_oversampling_suppresses_folded_harmonics
+    contact third-harmonic alias suppression 1x -> 4x: 77.62 dB
+[  OK  ] collision_oversampling_suppresses_folded_harmonics
+[ RUN  ] collision_routes_switch_smoothly_and_remain_bounded_without_output_limiter
+[  OK  ] collision_routes_switch_smoothly_and_remain_bounded_without_output_limiter
+[ RUN  ] collision_host_controls_change_audio_and_restore_state
+    contact audio difference relative to bypass: -27.73 dB
+[  OK  ] collision_host_controls_change_audio_and_restore_state
+[ RUN  ] collision_page_renders
+[  OK  ] collision_page_renders
+[ RUN  ] stereo_economy_preserves_original_network_exactly
+[  OK  ] stereo_economy_preserves_original_network_exactly
+[ RUN  ] stereo_independent_networks_are_mono_compatible_and_bounded
+[  OK  ] stereo_independent_networks_are_mono_compatible_and_bounded
+[ RUN  ] stereo_mono_bass_attenuates_low_frequency_side
+[  OK  ] stereo_mono_bass_attenuates_low_frequency_side
+[ RUN  ] stereo_host_parameters_change_audio_and_restore_state
+[  OK  ] stereo_host_parameters_change_audio_and_restore_state
+[ RUN  ] stereo_page_renders
+[  OK  ] stereo_page_renders
+[ RUN  ] audibility_named_patch_return_measurements
+    Init-dry: return/dry 0.00 dB, peak 0.28141
+    Init-bank: return/dry -13.94 dB, peak 0.05892
+    Init-room: return/dry -16.62 dB, peak 0.04693
+    Plucked_Tube-dry: return/dry 0.00 dB, peak 0.22196
+    Plucked_Tube-bank: return/dry -8.99 dB, peak 0.03751
+    Plucked_Tube-room: return/dry -16.92 dB, peak 0.01713
+    Metallic_Steam-dry: return/dry 0.00 dB, peak 0.42474
+    Metallic_Steam-bank: return/dry -18.96 dB, peak 0.04479
+    Metallic_Steam-room: return/dry -17.37 dB, peak 0.06441
+[  OK  ] audibility_named_patch_return_measurements
+[ RUN  ] audibility_monitor_preserves_the_running_graph_and_allocates_nothing
+[  OK  ] audibility_monitor_preserves_the_running_graph_and_allocates_nothing
+[ RUN  ] audibility_bank_antiphase_counts_transients_and_long_term_capacity
+[  OK  ] audibility_bank_antiphase_counts_transients_and_long_term_capacity
+[ RUN  ] audibility_room_coupling_cannot_fund_itself
+[  OK  ] audibility_room_coupling_cannot_fund_itself
+[ RUN  ] audibility_room_return_only_and_output_independence
+    Init return-only 0.2: difference/dry -30.22 dB
+      level change 0.02 dB; matched difference -30.25 dB
+    Init return-only 0.5: difference/dry -22.12 dB
+      level change 0.05 dB; matched difference -22.18 dB
+    Init return-only 1.0: difference/dry -15.77 dB
+      level change 0.14 dB; matched difference -15.89 dB
+    Plucked Tube return-only 0.2: difference/dry -13.81 dB
+      level change 0.39 dB; matched difference -14.23 dB
+    Plucked Tube return-only 0.5: difference/dry -2.75 dB
+      level change 1.55 dB; matched difference -3.86 dB
+    Plucked Tube return-only 1.0: difference/dry 13.01 dB
+      level change 13.15 dB; matched difference 2.14 dB
+    Metallic Steam return-only 0.2: difference/dry -32.33 dB
+      level change -0.04 dB; matched difference -32.50 dB
+    Metallic Steam return-only 0.5: difference/dry -24.92 dB
+      level change -0.10 dB; matched difference -25.06 dB
+    Metallic Steam return-only 1.0: difference/dry -19.40 dB
+      level change -0.19 dB; matched difference -19.48 dB
+[  OK  ] audibility_room_return_only_and_output_independence
+[ RUN  ] audibility_room_extreme_instrument_paths_without_master_limiter
+[  OK  ] audibility_room_extreme_instrument_paths_without_master_limiter
+[ RUN  ] audibility_tone_controls_change_level_matched_audio
+    bank control 1 matched residual 0.198
+    bank control 2 matched residual 0.453
+    bank control 3 matched residual 1.108
+    bank control 4 matched residual 0.968
+    bank control 5 matched residual 0.755
+    room control 1 matched residual 1.408
+    room control 2 matched residual 1.438
+    room control 3 matched residual 0.564
+    room control 4 matched residual 0.701
+    room control 5 matched residual 0.391
+[  OK  ] audibility_tone_controls_change_level_matched_audio
+[ RUN  ] audibility_mono_oversized_blocks_and_bank_bypass_clear
+[  OK  ] audibility_mono_oversized_blocks_and_bank_bypass_clear
+[ RUN  ] audibility_cpu_profile_all_quality_modes
+    voices 1 quality 0: off 1.76%, bank+room 5.39% of real time
+    voices 1 quality 1: off 3.52%, bank+room 6.37% of real time
+    voices 1 quality 2: off 3.44%, bank+room 5.24% of real time
+    voices 8 quality 0: off 7.98%, bank+room 12.70% of real time
+    voices 8 quality 1: off 13.48%, bank+room 15.13% of real time
+    voices 8 quality 2: off 15.27%, bank+room 18.96% of real time
+    voices 16 quality 0: off 15.02%, bank+room 21.74% of real time
+    voices 16 quality 1: off 21.00%, bank+room 25.92% of real time
+    voices 16 quality 2: off 28.62%, bank+room 34.16% of real time
+[  OK  ] audibility_cpu_profile_all_quality_modes
+[ RUN  ] sympathetic_tuning_matches_scales_and_measured_audio
+[  OK  ] sympathetic_tuning_matches_scales_and_measured_audio
+[ RUN  ] sympathetic_decay_damper_freeze_and_clear
+[  OK  ] sympathetic_decay_damper_freeze_and_clear
+[ RUN  ] sympathetic_held_notes_capture_pedals_and_preparation
+[  OK  ] sympathetic_held_notes_capture_pedals_and_preparation
+[ RUN  ] sympathetic_coherent_multi_voice_excitation_is_energy_bounded
+[  OK  ] sympathetic_coherent_multi_voice_excitation_is_energy_bounded
+[ RUN  ] sympathetic_host_audio_and_chord_state
+[  OK  ] sympathetic_host_audio_and_chord_state
+[ RUN  ] sympathetic_page_and_six_tab_navigation_restore
+[  OK  ] sympathetic_page_and_six_tab_navigation_restore
+[ RUN  ] user_resonator_bypass_routes_excitation_directly
+[  OK  ] user_resonator_bypass_routes_excitation_directly
+[ RUN  ] user_resonator_pitch_edit_persists_with_repipe
+[  OK  ] user_resonator_pitch_edit_persists_with_repipe
+[ RUN  ] knob_modulation_assignment_is_undoable_and_does_not_replace_routes
+[  OK  ] knob_modulation_assignment_is_undoable_and_does_not_replace_routes
+[ RUN  ] knob_modulation_depth_drag_is_one_undo_action
+[  OK  ] knob_modulation_depth_drag_is_one_undo_action
+[ RUN  ] spectral_fft_matches_known_bins_and_round_trip
+[  OK  ] spectral_fft_matches_known_bins_and_round_trip
+[ RUN  ] spectral_capture_holds_pitch_and_release_returns_live_audio
+    spectral sr=44100 target=375 measured=375.000 energy=1411.197
+    spectral sr=48000 target=375 measured=375.000 energy=1536.002
+    spectral sr=96000 target=375 measured=375.000 energy=3072.006
+[  OK  ] spectral_capture_holds_pitch_and_release_returns_live_audio
+[ RUN  ] spectral_capture_has_no_cpp_allocations_or_frees
+[  OK  ] spectral_capture_has_no_cpp_allocations_or_frees
+[ RUN  ] spectral_blur_shift_decay_and_bypass_have_real_effects
+    spectral octave measured 750.000
+[  OK  ] spectral_blur_shift_decay_and_bypass_have_real_effects
+[ RUN  ] shimmer_pitch_shifter_measured_intervals_and_changes
+    shimmer sr=44100 interval=-12 expected=100.000 measured=100.000
+    shimmer sr=44100 interval=5 expected=266.968 measured=266.950
+    shimmer sr=44100 interval=7 expected=299.661 measured=299.682
+    shimmer sr=44100 interval=12 expected=400.000 measured=400.000
+    shimmer sr=48000 interval=-12 expected=100.000 measured=100.000
+    shimmer sr=48000 interval=5 expected=266.968 measured=266.950
+    shimmer sr=48000 interval=7 expected=299.661 measured=299.682
+    shimmer sr=48000 interval=12 expected=400.000 measured=400.000
+    shimmer sr=96000 interval=-12 expected=100.000 measured=100.000
+    shimmer sr=96000 interval=5 expected=266.968 measured=266.950
+    shimmer sr=96000 interval=7 expected=299.661 measured=299.682
+    shimmer sr=96000 interval=12 expected=400.000 measured=400.000
+[  OK  ] shimmer_pitch_shifter_measured_intervals_and_changes
+[ RUN  ] shimmer_feedback_is_bounded_and_bypass_is_exact
+[  OK  ] shimmer_feedback_is_bounded_and_bypass_is_exact
+[ RUN  ] shimmer_shift_is_in_the_reverb_feedback_path
+    shimmer shifted tail difference energy 0.019733528
+[  OK  ] shimmer_shift_is_in_the_reverb_feedback_path
+[ RUN  ] shimmer_host_audio_page_and_state
+[  OK  ] shimmer_host_audio_page_and_state
+[ RUN  ] resdelay_bypass_and_repeat_timing
+[  OK  ] resdelay_bypass_and_repeat_timing
+[ RUN  ] resdelay_extremes_are_bounded_without_output_limiter
+[  OK  ] resdelay_extremes_are_bounded_without_output_limiter
+[ RUN  ] resdelay_modal_feedback_changes_later_repeats
+[  OK  ] resdelay_modal_feedback_changes_later_repeats
+[ RUN  ] resdelay_chunk_and_bypass_transitions_are_consistent
+[  OK  ] resdelay_chunk_and_bypass_transitions_are_consistent
+[ RUN  ] resdelay_host_audio_and_state
+[  OK  ] resdelay_host_audio_and_state
+[ RUN  ] resdelay_page_renders_and_restores
+[  OK  ] resdelay_page_renders_and_restores
+[ RUN  ] room_return_timing_is_independent_of_chunk_size
+[  OK  ] room_return_timing_is_independent_of_chunk_size
+[ RUN  ] room_is_bounded_without_master_limiter_at_multiple_rates_and_voice_counts
+[  OK  ] room_is_bounded_without_master_limiter_at_multiple_rates_and_voice_counts
+[ RUN  ] room_freeze_and_clear_have_real_stateful_effect
+[  OK  ] room_freeze_and_clear_have_real_stateful_effect
+[ RUN  ] room_host_send_and_network_return_reach_audio
+    room output difference energy 706.73396375, network-return difference 220.48668070
+[  OK  ] room_host_send_and_network_return_reach_audio
+[ RUN  ] room_page_and_session_restore
+[  OK  ] room_page_and_session_restore
+[ RUN  ] patchtools_log_and_pitch_interpolation
+[  OK  ] patchtools_log_and_pitch_interpolation
+[ RUN  ] patchtools_snapshot_serialization_and_effective_values
+[  OK  ] patchtools_snapshot_serialization_and_effective_values
+[ RUN  ] patchtools_seed_and_locks_are_reproducible
+[  OK  ] patchtools_seed_and_locks_are_reproducible
+[ RUN  ] patchtools_mutation_radius_and_undo_grouping
+[  OK  ] patchtools_mutation_radius_and_undo_grouping
+[ RUN  ] patchtools_one_drag_one_transaction_and_automation_no_history
+[  OK  ] patchtools_one_drag_one_transaction_and_automation_no_history
+[ RUN  ] patchtools_deep_morph_automation_preserves_host_values_and_stays_finite
+[  OK  ] patchtools_deep_morph_automation_preserves_host_values_and_stays_finite
+[ RUN  ] patchtools_preset_roundtrip_contains_snapshot_and_locks
+[  OK  ] patchtools_preset_roundtrip_contains_snapshot_and_locks
+[ RUN  ] patchtools_favorites_persist_and_keep_missing_identifiers
+[  OK  ] patchtools_favorites_persist_and_keep_missing_identifiers
+[ RUN  ] patchtools_play_page_paints_and_exports_screenshot
+[  OK  ] patchtools_play_page_paints_and_exports_screenshot
+[ RUN  ] metadata_survives_multiple_instances_and_display_names
+[  OK  ] metadata_survives_multiple_instances_and_display_names
+[ RUN  ] output_meter_distinguishes_gain_reduction_from_ceiling_occupancy
+[  OK  ] output_meter_distinguishes_gain_reduction_from_ceiling_occupancy
+[ RUN  ] oversized_blocks_preserve_input_and_midi_offsets
+[  OK  ] oversized_blocks_preserve_input_and_midi_offsets
+[ RUN  ] smoke_factory_preset_classified_levels
+    name | class | attack peak | pre RMS | post RMS | limited % | ceiling % | release s | DC | CPU %
+    Init                    | Sustained            | 0.427 | 0.1301 | 0.1285 | 0.0 | 0.00 | 2.42 | +0.00004 | 7.0 (pre peak 0.518)
+    Airy Flute              | Sustained            | 0.397 | 0.1220 | 0.1208 | 0.0 | 0.00 | 2.61 | +0.00004 | 8.8 (pre peak 0.547)
+    Warm Wooden Pipe        | Sustained            | 0.312 | 0.1120 | 0.1110 | 0.0 | 0.00 | 2.05 | -0.00001 | 7.3 (pre peak 0.497)
+    Reed Song               | Sustained            | 0.172 | 0.0188 | 0.0188 | 0.0 | 0.00 | 0.78 | -0.00000 | 6.5 (pre peak 0.173)
+    Cathedral Organ         | Sustained            | 0.215 | 0.0567 | 0.0565 | 0.0 | 0.00 | 4.23 | -0.00001 | 11.9 (pre peak 0.275)
+    Plucked Tube            | Plucked/decaying     | 0.430 | 0.0239 | 0.0238 | 0.0 | 0.00 | 1.53 | +0.00000 | 6.1 (pre peak 0.451)
+    Glass Resonator         | Sustained            | 0.197 | 0.0093 | 0.0093 | 0.0 | 0.00 | 3.42 | +0.00000 | 6.7 (pre peak 0.198)
+    Brass Horn              | Sustained            | 0.265 | 0.0234 | 0.0233 | 0.0 | 0.00 | 0.98 | -0.00001 | 5.9 (pre peak 0.270)
+    Bass Pipe               | Sustained            | 0.308 | 0.0982 | 0.0975 | 0.0 | 0.00 | 0.92 | +0.00001 | 6.0 (pre peak 0.384)
+    Evolving Drone          | Drone                | 0.068 | 0.0945 | 0.0937 | 0.0 | 0.00 | 6.00 | -0.00001 | 12.2 (pre peak 0.506)
+    Dark Cinematic Pad      | Sustained            | 0.141 | 0.0997 | 0.0989 | 0.0 | 0.00 | 6.00 | -0.00003 | 11.6 (pre peak 0.436)
+    Metallic Ambience       | Sustained            | 0.309 | 0.0526 | 0.0525 | 0.0 | 0.00 | 6.00 | +0.00001 | 6.6 (pre peak 0.316)
+    Unstable Feedback       | Sustained            | 0.242 | 0.0639 | 0.0636 | 0.0 | 0.00 | 4.74 | +0.00000 | 6.3 (pre peak 0.393)
+    Soft Breath Pad         | Sustained            | 0.297 | 0.1535 | 0.1508 | 0.0 | 0.00 | 6.00 | -0.00004 | 11.4 (pre peak 0.689)
+    Percussive Click        | Percussive           | 0.255 | 0.0042 | 0.0042 | 0.0 | 0.00 | 0.04 | +0.00000 | 6.0 (pre peak 0.259)
+    Noise Machine           | Sustained            | 0.537 | 0.1292 | 0.1274 | 0.0 | 0.00 | 1.70 | +0.00003 | 6.3 (pre peak 0.751)
+    Whistle Lead            | Sustained            | 0.119 | 0.0351 | 0.0351 | 0.0 | 0.00 | 1.79 | -0.00000 | 2.5 (pre peak 0.172)
+    Sub Drone Engine        | Drone                | 0.061 | 0.0494 | 0.0493 | 0.0 | 0.00 | 3.40 | -0.00001 | 11.2 (pre peak 0.231)
+    Ceramic Bells           | Plucked/decaying     | 0.317 | 0.0094 | 0.0094 | 0.0 | 0.00 | 3.78 | +0.00000 | 6.7 (pre peak 0.324)
+    Steam Vent              | Sustained            | 0.614 | 0.1308 | 0.1290 | 0.0 | 0.00 | 6.00 | +0.00002 | 6.3 (pre peak 0.681)
+    Orbit Crossmod          | Sustained            | 0.744 | 0.1622 | 0.1592 | 0.0 | 0.00 | 2.69 | +0.00042 | 10.9 (pre peak 0.877)
+    Strange Attractor       | Sustained            | 0.519 | 0.1385 | 0.1366 | 0.0 | 0.00 | 5.86 | +0.00002 | 10.7 (pre peak 0.649)
+    Folded Static           | Sustained            | 0.532 | 0.0959 | 0.0951 | 0.0 | 0.00 | 3.29 | +0.00002 | 6.3 (pre peak 0.573)
+    Bowed Metal             | Sustained            | 0.465 | 0.1518 | 0.1495 | 0.0 | 0.00 | 6.00 | +0.00002 | 9.0 (pre peak 0.611)
+    Reed Chain              | Sustained            | 0.327 | 0.1727 | 0.1694 | 0.0 | 0.00 | 2.74 | -0.00004 | 7.9 (pre peak 0.592)
+    Mallet Triad            | Percussive           | 0.516 | 0.0235 | 0.0234 | 0.0 | 0.00 | 4.23 | -0.00001 | 9.3 (pre peak 0.553)
+    Crossfed Bells          | Plucked/decaying     | 0.201 | 0.0405 | 0.0404 | 0.0 | 0.00 | 6.00 | -0.00000 | 9.2 (pre peak 0.227)
+    Repipe Morph            | Sustained            | 0.384 | 0.0788 | 0.0784 | 0.0 | 0.00 | 4.04 | -0.00010 | 8.5 (pre peak 0.399)
+    Energy Loop Drone       | Drone                | 0.273 | 0.0800 | 0.0796 | 0.0 | 0.00 | 6.00 | -0.00002 | 16.1 (pre peak 0.342)
+    Metallic Steam          | Sustained            | 0.656 | 0.1981 | 0.1928 | 0.0 | 0.00 | 5.67 | -0.00003 | 9.2 (pre peak 0.912)
+    Subharmonic Pipe        | Sustained            | 0.716 | 0.2201 | 0.2128 | 0.0 | 0.00 | 1.48 | -0.00058 | 8.2 (pre peak 0.831)
+    Broken Transmission     | Sustained            | 0.404 | 0.1173 | 0.1161 | 0.0 | 0.00 | 1.35 | +0.00001 | 9.7 (pre peak 0.550)
+    Industrial Horn         | Sustained            | 0.351 | 0.1250 | 0.1236 | 0.0 | 0.00 | 2.69 | -0.00006 | 8.4 (pre peak 0.471)
+    Granular Wind           | Sustained            | 0.320 | 0.1325 | 0.1304 | 0.0 | 0.00 | 6.00 | +0.00001 | 17.8 (pre peak 0.827)
+    Feedback Organism       | Sustained            | 0.340 | 0.1209 | 0.1197 | 0.0 | 0.00 | 6.00 | -0.00007 | 11.9 (pre peak 0.489)
+    Unstable Membrane       | Sustained            | 0.279 | 0.0489 | 0.0487 | 0.0 | 0.00 | 1.60 | -0.00000 | 6.7 (pre peak 0.292)
+    Serial Bodies           | Sustained            | 0.362 | 0.0668 | 0.0664 | 0.0 | 0.00 | 3.09 | -0.00000 | 8.9 (pre peak 0.374)
+    Resonator Cloud         | Sustained            | 0.259 | 0.2058 | 0.1955 | 8.1 | 0.06 | 6.00 | +0.00008 | 18.7 (pre peak 1.227)
+    Sidechain Fold          | Sidechain-dependent  | 0.495 | 0.1283 | 0.1267 | 0.0 | 0.00 | 2.25 | +0.00000 | 8.4 (pre peak 0.642)
+    Glass Reed Lead         | Sustained            | 0.291 | 0.1247 | 0.1233 | 0.0 | 0.00 | 2.84 | -0.00006 | 3.8 (pre peak 0.393)
+    Reed in a Small Room    | Sustained            | 0.762 | 0.0834 | 0.0801 | 0.0 | 0.00 | 0.60 | -0.00011 | 7.6 (pre peak 0.908)
+    Modal Echo Pluck        | Plucked/decaying     | 0.168 | 0.0086 | 0.0086 | 0.0 | 0.00 | 0.04 | -0.00000 | 6.2 (pre peak 0.169)
+[  OK  ] smoke_factory_preset_classified_levels
+[ RUN  ] smoke_cpu_profile_configurations
+
+    | Configuration | Eco | Normal | High |
+    |---|---|---|---|
+    | Default patch (Breath -> single resonator), 8 voices | 7.8 % | 11.6 % | 14.8 % |
+    | 2 exciters (Wave FM Complex) + 1 resonator, 8 voices | 12.6 % | 19.7 % | 32.0 % |
+    | 2 exciters + 3 resonators parallel, 8 voices | 16.4 % | 24.3 % | 36.5 % |
+    | 3 resonators serial (Breath), 8 voices | 11.7 % | 15.2 % | 18.8 % |
+    | Maximum cross-feedback (all six routes, feedback 100 %), 8 voices | 16.8 % | 24.4 % | 36.3 % |
+    | Energy loop on (serial network, loop -> folder in), 8 voices | 15.4 % | 17.1 % | 22.7 % |
+    | Wavefolder on (2 exciters, single resonator), 8 voices | 23.9 % | 24.9 % | 43.6 % |
+    | Everything: 2 exciters, folder, 3 resonators hybrid, cross-feedback, loop, effects, 8 voices | 25.7 % | 30.1 % | 42.1 % |
+    | Everything, 16 voices | 49.6 % | 59.2 % | 82.9 % |
+    (percent of real time, 48 kHz / 256 samples, release build, single core)
+[  OK  ] smoke_cpu_profile_configurations
+[ RUN  ] editor_opens_paints_every_page_and_binds_every_control
+[  OK  ] editor_opens_paints_every_page_and_binds_every_control
+[ RUN  ] editor_follows_exciter_model_and_interaction_mode_changes
+[  OK  ] editor_follows_exciter_model_and_interaction_mode_changes
+[ RUN  ] editor_open_close_cycles_while_playing
+[  OK  ] editor_open_close_cycles_while_playing
+[ RUN  ] v01_session_state_loads_and_maps_into_the_new_architecture
+[  OK  ] v01_session_state_loads_and_maps_into_the_new_architecture
+[ RUN  ] v01_preset_file_loads_and_unknown_ids_are_ignored
+[  OK  ] v01_preset_file_loads_and_unknown_ids_are_ignored
+[ RUN  ] v02_state_round_trips_every_new_parameter
+[  OK  ] v02_state_round_trips_every_new_parameter
+[ RUN  ] existing_factory_presets_still_load_and_sound_with_the_new_engine
+[  OK  ] existing_factory_presets_still_load_and_sound_with_the_new_engine
+[ RUN  ] routing_modes_render_finite_and_engage_the_right_slots
+[  OK  ] routing_modes_render_finite_and_engage_the_right_slots
+[ RUN  ] serial_routing_passes_energy_downstream
+[  OK  ] serial_routing_passes_energy_downstream
+[ RUN  ] parallel_routing_sums_independent_resonators
+[  OK  ] parallel_routing_sums_independent_resonators
+[ RUN  ] every_cross_feedback_route_is_stable_at_maximum
+[  OK  ] every_cross_feedback_route_is_stable_at_maximum
+[ RUN  ] topology_changes_during_active_notes_are_click_safe
+[  OK  ] topology_changes_during_active_notes_are_click_safe
+[ RUN  ] energy_loop_is_off_by_default_and_bounded_at_maximum
+[  OK  ] energy_loop_is_off_by_default_and_bounded_at_maximum
+[ RUN  ] repipe_macro_transitions_from_single_to_network
+[  OK  ] repipe_macro_transitions_from_single_to_network
+[ RUN  ] voice_stealing_with_complex_routing_is_safe
+[  OK  ] voice_stealing_with_complex_routing_is_safe
+[ RUN  ] modal_resonators_are_tuned_and_distinct
+[  OK  ] modal_resonators_are_tuned_and_distinct
+[ RUN  ] all_resonator_types_are_finite_in_every_slot_at_extremes
+[  OK  ] all_resonator_types_are_finite_in_every_slot_at_extremes
+[ RUN  ] wavefolder_transfer_is_bounded_for_all_modes
+[  OK  ] wavefolder_transfer_is_bounded_for_all_modes
+[ RUN  ] wavefolder_creates_harmonics_and_removes_dc
+[  OK  ] wavefolder_creates_harmonics_and_removes_dc
+[ RUN  ] wavefolder_bypass_is_transparent_and_mix_blends
+[  OK  ] wavefolder_bypass_is_transparent_and_mix_blends
+[ RUN  ] halfband_oversampler_passes_audio_and_rejects_images
+[  OK  ] halfband_oversampler_passes_audio_and_rejects_images
+[ RUN  ] quality_changes_during_playback_are_safe_and_level_consistent
+[  OK  ] quality_changes_during_playback_are_safe_and_level_consistent
+[ RUN  ] wavefolder_in_the_voice_changes_the_sound_and_stays_bounded
+[  OK  ] wavefolder_in_the_voice_changes_the_sound_and_stays_bounded
+[ RUN  ] every_exciter_model_produces_finite_bounded_output
+[  OK  ] every_exciter_model_produces_finite_bounded_output
+[ RUN  ] seeded_noise_is_deterministic
+[  OK  ] seeded_noise_is_deterministic
+[ RUN  ] wave_oscillator_is_in_tune
+[  OK  ] wave_oscillator_is_in_tune
+[ RUN  ] wave_oscillator_is_band_limited
+      saw alias (25th harmonic folded): 70.2 dB below fundamental
+[  OK  ] wave_oscillator_is_band_limited
+[ RUN  ] interaction_modes_are_audible_and_stable
+[  OK  ] interaction_modes_are_audible_and_stable
+[ RUN  ] physical_exciters_respond_to_speed_and_pressure
+[  OK  ] physical_exciters_respond_to_speed_and_pressure
+[ RUN  ] sidechain_exciter_model_passes_input_through_the_chain
+[  OK  ] sidechain_exciter_model_passes_input_through_the_chain
+[ RUN  ] exciter_modulation_destinations_reach_the_dsp
+[  OK  ] exciter_modulation_destinations_reach_the_dsp
+[ RUN  ] sidechain_input_excites_the_resonators
+[  OK  ] sidechain_input_excites_the_resonators
+[ RUN  ] sidechain_bus_layouts_are_supported
+[  OK  ] sidechain_bus_layouts_are_supported
+[ RUN  ] polyphony_allocates_eight_voices_and_steals_beyond
+[  OK  ] polyphony_allocates_eight_voices_and_steals_beyond
+[ RUN  ] voice_count_parameter_limits_polyphony
+[  OK  ] voice_count_parameter_limits_polyphony
+[ RUN  ] mono_and_legato_modes_use_one_voice_and_return_to_held_note
+[  OK  ] mono_and_legato_modes_use_one_voice_and_return_to_held_note
+[ RUN  ] glide_moves_pitch_smoothly
+[  OK  ] glide_moves_pitch_smoothly
+[ RUN  ] unison_stacks_voices_per_note
+[  OK  ] unison_stacks_voices_per_note
+[ RUN  ] sustain_pedal_holds_notes
+[  OK  ] sustain_pedal_holds_notes
+[ RUN  ] pitch_bend_and_bend_range_change_pitch
+[  OK  ] pitch_bend_and_bend_range_change_pitch
+[ RUN  ] velocity_and_aftertouch_reach_the_voice
+[  OK  ] velocity_and_aftertouch_reach_the_voice
+[ RUN  ] mod_matrix_routes_mod_wheel_and_lfo
+[  OK  ] mod_matrix_routes_mod_wheel_and_lfo
+[ RUN  ] midi_learn_maps_controller_to_parameter
+[  OK  ] midi_learn_maps_controller_to_parameter
+[ RUN  ] mpe_mode_handles_per_note_expression
+[  OK  ] mpe_mode_handles_per_note_expression
+[ RUN  ] sample_rate_and_block_size_changes_are_safe
+[  OK  ] sample_rate_and_block_size_changes_are_safe
+[ RUN  ] bypass_releases_notes_and_outputs_silence
+[  OK  ] bypass_releases_notes_and_outputs_silence
+[ RUN  ] state_round_trip_restores_parameters_and_extras
+[  OK  ] state_round_trip_restores_parameters_and_extras
+[ RUN  ] state_is_deterministic_and_tolerates_garbage
+[  OK  ] state_is_deterministic_and_tolerates_garbage
+[ RUN  ] preset_xml_round_trip_and_file_io
+[  OK  ] preset_xml_round_trip_and_file_io
+[ RUN  ] factory_presets_reference_valid_parameters_and_load
+[  OK  ] factory_presets_reference_valid_parameters_and_load
+[ RUN  ] parameter_ids_are_unique_and_all_present
+[  OK  ] parameter_ids_are_unique_and_all_present
+[ RUN  ] parameter_defaults_round_trip_through_normalisation
+[  OK  ] parameter_defaults_round_trip_through_normalisation
+[ RUN  ] parameter_text_formatting_uses_units
+[  OK  ] parameter_text_formatting_uses_units
+[ RUN  ] log_ranges_place_centre_at_half
+[  OK  ] log_ranges_place_centre_at_half
+[ RUN  ] choice_lists_match_enums
+[  OK  ] choice_lists_match_enums
+[ RUN  ] parameters_reach_the_dsp
+[  OK  ] parameters_reach_the_dsp
+[ RUN  ] midi_note_to_frequency
+[  OK  ] midi_note_to_frequency
+[ RUN  ] fast_tanh_is_bounded_and_accurate
+[  OK  ] fast_tanh_is_bounded_and_accurate
+[ RUN  ] fractional_delay_interpolates_sine_accurately
+[  OK  ] fractional_delay_interpolates_sine_accurately
+[ RUN  ] adsr_reaches_full_level_and_returns_to_silence
+[  OK  ] adsr_reaches_full_level_and_returns_to_silence
+[ RUN  ] resonator_tuning_is_accurate_across_range_and_sample_rates
+      sr=44100 note=36 mode=0 disp=0.00 expected=65.41 measured=65.26 (-3.9 cents)
+      sr=44100 note=48 mode=0 disp=0.00 expected=130.81 measured=130.69 (-1.6 cents)
+      sr=44100 note=60 mode=0 disp=0.00 expected=261.63 measured=261.38 (-1.6 cents)
+      sr=44100 note=72 mode=0 disp=0.00 expected=523.25 measured=523.33 (+0.3 cents)
+      sr=44100 note=84 mode=0 disp=0.00 expected=1046.50 measured=1046.96 (+0.8 cents)
+      sr=44100 note=96 mode=0 disp=0.00 expected=2093.00 measured=2094.84 (+1.5 cents)
+      sr=48000 note=36 mode=0 disp=0.00 expected=65.41 measured=65.26 (-3.9 cents)
+      sr=48000 note=48 mode=0 disp=0.00 expected=130.81 measured=130.69 (-1.6 cents)
+      sr=48000 note=60 mode=0 disp=0.00 expected=261.63 measured=261.38 (-1.6 cents)
+      sr=48000 note=72 mode=0 disp=0.00 expected=523.25 measured=523.33 (+0.3 cents)
+      sr=48000 note=84 mode=0 disp=0.00 expected=1046.50 measured=1046.98 (+0.8 cents)
+      sr=48000 note=96 mode=0 disp=0.00 expected=2093.00 measured=2094.10 (+0.9 cents)
+      sr=96000 note=36 mode=0 disp=0.00 expected=65.41 measured=65.26 (-4.0 cents)
+      sr=96000 note=48 mode=0 disp=0.00 expected=130.81 measured=130.69 (-1.6 cents)
+      sr=96000 note=60 mode=0 disp=0.00 expected=261.63 measured=261.40 (-1.5 cents)
+      sr=96000 note=72 mode=0 disp=0.00 expected=523.25 measured=523.33 (+0.3 cents)
+      sr=96000 note=84 mode=0 disp=0.00 expected=1046.50 measured=1047.15 (+1.1 cents)
+      sr=96000 note=96 mode=0 disp=0.00 expected=2093.00 measured=2093.64 (+0.5 cents)
+      sr=48000 note=40 mode=1 disp=0.00 expected=82.41 measured=82.09 (-6.8 cents)
+      sr=48000 note=60 mode=1 disp=0.00 expected=261.63 measured=261.63 (+0.0 cents)
+      sr=48000 note=80 mode=1 disp=0.00 expected=830.61 measured=829.28 (-2.8 cents)
+      sr=48000 note=48 mode=2 disp=0.30 expected=130.81 measured=130.70 (-1.5 cents)
+      sr=48000 note=60 mode=2 disp=0.30 expected=261.63 measured=261.41 (-1.4 cents)
+[  OK  ] resonator_tuning_is_accurate_across_range_and_sample_rates
+[ RUN  ] resonator_stays_finite_and_bounded_under_extreme_settings
+[  OK  ] resonator_stays_finite_and_bounded_under_extreme_settings
+[ RUN  ] voice_is_silent_after_release
+[  OK  ] voice_is_silent_after_release
+[ RUN  ] effects_remain_finite_with_extreme_parameters
+[  OK  ] effects_remain_finite_with_extreme_parameters
+
+139 test(s) run, 17142923 check(s), 0 failure(s)

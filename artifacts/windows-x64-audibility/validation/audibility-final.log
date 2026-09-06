@@ -1,0 +1,66 @@
+[ RUN  ] audibility_named_patch_return_measurements
+    Init-dry: return/dry 0.00 dB, peak 0.28141
+    Init-bank: return/dry -13.94 dB, peak 0.05892
+    Init-room: return/dry -16.62 dB, peak 0.04693
+    Plucked_Tube-dry: return/dry 0.00 dB, peak 0.22196
+    Plucked_Tube-bank: return/dry -8.99 dB, peak 0.03751
+    Plucked_Tube-room: return/dry -16.92 dB, peak 0.01713
+    Metallic_Steam-dry: return/dry 0.00 dB, peak 0.42474
+    Metallic_Steam-bank: return/dry -18.96 dB, peak 0.04479
+    Metallic_Steam-room: return/dry -17.37 dB, peak 0.06441
+[  OK  ] audibility_named_patch_return_measurements
+[ RUN  ] audibility_monitor_preserves_the_running_graph_and_allocates_nothing
+[  OK  ] audibility_monitor_preserves_the_running_graph_and_allocates_nothing
+[ RUN  ] audibility_bank_antiphase_counts_transients_and_long_term_capacity
+[  OK  ] audibility_bank_antiphase_counts_transients_and_long_term_capacity
+[ RUN  ] audibility_room_coupling_cannot_fund_itself
+[  OK  ] audibility_room_coupling_cannot_fund_itself
+[ RUN  ] audibility_room_return_only_and_output_independence
+    Init return-only 0.2: difference/dry -30.22 dB
+      level change 0.02 dB; matched difference -30.25 dB
+    Init return-only 0.5: difference/dry -22.12 dB
+      level change 0.05 dB; matched difference -22.18 dB
+    Init return-only 1.0: difference/dry -15.77 dB
+      level change 0.14 dB; matched difference -15.89 dB
+    Plucked Tube return-only 0.2: difference/dry -13.81 dB
+      level change 0.39 dB; matched difference -14.23 dB
+    Plucked Tube return-only 0.5: difference/dry -2.75 dB
+      level change 1.55 dB; matched difference -3.86 dB
+    Plucked Tube return-only 1.0: difference/dry 13.01 dB
+      level change 13.15 dB; matched difference 2.14 dB
+    Metallic Steam return-only 0.2: difference/dry -32.33 dB
+      level change -0.04 dB; matched difference -32.50 dB
+    Metallic Steam return-only 0.5: difference/dry -24.92 dB
+      level change -0.10 dB; matched difference -25.06 dB
+    Metallic Steam return-only 1.0: difference/dry -19.40 dB
+      level change -0.19 dB; matched difference -19.48 dB
+[  OK  ] audibility_room_return_only_and_output_independence
+[ RUN  ] audibility_room_extreme_instrument_paths_without_master_limiter
+[  OK  ] audibility_room_extreme_instrument_paths_without_master_limiter
+[ RUN  ] audibility_tone_controls_change_level_matched_audio
+    bank control 1 matched residual 0.198
+    bank control 2 matched residual 0.453
+    bank control 3 matched residual 1.108
+    bank control 4 matched residual 0.968
+    bank control 5 matched residual 0.755
+    room control 1 matched residual 1.408
+    room control 2 matched residual 1.438
+    room control 3 matched residual 0.564
+    room control 4 matched residual 0.701
+    room control 5 matched residual 0.391
+[  OK  ] audibility_tone_controls_change_level_matched_audio
+[ RUN  ] audibility_mono_oversized_blocks_and_bank_bypass_clear
+[  OK  ] audibility_mono_oversized_blocks_and_bank_bypass_clear
+[ RUN  ] audibility_cpu_profile_all_quality_modes
+    voices 1 quality 0: off 2.97%, bank+room 7.81% of real time
+    voices 1 quality 1: off 3.80%, bank+room 8.38% of real time
+    voices 1 quality 2: off 4.91%, bank+room 9.23% of real time
+    voices 8 quality 0: off 13.46%, bank+room 20.79% of real time
+    voices 8 quality 1: off 16.73%, bank+room 24.38% of real time
+    voices 8 quality 2: off 26.83%, bank+room 30.26% of real time
+    voices 16 quality 0: off 25.14%, bank+room 33.38% of real time
+    voices 16 quality 1: off 37.20%, bank+room 41.45% of real time
+    voices 16 quality 2: off 43.86%, bank+room 48.68% of real time
+[  OK  ] audibility_cpu_profile_all_quality_modes
+
+9 test(s) run, 8185272 check(s), 0 failure(s)
