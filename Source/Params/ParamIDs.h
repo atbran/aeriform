@@ -490,6 +490,15 @@ enum class P : int
     shLowCut,
     shHighCut,
     shMix,
+    sfOn,
+    sfFreeze,
+    sfCapture,
+    sfRelease,
+    sfBlur,
+    sfShift,
+    sfRandom,
+    sfDecay,
+    sfMix,
     Count
 };
 
@@ -981,6 +990,15 @@ inline constexpr const char* shSpread = "sh_spread";
 inline constexpr const char* shLowCut = "sh_low_cut";
 inline constexpr const char* shHighCut = "sh_high_cut";
 inline constexpr const char* shMix = "sh_mix";
+inline constexpr const char* sfOn = "sf_on";
+inline constexpr const char* sfFreeze = "sf_freeze";
+inline constexpr const char* sfCapture = "sf_capture";
+inline constexpr const char* sfRelease = "sf_release";
+inline constexpr const char* sfBlur = "sf_blur";
+inline constexpr const char* sfShift = "sf_shift";
+inline constexpr const char* sfRandom = "sf_random";
+inline constexpr const char* sfDecay = "sf_decay";
+inline constexpr const char* sfMix = "sf_mix";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1466,6 +1484,15 @@ inline constexpr const char* const all[kNumParams] = {
     "sh_low_cut",
     "sh_high_cut",
     "sh_mix",
+    "sf_on",
+    "sf_freeze",
+    "sf_capture",
+    "sf_release",
+    "sf_blur",
+    "sf_shift",
+    "sf_random",
+    "sf_decay",
+    "sf_mix",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

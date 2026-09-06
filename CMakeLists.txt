@@ -76,6 +76,7 @@ set(AERIFORM_SOURCES
     Source/DSP/Effects/Delay.cpp
     Source/DSP/Effects/ResonantDelay.cpp
     Source/DSP/Effects/ShimmerReverb.cpp
+    Source/DSP/Effects/SpectralFreeze.cpp
     Source/DSP/Effects/Reverb.cpp
     Source/DSP/Effects/OutputStage.cpp
     Source/Presets/PresetManager.cpp
@@ -216,6 +217,8 @@ if(AERIFORM_BUILD_TESTS)
         Tests/RoomTests.cpp
     Tests/ResonantDelayTests.cpp
     Tests/ShimmerTests.cpp
+    Tests/SpectralTests.cpp
+    Tests/AllocationProbe.cpp
         Tests/KnobModulationTests.cpp
         Tests/UserRegressionTests.cpp
         Tests/SympatheticTests.cpp

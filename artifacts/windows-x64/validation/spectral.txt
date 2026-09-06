@@ -1,0 +1,14 @@
+[ RUN  ] spectral_fft_matches_known_bins_and_round_trip
+[  OK  ] spectral_fft_matches_known_bins_and_round_trip
+[ RUN  ] spectral_capture_holds_pitch_and_release_returns_live_audio
+    spectral sr=44100 target=375 measured=375.000 energy=1411.197
+    spectral sr=48000 target=375 measured=375.000 energy=1536.002
+    spectral sr=96000 target=375 measured=375.000 energy=3072.006
+[  OK  ] spectral_capture_holds_pitch_and_release_returns_live_audio
+[ RUN  ] spectral_capture_has_no_cpp_allocations_or_frees
+[  OK  ] spectral_capture_has_no_cpp_allocations_or_frees
+[ RUN  ] spectral_blur_shift_decay_and_bypass_have_real_effects
+    spectral octave measured 750.000
+[  OK  ] spectral_blur_shift_decay_and_bypass_have_real_effects
+
+4 test(s) run, 1339488 check(s), 0 failure(s)

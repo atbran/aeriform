@@ -24,3 +24,13 @@ def register(F,C,B,I):
  F('shLowCut','sh_low_cut','Shimmer Low Cut','Space',20,2000,150,'Hz','Hz','Remove low frequencies from the shifted feedback.',centre=200)
  F('shHighCut','sh_high_cut','Shimmer High Cut','Space',200,20000,8000,'Hz','Hz','Remove high frequencies from the shifted feedback.',centre=5000)
  F('shMix','sh_mix','Shimmer Mix','Space',0,1,.3,'%','Percent','Linear dry/wet blend. The dry signal is not delayed.')
+
+ B('sfOn','sf_on','Spectral Freeze Enabled','Space',False,'Analyze the post-effects signal for a preallocated 2048-point spectral hold.')
+ B('sfFreeze','sf_freeze','Spectral Hold','Space',False,'Capture the current spectrum and hold it. Release returns to live audio.')
+ B('sfCapture','sf_capture','Capture Spectrum','Space',False,'Each toggle captures a new spectrum at the next complete analysis frame and starts holding.')
+ B('sfRelease','sf_release','Release Spectrum','Space',False,'Each toggle releases the held spectrum and crossfades back to live audio.')
+ F('sfBlur','sf_blur','Spectral Blur','Space',0,1,0,'%','Percent','Spread captured bin energy across neighbouring frequencies.')
+ F('sfShift','sf_shift','Spectral Shift','Space',-24,24,0,'st','Semi','Transpose the held spectral bins and phase advances.',step=.01)
+ F('sfRandom','sf_random','Spectral Random Phase','Space',0,1,0,'%','Percent','Deterministic per-frame phase diffusion for a less stationary texture.')
+ F('sfDecay','sf_decay','Spectral Decay','Space',0,60000,0,'ms','Ms','Held spectrum decay time to minus 60 dB. Zero holds indefinitely.',centre=6000)
+ F('sfMix','sf_mix','Spectral Mix','Space',0,1,1,'%','Percent','Linear live/held blend. Live audio has no added delay when not holding.')

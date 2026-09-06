@@ -146,3 +146,11 @@ Each successfully tested phase receives a focused commit. Document partial or ex
 - 483 stable parameters; independent pitch-shifted reverb feedback and all SPACE controls, interval shortcuts and fractional semitone display connected.
 - Four focused tests: 1881052 checks, zero failures (`build/shimmer-tests.log`). Reference pitch, interval transitions, maximum-feedback bounds, actual shifted-tail output, host state and GUI tested; screenshot inspected.
 - Spectral freeze, multiband saturation, FX target and the final complete realtime/performance/host validation remain unfinished.
+
+
+## GitHub test-build checkpoint
+
+- User requests the full experimental source, standalone EXE and VST3 on GitHub's codex/experimental-aeriform branch. Keep the original checkout and main branch unchanged.
+- 492 stable parameters. Spectral-freeze DSP and host parameters are connected; four focused tests pass (1339488 checks), including zero intercepted C++ allocations/frees on repeated captures. Dedicated spectral GUI remains pending after an earlier usage-limit rejection; no placeholder page is shipped.
+- Full regression before spectral integration: 126 tests, 7618053 checks, zero failures (`build/shimmer-all-tests.log`). Release-checkpoint validation is recorded with the binary artifacts.
+- Remaining feature work: dedicated spectral GUI, multiband saturation, FX target, additional demonstration presets, final realtime allocation/lock fixes and all-feature performance validation.

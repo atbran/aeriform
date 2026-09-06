@@ -6,6 +6,7 @@
 #include "Effects/Delay.h"
 #include "Effects/ResonantDelay.h"
 #include "Effects/ShimmerReverb.h"
+#include "Effects/SpectralFreeze.h"
 #include "Effects/Reverb.h"
 #include "Effects/OutputStage.h"
 #include "../MIDI/MidiLearn.h"
@@ -44,6 +45,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     StereoDelay delay;
     ResonantDelay resonantDelay;
     ShimmerReverb shimmer;
+    SpectralFreeze spectral;
     FdnReverb reverb;
     OutputStage output;
     CoupledRoom room;
@@ -128,7 +130,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         }
         chorus.prepare (sr);
         delay.prepare (sr);resonantDelay.prepare((float)sr);
-        reverb.prepare (sr);shimmer.prepare((float)sr);
+        reverb.prepare (sr);shimmer.prepare((float)sr);spectral.prepare((float)sr);
         output.prepare (sr);sympathetic.prepare((float)sr);room.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
@@ -148,7 +150,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         monoNoteId = -1;
         chorus.reset();
         delay.reset();resonantDelay.reset();
-        reverb.reset();shimmer.reset();
+        reverb.reset();shimmer.reset();spectral.reset();
         output.reset();sympathetic.reset();room.reset();globalFilters.reset();
         couplingIn = 0.0f;
     }
@@ -674,6 +676,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         reverb.process (L, R, numSamples);
         ShimmerParams sh;sh.enabled=params.getb(P::shOn);sh.semitones=params.get(P::shInterval);sh.feedback=params.get(P::shFeedback);sh.diffusion=params.get(P::shDiffusion);sh.damping=params.get(P::shDamping);sh.size=params.get(P::shSize);sh.spread=params.get(P::shSpread);sh.lowCutHz=params.get(P::shLowCut);sh.highCutHz=params.get(P::shHighCut);sh.mix=params.get(P::shMix);
         shimmer.setParams(sh,numSamples);shimmer.process(L,R,numSamples);
+        SpectralParams sf;sf.enabled=params.getb(P::sfOn);sf.freeze=params.getb(P::sfFreeze);sf.capture=params.getb(P::sfCapture);sf.release=params.getb(P::sfRelease);sf.blur=params.get(P::sfBlur);sf.semitones=params.get(P::sfShift);sf.randomPhase=params.get(P::sfRandom);sf.decayMs=params.get(P::sfDecay);sf.mix=params.get(P::sfMix);spectral.setParams(sf);spectral.process(L,R,numSamples);
+        vis.spectralFrozen.store(spectral.isFrozen(),std::memory_order_relaxed);for(int band=0;band<64;++band)vis.spectralEnergy[(size_t)band].store(spectral.bandEnergy(band),std::memory_order_relaxed);
 
         for(int i=0;i<numSamples;++i){L[i]=globalFilters.atWeighted(FilterPosition::PostEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PostEffects,R[i],3,filterFrames[(size_t)i]);}
         if (!skipOutputStage) {

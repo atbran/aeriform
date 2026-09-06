@@ -1,3 +1,11 @@
+# EXP_Aeriform experimental branch
+
+This branch contains the independent EXP_Aeriform synth, with a distinct VST3 identity from the original AERIFORM. Windows test binaries are included in [artifacts/windows-x64](artifacts/windows-x64); see [the test-build notes](artifacts/windows-x64/README.md) for installation, validation and current limitations.
+
+Implemented additions include A/B parameter/deep morphing, seeded patch tools and locks, undo/favourites, three movable filters, collision routing, physical stereo, a shared sympathetic bank, coupled room, resonant delay and shimmer. Spectral-freeze DSP is included through host parameters; its dedicated page is pending. Multiband saturation, a separate FX target and the final realtime/performance audit remain unfinished. Original factory sounds are preserved; new modules default off.
+
+The baseline project documentation follows.
+
 # AERIFORM
 
 **An oscillator-free physical-modelling synthesizer with a complex exciter
