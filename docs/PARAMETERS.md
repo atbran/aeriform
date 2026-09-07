@@ -463,13 +463,13 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `contact_on` | Collision Enabled | off / on | off | Enable a bounded nonlinear contact route between two running resonators. |
 | `contact_source` | Collision Source | Res A / Res B / Res C | Res A | Source displacement is compared with the contact gap. |
 | `contact_destination` | Collision Destination | Res A / Res B / Res C | Res B | Receiving resonator. A reaction is also applied to the source. Both slots must be running. |
-| `contact_gap` | Contact Gap | 0.00 .. 1.00 | 0.05 | Displacement threshold for contact. |
+| `contact_gap` | Contact Gap | 0.00 .. 1.00 | 0.05 | Audible stop gap uses a squared response for finer control of quiet signals; physical force retains its conservative threshold. |
 | `contact_stiffness` | Contact Stiffness | 0 % .. 100 % | 50 % | Nonlinear stiffness, bounded before network injection. |
 | `contact_hardness` | Contact Hardness | 1.00 .. 4.00 | 1.50 | Exponent of the penetration response. |
-| `contact_damping` | Contact Damping | 0 % .. 100 % | 20 % | Increases dissipative equalization during contact. |
+| `contact_damping` | Contact Damping | 0 % .. 100 % | 20 % | Softens the reflected pickup response toward a muted, lossy stop. |
 | `contact_friction` | Contact Friction | 0 % .. 100 % | 0 % | Bounded corrugation of the contact surface for buzz and chatter. |
 | `contact_asymmetry` | Contact Asymmetry | -100 % .. +100 % | 0 % | Different positive and negative displacement gaps. |
-| `contact_amount` | Collision Amount | 0 % .. 100 % | 30 % | Smoothed route strength with destination-loss normalization. |
+| `contact_amount` | Collision Amount | 0 % .. 100 % | 30 % | Smoothed audible stop strength and loss-normalized physical coupling. |
 | `contact_polarity` | Contact Polarity | Positive / Negative | Positive | Positive or inverted destination scattering. |
 | `contact_quality` | Contact Quality | Eco / Normal / High | Normal | Contact oversampling: Eco 1x, Normal 2x, High 4x. Changes crossfade. |
 | `stereo_mode` | Physical Stereo Mode | Economy / Physical stereo | Economy | Economy preserves the original single network. Physical runs independent left and right resonators. |
@@ -482,7 +482,7 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `stereo_width` | Physical Stereo Width | 0 % .. 200 % | 100 % | Mid/side width. Zero produces identical channels in Physical mode. |
 | `stereo_mono_bass` | Mono Bass | 20.0 Hz .. 1.00 kHz | 120 Hz | Remove low frequencies from the side channel. Minimum disables convergence. |
 | `sym_on` | Sympathetic Bank Enabled | off / on | off | One shared bank of twelve tuned modes responds to all voices. |
-| `sym_send` | Sympathetic Send | 0 % .. 100 % | 40 % | Voice sum send, normalized by active voice count. |
+| `sym_send` | Sympathetic Send | 0 % .. 100 % | 40 % | Stereo voice send with source-derived attacks and a bounded modal energy budget. |
 | `sym_return` | Sympathetic Return | 0 % .. 200 % | 40 % | Shared bank return level before the global effects. |
 | `sym_damper` | Damper Position | 0 % .. 100 % | 0 % | Raises damping to quickly stop sympathetic ringing. |
 | `sym_decay` | Sympathetic Decay | 100 ms .. 60.00 s | 6.00 s | Approximate time for an isolated mode to decay by 60 dB before damping. |
@@ -510,3 +510,73 @@ Generated from the parameter layout (`AeriformTests --params`).
 | `sym_interval11` | Sympathetic Interval 11 | -24 .. 48 | 40 | Custom chord interval relative to the root. |
 | `sym_interval12` | Sympathetic Interval 12 | -24 .. 48 | 43 | Custom chord interval relative to the root. |
 | `net_bypass` | Bypass Resonators | off / on | off | Route excitation directly past the resonators. Also happens automatically when no resonator is enabled. Overrides Repipe while bypassed. |
+| `room_on` | Coupled Room Enabled | off / on | off | One shared small-room model receives voices and returns bounded energy to the physical network. |
+| `room_size` | Room Size | 0 % .. 100 % | 30 % | Physical path length scale of the eight-line room. |
+| `room_shape` | Room Shape | 0 % .. 100 % | 50 % | Aspect and path-length pattern of the room. |
+| `room_wall_damping` | Wall Damping | 0 % .. 100 % | 40 % | Loss of high frequencies at room reflections. |
+| `room_diffusion` | Room Diffusion | 0 % .. 100 % | 70 % | Mixing between reflection paths. |
+| `room_air` | Air Absorption | 0 % .. 100 % | 30 % | Frequency-dependent absorption along the room paths. |
+| `room_send` | Room Voice Send | 0 % .. 100 % | 40 % | Voice sum sent to the shared room, normalized by active voice count. |
+| `room_network_return` | Room Network Return | 0 % .. 100 % | 20 % | Delayed room excitation, limited by an energy budget funded only by the voice exciters. |
+| `room_return_delay` | Room Return Delay | 1.0 ms .. 250 ms | 15.0 ms | Return path delay. Causal minimum is 32 samples, independent of host buffer size. |
+| `room_return_filter` | Room Return Filter | 100 Hz .. 12.0 kHz | 3.00 kHz | Return low-pass filter, with a fixed 30 Hz DC/high-pass filter. |
+| `room_feedback` | Room Feedback | 0 % .. 100 % | 60 % | Internal room feedback. Input gain follows loop loss for bounded excitation. |
+| `room_width` | Room Width | 0 % .. 100 % | 100 % | Width of the audible room return. |
+| `room_level` | Room Output Level | 0 % .. 200 % | 30 % | Audible stereo room output; independent of network return strength. |
+| `room_freeze` | Room Freeze | off / on | off | Hold the room by stopping excitation and removing damping; paths settle to integer lengths. |
+| `room_clear` | Clear Room Energy | off / on | off | Each toggle clears all room and return-delay energy. |
+
+## SPACE
+
+| ID | Name | Range | Default | Description |
+|---|---|---|---|---|
+| `rd_on` | Resonant Delay Enabled | off / on | off | Stereo delay with a normalized modal processor inside the feedback path. |
+| `rd_time` | Resonant Delay Time | 1.0 ms .. 4.00 s | 375 ms | Delay time; changes glide smoothly. |
+| `rd_sync` | Resonant Delay Sync | off / on | off | Use the host tempo and selected note division. |
+| `rd_div` | Resonant Delay Division | 8/1 / 4/1 / 2/1 / 1/1 / 1/2 / 1/2 D / 1/2 T / 1/4 / 1/4 D / 1/4 T / 1/8 / 1/8 D / 1/8 T / 1/16 / 1/16 D / 1/16 T / 1/32 | 1/2 T | Tempo-synchronized note division. |
+| `rd_feedback` | Resonant Delay Feedback | 0 % .. 98 % | 50 % | Normalized feedback; new excitation follows loop loss. |
+| `rd_type` | Delay Resonator Type | Harmonic / Metallic bar / Membrane / Vowel body | Harmonic | Six-mode harmonic, bar, membrane or vowel-like feedback colour. Changes glide between frequencies. |
+| `rd_tuning` | Delay Resonator Tuning | 20.0 Hz .. 6.00 kHz | 220 Hz | Base frequency of the first feedback mode, referenced to MIDI note 57 when tracking. |
+| `rd_track` | Delay Pitch Tracking | 0 % .. 100 % | 0 % | Follow the last MIDI note relative to A3. Pitch bend and per-voice glide do not change this shared effect. |
+| `rd_damping` | Delay Resonator Damping | 0 % .. 100 % | 40 % | Shorten modal ringing and reduce upper-mode weights. |
+| `rd_dispersion` | Delay Resonator Dispersion | 0 % .. 100 % | 0 % | Stretch upper modal ratios for inharmonic repeat colour. |
+| `rd_amount` | Delay Resonator Amount | 0 % .. 100 % | 70 % | Blend neutral and modal-processed feedback. First repeat is unchanged. |
+| `rd_saturation` | Resonant Delay Saturation | 0 % .. 100 % | 20 % | Gain-compensated soft saturation inside the feedback path. |
+| `rd_offset` | Resonant Delay Stereo Offset | -50.0 ms .. 50.0 ms | 7.0 ms | Difference between left and right delay times. |
+| `rd_mix` | Resonant Delay Mix | 0 % .. 100 % | 30 % | Linear dry/wet blend; bypass fades and clears the delay. |
+| `sh_on` | Shimmer Enabled | off / on | off | Independent reverb with a filtered pitch-shifted feedback path. |
+| `sh_interval` | Shimmer Interval | -24 st .. +24 st | +12 st | Pitch shift in semitones. Changes glide over 30 ms. |
+| `sh_feedback` | Shimmer Feedback | 0 % .. 100 % | 55 % | Reverb decay and bounded pitch-shifted feedback. |
+| `sh_diffusion` | Shimmer Diffusion | 0 % .. 100 % | 80 % | Mixing between the eight reflection paths. |
+| `sh_damping` | Shimmer Damping | 0 % .. 100 % | 30 % | High-frequency loss in the reflection paths. |
+| `sh_size` | Shimmer Size | 0 % .. 100 % | 70 % | Reflection path lengths; changes glide. |
+| `sh_spread` | Shimmer Spread | 0 % .. 100 % | 100 % | Stereo width of the reverb and shifted feedback. |
+| `sh_low_cut` | Shimmer Low Cut | 20.0 Hz .. 2.00 kHz | 150 Hz | Remove low frequencies from the shifted feedback. |
+| `sh_high_cut` | Shimmer High Cut | 200 Hz .. 20.0 kHz | 8.00 kHz | Remove high frequencies from the shifted feedback. |
+| `sh_mix` | Shimmer Mix | 0 % .. 100 % | 30 % | Linear dry/wet blend. The dry signal is not delayed. |
+| `sf_on` | Spectral Freeze Enabled | off / on | off | Analyze the post-effects signal for a preallocated 2048-point spectral hold. |
+| `sf_freeze` | Spectral Hold | off / on | off | Capture the current spectrum and hold it. Release returns to live audio. |
+| `sf_capture` | Capture Spectrum | off / on | off | Each toggle captures a new spectrum at the next complete analysis frame and starts holding. |
+| `sf_release` | Release Spectrum | off / on | off | Each toggle releases the held spectrum and crossfades back to live audio. |
+| `sf_blur` | Spectral Blur | 0 % .. 100 % | 0 % | Spread captured bin energy across neighbouring frequencies. |
+| `sf_shift` | Spectral Shift | -24 st .. +24 st | 0 st | Transpose the held spectral bins and phase advances. |
+| `sf_random` | Spectral Random Phase | 0 % .. 100 % | 0 % | Deterministic per-frame phase diffusion for a less stationary texture. |
+| `sf_decay` | Spectral Decay | 0.0 ms .. 60.00 s | 0.0 ms | Held spectrum decay time to minus 60 dB. Zero holds indefinitely. |
+| `sf_mix` | Spectral Mix | 0 % .. 100 % | 100 % | Linear live/held blend. Live audio has no added delay when not holding. |
+| `sat_on` | Multiband Saturation Enabled | off / on | off | Three phase-compensated bands after spectral freeze and before the final movable filters. Bypass fades to the original dry signal. |
+| `sat_low` | Saturation Low Crossover | 40.0 Hz .. 4.00 kHz | 250 Hz | Lower LR4 split. Automatically stays below the upper crossover by at least a 1.25 ratio. |
+| `sat_high` | Saturation High Crossover | 200 Hz .. 16.0 kHz | 2.50 kHz | Upper LR4 split. Low-band phase compensation preserves flat neutral reconstruction. |
+| `sat_mix` | Saturation Mix | 0 % .. 100 % | 100 % | Blend against the phase-aligned neutral band sum. Disable the effect for sample-exact raw bypass. |
+| `sat_quality` | Saturation Oversampling | Eco / Normal / High | Normal | Eco 1x, Normal 2x, High 4x. Quality changes briefly fade to raw bypass before switching filters. |
+| `sat_low_drive` | Low Band Drive | 0.0 dB .. 36.0 dB | 0.0 dB | Input drive with partial gain compensation. Zero dB leaves this band undistorted. |
+| `sat_low_model` | Low Band Model | Soft / Warm / Clip / Fold | Soft | Soft tanh, asymmetric warm saturation, hard clip, or sine fold. Model changes crossfade. |
+| `sat_low_mix` | Low Band Mix | 0 % .. 100 % | 100 % | Phase-aligned neutral/processed band blend. |
+| `sat_low_output` | Low Band Output | -24.0 dB .. 12.0 dB | 0.0 dB | Output trim for the processed band, before band mix and global mix. |
+| `sat_mid_drive` | Mid Band Drive | 0.0 dB .. 36.0 dB | 0.0 dB | Input drive with partial gain compensation. Zero dB leaves this band undistorted. |
+| `sat_mid_model` | Mid Band Model | Soft / Warm / Clip / Fold | Soft | Soft tanh, asymmetric warm saturation, hard clip, or sine fold. Model changes crossfade. |
+| `sat_mid_mix` | Mid Band Mix | 0 % .. 100 % | 100 % | Phase-aligned neutral/processed band blend. |
+| `sat_mid_output` | Mid Band Output | -24.0 dB .. 12.0 dB | 0.0 dB | Output trim for the processed band, before band mix and global mix. |
+| `sat_high_drive` | High Band Drive | 0.0 dB .. 36.0 dB | 0.0 dB | Input drive with partial gain compensation. Zero dB leaves this band undistorted. |
+| `sat_high_model` | High Band Model | Soft / Warm / Clip / Fold | Soft | Soft tanh, asymmetric warm saturation, hard clip, or sine fold. Model changes crossfade. |
+| `sat_high_mix` | High Band Mix | 0 % .. 100 % | 100 % | Phase-aligned neutral/processed band blend. |
+| `sat_high_output` | High Band Output | -24.0 dB .. 12.0 dB | 0.0 dB | Output trim for the processed band, before band mix and global mix. |
