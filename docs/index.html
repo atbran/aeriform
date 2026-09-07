@@ -31,8 +31,9 @@
   .section-label{color:var(--teal);font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;
      margin:48px 0 16px;padding-left:2px;border-left:3px solid var(--teal);padding-left:10px;}
   .track{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;}
-  .track-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .track-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap;}
   .track-name{font-size:1.05rem;font-weight:600;color:var(--text);}
+  .track-desc{color:var(--text-dim);font-size:0.88rem;line-height:1.5;margin:0 0 12px;}
   .track-note{color:var(--text-faint);font-size:0.85rem;}
   audio{width:100%;height:36px;}
   audio::-webkit-media-controls-panel{background:var(--inset);}
@@ -69,38 +70,55 @@
   <div class="section-label">Demos</div>
 
   <div class="track">
+    <div class="track-top"><span class="track-name">Epic</span></div>
+    <p class="track-desc">Simple waves and a sidechain signal from another synth, piped through three
+      resonators with lots of cross-feedback. Will absolutely cook your CPU.</p>
+    <audio controls preload="none" src="audio/epic.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Quesodilla</span></div>
+    <p class="track-desc">A pluck with added breathy noise, through three resonators with mild
+      feedback.</p>
+    <audio controls preload="none" src="audio/quesodilla.mp3"></audio>
+  </div>
+
+  <div class="track">
     <div class="track-top"><span class="track-name">Breathy Pipe</span></div>
+    <p class="track-desc">Noise through the resonator network; velocity changes the intensity of the
+      noise.</p>
     <audio controls preload="none" src="audio/breathy-pipe.mp3"></audio>
   </div>
 
   <div class="track">
     <div class="track-top"><span class="track-name">Reedy Lead</span></div>
+    <p class="track-desc">Built around the reed exciter.</p>
     <audio controls preload="none" src="audio/reedy-lead.mp3"></audio>
   </div>
 
   <div class="track">
     <div class="track-top"><span class="track-name">Chorded Pipes</span></div>
+    <p class="track-desc">A hybrid resonator setup driven by the Repipe macro.</p>
     <audio controls preload="none" src="audio/chorded-pipes.mp3"></audio>
   </div>
 
   <div class="track">
     <div class="track-top"><span class="track-name">Bassy</span></div>
+    <p class="track-desc">Distorted bass using the wavefolder.</p>
     <audio controls preload="none" src="audio/bassy.mp3"></audio>
   </div>
 
   <div class="track">
     <div class="track-top"><span class="track-name">Fusion</span></div>
+    <p class="track-desc">A plucky sound with added effects.</p>
     <audio controls preload="none" src="audio/fusion.mp3"></audio>
   </div>
 
   <div class="track">
     <div class="track-top"><span class="track-name">Audio Effect</span></div>
+    <p class="track-desc">A bar loop played dry, then fully wet with the loop's audio piped through
+      the resonators.</p>
     <audio controls preload="none" src="audio/audio-effect.mp3"></audio>
-  </div>
-
-  <div class="track">
-    <div class="track-top"><span class="track-name">Epic</span></div>
-    <audio controls preload="none" src="audio/epic.mp3"></audio>
   </div>
 </main>
 
