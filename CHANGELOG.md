@@ -60,6 +60,18 @@ The interface is now six tabs: **MAIN, EXCITERS, NETWORK, MOTION, SPACE, ADVANCE
 
 Dual exciters (band-limited waveforms, an original chaotic "orbit" oscillator, a 12-model noise laboratory, physical exciters, sidechain input), 13 interaction modes, a pre-shaper, an oversampled wavefolder, and a three-resonator network (9 models, 4 routing modes, 6 governed cross-feedback routes, the Repipe macro, an optional energy loop). Five-page GUI (MAIN, EXCITERS, NETWORK, MOTION, SPACE), 353 parameters, 40 factory presets, MPE.
 
+| Area | v0.1 | v2.1 |
+|---|---|---|
+| Exciter | one breath / pluck / sidechain exciter | two slots, 25 models each, interaction stage, pre-shaper, oversampled wavefolder |
+| Resonator | one waveguide (3 topologies) + body | three slots, 9 models, routing, cross-feedback, Repipe, energy loop, governor |
+| Matrix | 8 slots, 15 sources, 23 destinations | 16 slots, 29 sources, 52 destinations |
+| Parameters | 120 | 353 (all 120 old IDs unchanged) |
+| Presets | 20 | 40 |
+| GUI | one page | five pages, scopes, transfer curve, network diagram |
+| Tests | 33 unit + 5 smoke | 64 unit + 8 smoke (incl. multi-minute fuzz, CPU profile, editor) |
+
+A v0.1 session or preset loads with Exciter A = Breath, B = Off, the folder off, Single routing and the loop off, which is exactly the v0.1 signal path; the default chord renders at the same level as before.
+
 ## v0.1.0
 
 Initial oscillator-free, breath-driven physical-modelling synth: one waveguide resonator (open pipe / closed pipe / string), a breath/pluck exciter with a pressure-driven reed junction, chorus/delay/reverb, an 8-slot modulation matrix, MPE, sidechain excitation. 120 parameters, 20 factory presets.

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AERIFORM — Listen</title>
+<meta name="description" content="Demo tracks for AERIFORM, an oscillator-free physical-modelling synthesizer.">
+<style>
+  :root{
+    --bg:#17191d; --panel:#1f2227; --panel-raised:#262a30; --border:#2f343b; --inset:#121417;
+    --text:#d9dce0; --text-dim:#8f959d; --text-faint:#5d636b;
+    --copper:#c27a3f; --copper-bright:#e0a35a; --teal:#3fb8c4; --teal-bright:#6fe0ea;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  body{padding:0 0 64px;}
+  .vignette{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.04), transparent 60%);}
+  header{max-width:920px;margin:0 auto;padding:56px 24px 32px;text-align:center;}
+  h1{font-size:2.4rem;letter-spacing:0.04em;margin:0 0 8px;color:var(--copper-bright);
+     text-shadow:0 0 24px rgba(224,163,90,0.25);}
+  .tagline{color:var(--text-dim);font-size:1.05rem;max-width:640px;margin:0 auto 20px;line-height:1.5;}
+  .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;}
+  .btn{display:inline-block;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600;
+       font-size:0.92rem;letter-spacing:0.02em;border:1px solid var(--border);transition:transform .15s ease;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{background:linear-gradient(180deg,var(--copper-bright),var(--copper));color:#1a1204;border:none;}
+  .btn-secondary{background:var(--panel-raised);color:var(--text);}
+  main{max-width:820px;margin:0 auto;padding:0 24px;}
+  .section-label{color:var(--teal);font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;
+     margin:48px 0 16px;padding-left:2px;border-left:3px solid var(--teal);padding-left:10px;}
+  .track{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;}
+  .track-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .track-name{font-size:1.05rem;font-weight:600;color:var(--text);}
+  .track-note{color:var(--text-faint);font-size:0.85rem;}
+  audio{width:100%;height:36px;}
+  audio::-webkit-media-controls-panel{background:var(--inset);}
+  footer{max-width:820px;margin:56px auto 0;padding:24px;border-top:1px solid var(--border);
+     color:var(--text-faint);font-size:0.85rem;text-align:center;line-height:1.7;}
+  footer a{color:var(--teal);text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+  .badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+  .badge{background:var(--panel-raised);border:1px solid var(--border);border-radius:4px;padding:4px 10px;
+     font-size:0.75rem;color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<header>
+  <h1>AERIFORM</h1>
+  <p class="tagline">An oscillator-free physical-modelling synthesizer: two complex exciters feed a network
+    of up to three tuned resonators, with movable filters, collision routing, a shared sympathetic bank and
+    room, and patch morphing on top. Everything below was played live on the synth, no other processing.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="https://github.com/atbran/aeriform/releases/latest">Download latest release</a>
+    <a class="btn btn-secondary" href="https://github.com/atbran/aeriform">View source on GitHub</a>
+    <a class="btn btn-secondary" href="https://github.com/atbran/aeriform/blob/master/docs/GUIDE.md">Read the guide</a>
+  </div>
+  <div class="badge-row">
+    <span class="badge">VST3 + Standalone</span>
+    <span class="badge">Windows x64</span>
+    <span class="badge">MPE</span>
+    <span class="badge">JUCE / C++20</span>
+  </div>
+</header>
+
+<main>
+  <div class="section-label">Demos</div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Breathy Pipe</span></div>
+    <audio controls preload="none" src="audio/breathy-pipe.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Reedy Lead</span></div>
+    <audio controls preload="none" src="audio/reedy-lead.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Chorded Pipes</span></div>
+    <audio controls preload="none" src="audio/chorded-pipes.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Bassy</span></div>
+    <audio controls preload="none" src="audio/bassy.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Fusion</span></div>
+    <audio controls preload="none" src="audio/fusion.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Audio Effect</span></div>
+    <audio controls preload="none" src="audio/audio-effect.mp3"></audio>
+  </div>
+
+  <div class="track">
+    <div class="track-top"><span class="track-name">Epic</span></div>
+    <audio controls preload="none" src="audio/epic.mp3"></audio>
+  </div>
+</main>
+
+<footer>
+  AERIFORM is an original design: no code, algorithms, presets, panel layouts, artwork or branding from any
+  other product. Code is MIT licensed; built binaries additionally bundle JUCE and the Steinberg VST3 SDK — see
+  <a href="https://github.com/atbran/aeriform/blob/master/THIRD_PARTY_LICENSES.md">THIRD_PARTY_LICENSES.md</a>
+  for distribution terms.<br>
+  <a href="https://github.com/atbran/aeriform">github.com/atbran/aeriform</a>
+</footer>
+</body>
+</html>
