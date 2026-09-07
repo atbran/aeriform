@@ -1,4 +1,4 @@
-# Additional feature ideas for EXP_Aeriform
+# Additional feature ideas for AERIFORM
 
 Proposals only: separate user approval is required before implementing any of these additions. Required takeover features are tracked separately in TASKS.md.
 

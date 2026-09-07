@@ -1,23 +1,15 @@
-# EXP_Aeriform experimental branch
-
-This branch contains the independent EXP_Aeriform synth, with a distinct VST3 identity from the original AERIFORM. Windows test binaries are included in [artifacts/windows-x64](artifacts/windows-x64); see [the test-build notes](artifacts/windows-x64/README.md) for installation, validation and current limitations.
-
-Implemented additions include A/B parameter/deep morphing, seeded patch tools and locks, undo/favourites, three movable filters, collision routing, physical stereo, a shared sympathetic bank, coupled room, resonant delay and shimmer. Spectral-freeze DSP is included through host parameters; its dedicated page is pending. Multiband saturation, a separate FX target and the final realtime/performance audit remain unfinished. Original factory sounds are preserved; new modules default off.
-
-The baseline project documentation follows.
-
 # AERIFORM
 
 **An oscillator-free physical-modelling synthesizer with a complex exciter
 generator and a three-resonator feedback network.**
 VST3 + Standalone, 8-voice polyphonic (up to 16), MPE, sidechain excitation.
-C++20 / JUCE 7.0.12 / CMake. Version 2.1.
+C++20 / JUCE 7.0.12 / CMake. Version 3.0.
 
 ![AERIFORM interface (MAIN page)](docs/screenshot.png)
 
 AERIFORM started (v0.1) as a breath-driven waveguide instrument: air, noise,
 plucks or sidechain audio pushed into a tuned tube whose reflections, losses,
-dispersion and reed junction shape the tone. Version 2.1 turns the front end
+dispersion and reed junction shape the tone. Version 3.0 turns the front end
 into a **dual-exciter complex generator** (conventional band-limited waveforms,
 an original chaotic "orbit" oscillator, a noise laboratory, physical exciters
 and the sidechain) with **thirteen interaction modes**, a **pre-shaper** and an
@@ -735,10 +727,17 @@ including the splash-screen rule for JUCE Personal. All DSP in this repository
 (oscillators, noise models, physical exciters, folder functions, halfband
 design, resonator models, network) is original work written for AERIFORM.
 
-## EXP_Aeriform experimental branch
+## What's new in v3
 
-This isolated development branch adds the PLAY snapshot/randomizer page, A/B Parameter and Deep Morph, explicit GUI undo/redo, seeded mutation with locks, and persistent favorite presets. The VST3 is named EXP_Aeriform with an independent identifier. All original factory presets remain present. Experimental user presets use Documents/EXP_Aeriform/Presets.
+Six tabs: MAIN, EXCITERS, NETWORK, MOTION, SPACE, ADVANCED.
 
-Read docs/PRESET_MORPH.md and docs/RANDOMIZER.md for behavior and limitations. State format 3 loads earlier states and preserves all original parameter IDs. The requested network, modular filters, advanced effects and FX target are subsequent implementation phases; they are not yet present in this checkpoint.
+- **A/B morph and patch tools (ADVANCED)** - capture two full snapshots (A/B), morph between them with one host-automatable knob (Parameter mode interpolates values; Deep mode runs two complete synthesis engines and cross-mixes them), a seeded randomizer with per-control locks and a Wild mode, mutation around the current patch, GUI undo/redo, and persistent favorites. See [docs/PRESET_MORPH.md](docs/PRESET_MORPH.md) and [docs/RANDOMIZER.md](docs/RANDOMIZER.md).
+- **Movable filters (SPACE)** - three independent filter blocks (low-pass, high-pass, band-pass, notch, morphing SVF, driven SVF, ladder, formant, comb, modal-bank, tilt) insertable at 20 positions, including inside a resonator's own loop with phase-delay compensation so it stays in tune. See [docs/FILTER_ROUTING.md](docs/FILTER_ROUTING.md).
+- **Contact / collision routing (NETWORK)** - a bounded, oversampled contact route between two resonators that only transfers energy past a gap, with stiffness, hardness, friction and asymmetry.
+- **True stereo resonator network (NETWORK)** - independent left/right resonator instances with detuning, coupling, pickup/damping offsets, rotation and width, switchable per patch (mono "Economy" mode is bit-identical to v2.1).
+- **Shared sympathetic bank (NETWORK)** - a 12-mode bank every voice excites, tunable to a scale, a captured MIDI chord, or held notes, for piano-style sympathetic ringing.
+- **Coupled room (NETWORK)** - a shared 8-line room with early reflections and a bounded, delayed physical return into the resonators.
+- **Resonant delay, shimmer reverb, spectral freeze, multiband saturation (SPACE)** - new effects after the original chorus/delay/reverb, all off by default.
+- Explicit resonator bypass, right-click modulation-matrix assignment with ring/Alt-drag depth editing, and various user-testing fixes.
 
-Experimental checkpoint: the six-tab interface now groups contact, true stereo and a shared twelve-mode sympathetic bank under NETWORK, modular filters under SPACE, and A/B morph/patch tools under ADVANCED. The remaining room/effects/FX work and realtime audit are still in progress; see TASKS.md.
+All-new DSP defaults off and every original v2.1 parameter ID and factory preset is unchanged; 40 original presets measured bit-identical against the v2.1 baseline (see [docs/AUDIBILITY_RESULTS.md](docs/AUDIBILITY_RESULTS.md)). See [CHANGELOG.md](CHANGELOG.md) for the full list and [TASKS.md](TASKS.md) for the development log.

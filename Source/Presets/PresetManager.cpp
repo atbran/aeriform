@@ -8,7 +8,7 @@ PresetManager::PresetManager (juce::AudioProcessorValueTreeState& state) : apvts
     for (auto* p : apvts.processor.getParameters())
         if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p))
             apvts.addParameterListener (rp->paramID, this);
-    favoriteFile=juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory).getChildFile("EXP_Aeriform").getChildFile("favorites.xml");
+    favoriteFile=juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory).getChildFile("Aeriform").getChildFile("favorites.xml");
     loadFavorites();
     rescan();
 }
@@ -23,7 +23,7 @@ PresetManager::~PresetManager()
 juce::File PresetManager::getUserPresetDirectory()
 {
     return juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
-               .getChildFile ("EXP_Aeriform").getChildFile ("Presets");
+               .getChildFile ("Aeriform").getChildFile ("Presets");
 }
 
 void PresetManager::rescan()

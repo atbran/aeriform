@@ -38,12 +38,12 @@ if(APPLE)
 endif()
 
 juce_add_plugin(Aeriform
-    PRODUCT_NAME                "EXP_Aeriform"
+    PRODUCT_NAME                "AERIFORM"
     COMPANY_NAME                "Aeriform Audio"
     COMPANY_WEBSITE             "https://example.invalid/aeriform"
-    BUNDLE_ID                   "com.aeriformaudio.exp-aeriform"
+    BUNDLE_ID                   "com.aeriformaudio.aeriform"
     PLUGIN_MANUFACTURER_CODE    Aerf
-    PLUGIN_CODE                 Exaf
+    PLUGIN_CODE                 Aefm
     FORMATS                     ${AERIFORM_FORMATS}
     IS_SYNTH                    TRUE
     NEEDS_MIDI_INPUT            TRUE

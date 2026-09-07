@@ -21,7 +21,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
 {
     setLookAndFeel (&lookAndFeel);
 
-    titleLabel.setText ("EXP_Aeriform", juce::dontSendNotification);
+    titleLabel.setText ("AERIFORM", juce::dontSendNotification);
     titleLabel.setFont (titleFont (22.0f));
     titleLabel.setColour (juce::Label::textColourId, copperBright);
     subtitleLabel.setText ("COMPLEX EXCITER / RESONATOR NETWORK SYNTHESIZER", juce::dontSendNotification);
