@@ -11,13 +11,14 @@
 #include "../GUI/SpectralPage.h"
 #include "../GUI/SaturationPage.h"
 #include "../GUI/WorkspacePage.h"
+#include "../GUI/EffectsWorkspace.h"
 
 using namespace aeriform;
 using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOTION", "SPACE", "ADVANCED" })
+      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOD MATRIX", "EFFECTS", "ADVANCED" })
 {
     setLookAndFeel (&lookAndFeel);
 
@@ -36,9 +37,19 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
 
     pages[0] = std::make_unique<MainPage> (p);
     pages[1] = std::make_unique<ExcitersPage> (p);
-    auto network=std::make_unique<WorkspacePage>(p,2);network->addSection("RESONATORS / ROUTING",std::make_unique<NetworkPage>(p));network->addSection("CONTACT / STEREO",std::make_unique<ContactPage>(p));network->addSection("SYMPATHETIC BANK",std::make_unique<SympatheticPage>(p));network->addSection("COUPLED ROOM",std::make_unique<RoomPage>(p));network->showSection(p.getEditorSection(2));pages[2]=std::move(network);
+    auto network = std::make_unique<WorkspacePage> (p, 2);
+    network->addSection ("RESONATORS / ROUTING", std::make_unique<NetworkPage> (p));
+    auto stereo = std::make_unique<ContactPage> (p);
+    stereo->showStereo (true);
+    network->addSection ("ADVANCED / PHYSICAL STEREO", std::move (stereo));
+    network->showSection (p.getEditorSection (2) == 1 ? 1 : 0);
+    pages[2] = std::move (network);
     pages[3] = std::make_unique<MotionPage> (p);
-    auto space=std::make_unique<WorkspacePage>(p,4);space->addSection("EFFECTS",std::make_unique<SpacePage>(p));space->addSection("MODULAR FILTERS",std::make_unique<FiltersPage>(p));space->addSection("RESONANT DELAY",std::make_unique<ResonantDelayPage>(p));space->addSection("SHIMMER",std::make_unique<ShimmerPage>(p));space->addSection("SPECTRAL FREEZE",std::make_unique<SpectralPage>(p));space->addSection("SATURATION",std::make_unique<SaturationPage>(p));space->showSection(p.getEditorSection(4));pages[4]=std::move(space);
+    auto effects = std::make_unique<WorkspacePage> (p, 4);
+    effects->addSection ("EFFECTS", std::make_unique<EffectsPage> (p));
+    effects->addSection ("ACOUSTIC", std::make_unique<AcousticPage> (p));
+    effects->showSection (p.getEditorSection (4) == 1 ? 1 : 0);
+    pages[4] = std::move (effects);
     pages[5] = std::make_unique<PerformancePage>(p);
     undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
     redoButton.onClick=[this]{processor.getPatchTools().undo.redo();};
@@ -84,8 +95,8 @@ AeriformEditor::~AeriformEditor()
 void AeriformEditor::showPage (int index)
 {
     // Preserve the saved locations from early experimental eight-tab builds.
-    if(index==6){dynamic_cast<WorkspacePage*>(pages[4].get())->showSection(1);index=4;}
-    if(index==7){dynamic_cast<WorkspacePage*>(pages[2].get())->showSection(1);index=2;}
+    if(index==6){dynamic_cast<WorkspacePage*>(pages[4].get())->showSection(0);index=4;}
+    if(index==7){dynamic_cast<WorkspacePage*>(pages[4].get())->showSection(1);index=4;}
     index = juce::jlimit (0, (int) pages.size() - 1, index);
     if (index == currentPage) return;
     currentPage = index;
@@ -137,10 +148,10 @@ void AeriformEditor::layoutContent()
     // ---- top bar: row 1 = title, page tabs, status, size; row 2 = subtitle + the full-width preset browser
     auto top = r.removeFromTop (56);
     auto row1 = top.removeFromTop (28);
-    titleLabel.setBounds (row1.removeFromLeft (210));
+    titleLabel.setBounds (row1.removeFromLeft (180));
     scaleButton.setBounds (row1.removeFromRight (64).reduced (0, 1));
     row1.removeFromRight (8);
-    statusLabel.setBounds (row1.removeFromRight (200));
+    statusLabel.setBounds (row1.removeFromRight (180));
     row1.removeFromRight (12);
     tabs.setBounds (row1.removeFromRight (600).reduced (0, 1));
     top.removeFromTop (2);

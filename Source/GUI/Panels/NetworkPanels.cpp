@@ -68,7 +68,7 @@ void ResonatorSlotPanel::resized()
     type->setBounds (head.removeFromLeft (150));
     head.removeFromLeft (10);
     energy->setBounds (head.withTrimmedTop (16));
-    const int rowH = 62;
+    const int rowH = 60;
     auto row = [&] (juce::Label* cap, const std::vector<juce::Component*>& items)
     {
         r.removeFromTop (2);
@@ -105,7 +105,7 @@ NetworkControlsPanel::NetworkControlsPanel (AeriformProcessor& p) : ParamPanel (
     sendAB = knob (netSendAB, "Send A>B", {}, d); sendBC = knob (netSendBC, "Send B>C", {}, d);
     injectB = knob (netInjectB, "Inject B", {}, d); injectC = knob (netInjectC, "Inject C", {}, d);
     for (auto* k : { ab, ba, bc, cb, ca, ac }) k->setAccentColour (theme::teal);
-    loopCaption  = caption ("ENERGY LOOP  (experimental: resonator energy back into the excitation chain, bounded and governed)");
+    loopCaption  = caption ("ENERGY LOOP");
     loopOn       = control<Toggle> (processor, ids::loopOn, "Loop On");
     loopSource   = control<ChoiceBox> (processor, ids::loopSource, "Source");
     loopDest     = control<ChoiceBox> (processor, ids::loopDest, "Destination");
@@ -121,8 +121,9 @@ void NetworkControlsPanel::resized()
 {
     auto r = getContentArea();
     auto head = r.removeFromTop (40);
-    bypass->setBounds(head.removeFromRight(210).withTrimmedTop(14));
-    layoutFixed (head, { routing, inject, tap, polarity }, 150, 8);
+    bypass->setBounds(head.removeFromRight(190).withTrimmedTop(14));
+    head.removeFromRight (8);
+    layoutFixed (head, { routing, inject, tap, polarity }, (head.getWidth() - 24) / 4, 8);
     r.removeFromTop (4);
     knobRow (r.removeFromTop (78), { repipe, feedback, damping, width, mix, fbDelay, fbFilter, fbDrive });
     r.removeFromTop (2);
@@ -145,7 +146,7 @@ void NetworkControlsPanel::resized()
 NetworkOverviewPanel::NetworkOverviewPanel (AeriformProcessor& p) : ParamPanel (p, "NETWORK", theme::brass)
 {
     using namespace ids;
-    diagram  = std::make_unique<NetworkDiagram> (processor, true);
+    diagram = std::make_unique<NetworkDiagram> (processor, true);
     addAndMakeVisible (*diagram);
     routing  = control<ChoiceBox> (processor, netMode, "Routing");
     tap      = control<ChoiceBox> (processor, netTap, "Output Tap");
@@ -164,17 +165,18 @@ NetworkOverviewPanel::NetworkOverviewPanel (AeriformProcessor& p) : ParamPanel (
 void NetworkOverviewPanel::resized()
 {
     auto r = getContentArea();
-    diagram->setBounds (r.removeFromLeft (250));
-    r.removeFromLeft (10);
+    diagram->setBounds (r.removeFromLeft (190));
+    r.removeFromLeft (8);
     auto head = r.removeFromTop (40);
-    routing->setBounds (head.removeFromLeft (130));
+    routing->setBounds (head.removeFromLeft ((head.getWidth() - 8) / 2));
     head.removeFromLeft (8);
-    tap->setBounds (head.removeFromLeft (120));
-    head.removeFromLeft (8);
-    rbOn->setBounds (head.removeFromLeft (52).withTrimmedTop (14));
-    rcOn->setBounds (head.removeFromLeft (52).withTrimmedTop (14));
+    tap->setBounds (head);
+    r.removeFromTop (4);
+    head = r.removeFromTop (22);
+    rbOn->setBounds (head.removeFromLeft (52));
+    rcOn->setBounds (head.removeFromLeft (52));
     head.removeFromLeft (4);
-    loopOn->setBounds (head.removeFromLeft (110).withTrimmedTop (14));
+    loopOn->setBounds (head.removeFromLeft (110));
     r.removeFromTop (6);
     knobRow (r.removeFromTop (84), { repipe, feedback, damping, width, mix, loopAmount });
 }

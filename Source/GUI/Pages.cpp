@@ -63,11 +63,31 @@ void PageTabs::mouseExit (const juce::MouseEvent&) { hover = -1; repaint(); }
 MainPage::MainPage (AeriformProcessor& p)
 {
     visualizer = add<Visualizer> (p.getVisualizerModel());
-    exciters   = add<ExcitersOverviewPanel> (p);
-    resonator  = add<ResonatorPanel> (p);
-    motion     = add<MotionPanel> (p, false);
-    network    = add<NetworkOverviewPanel> (p);
-    master     = add<MasterPanel> (p);
+    visualizerTabs = add<PageTabs> (juce::StringArray { "PIPE", "SCOPE", "SPECTRUM" });
+    visualizerTabs->onChange = [this] (int i) { visualizer->setMode (i); };
+    exciters = add<ExcitersOverviewPanel> (p);
+    resonatorTabs = add<PageTabs> (juce::StringArray { "RES A", "RES B", "RES C" });
+    for (int i = 0; i < 3; ++i)
+    {
+        resonators[(size_t) i] = add<ResonatorPanel> (p, i);
+        resonators[(size_t) i]->setVisible (i == 0);
+    }
+    resonatorTabs->onChange = [this] (int selected)
+    {
+        for (int i = 0; i < 3; ++i) resonators[(size_t) i]->setVisible (i == selected);
+    };
+    motion = add<MotionPanel> (p, false);
+    effects = add<SpacePanel> (p, false);
+    network = add<NetworkOverviewPanel> (p);
+    master = add<MasterPanel> (p);
+    macros = add<juce::Label>();
+    macros->setText ("MACROS\nComing soon", juce::dontSendNotification);
+    macros->setFont (theme::titleFont (13.0f));
+    macros->setJustificationType (juce::Justification::centred);
+    macros->setColour (juce::Label::backgroundColourId, theme::panel);
+    macros->setColour (juce::Label::textColourId, theme::textSecondary);
+    macros->setColour (juce::Label::outlineColourId, theme::panelBorder);
+    macros->setTooltip ("Macro controls are planned for a future update.");
 }
 
 void MainPage::resized()
@@ -75,6 +95,8 @@ void MainPage::resized()
     auto r = getLocalBounds();
     auto bottom = r.removeFromBottom (200);
     master->setBounds (bottom.removeFromRight (392));
+    bottom.removeFromRight (8);
+    macros->setBounds (bottom.removeFromRight (150));
     bottom.removeFromRight (8);
     network->setBounds (bottom);
     r.removeFromBottom (8);
@@ -84,12 +106,18 @@ void MainPage::resized()
     auto right = r.removeFromRight (392);
     r.removeFromRight (8);
     exciters->setBounds (left);
-    motion->setBounds (right);
-    visualizer->setBounds (r.removeFromTop (150));
+    motion->setBounds (right.removeFromTop (340));
+    right.removeFromTop (8);
+    effects->setBounds (right);
+    auto visual = r.removeFromTop (150);
+    visualizerTabs->setBounds (visual.removeFromTop (26));
+    visual.removeFromTop (4);
+    visualizer->setBounds (visual);
     r.removeFromTop (8);
-    resonator->setBounds (r);
+    resonatorTabs->setBounds (r.removeFromTop (28));
+    r.removeFromTop (4);
+    for (auto* resonator : resonators) resonator->setBounds (r);
 }
-
 // ---------------------------------------------------------------------------
 ExcitersPage::EnvelopePanel::EnvelopePanel (AeriformProcessor& p) : ParamPanel (p, "BREATH ENVELOPE / ARTICULATION", theme::copper)
 {
@@ -160,8 +188,8 @@ NetworkPage::NetworkPage (AeriformProcessor& p)
 void NetworkPage::resized()
 {
     auto r = getLocalBounds();
-    auto top = r.removeFromTop (320);
-    diagram->setBounds (top.removeFromLeft (430));
+    auto top = r.removeFromTop (312);
+    diagram->setBounds (top.removeFromLeft (400));
     top.removeFromLeft (8);
     controls->setBounds (top);
     r.removeFromTop (8);
@@ -176,142 +204,6 @@ MotionPage::MotionPage (AeriformProcessor& p) { motion = add<MotionPanel> (p, tr
 void MotionPage::resized() { motion->setBounds (getLocalBounds()); }
 
 // ---------------------------------------------------------------------------
-SpacePage::FlowPanel::FlowPanel (AeriformProcessor& p) : SectionPanel ("SIGNAL FLOW", theme::copper), processor (p) { startTimerHz (4); }
-
-void SpacePage::FlowPanel::paint (juce::Graphics& g)
-{
-    SectionPanel::paint (g);
-    auto r = getContentArea().toFloat();
-    auto& s = processor.getAPVTS();
-    auto v = [&] (const char* id) { auto* a = s.getRawParameterValue (id); return a != nullptr ? a->load() : 0.0f; };
-    const int q = juce::jlimit (0, 2, (int) v (ids::quality));
-    const bool folderOn = v (ids::wfOn) > 0.5f;
-    const int os = q == 2 ? 4 : (q == 1 ? 2 : (folderOn ? 2 : 1));
-    const int netMode = juce::jlimit (0, (int) NetMode::Count - 1, (int) v (ids::netMode));
-    const bool loop = v (ids::loopOn) > 0.5f;
-
-    juce::StringArray stages;
-    stages.add ("EXCITER A / B");
-    stages.add ("INTERACTION");
-    stages.add ("PRE-SHAPER");
-    stages.add (folderOn ? "WAVEFOLDER " + juce::String (os) + "x" : "(folder off)");
-    stages.add ("NETWORK: " + choices::netModes()[netMode].toUpperCase());
-    stages.add ("BODY EQ");
-    stages.add ("CHORUS > DELAY > REVERB");
-    stages.add ("OUTPUT");
-
-    const float boxH = 26.0f, gap = 8.0f;
-    const float boxW = (r.getWidth() - gap * (float) (stages.size() - 1)) / (float) stages.size();
-    float x = r.getX();
-    const float y = r.getY() + 10.0f;
-    for (int i = 0; i < stages.size(); ++i)
-    {
-        auto box = juce::Rectangle<float> (x, y, boxW, boxH);
-        const bool dim = stages[i].startsWith ("(");
-        g.setColour (dim ? inset : panelRaised);
-        g.fillRoundedRectangle (box, 4.0f);
-        g.setColour (i == 3 ? folder : (i == 4 ? brass : (i == 0 ? copper : panelBorder)));
-        g.drawRoundedRectangle (box, 4.0f, 1.0f);
-        g.setColour (dim ? textDim : textPrimary);
-        g.setFont (font (9.5f, true));
-        g.drawFittedText (stages[i], box.toNearestInt().reduced (3, 0), juce::Justification::centred, 2);
-        if (i + 1 < stages.size())
-        {
-            g.setColour (textDim);
-            g.drawText (">", juce::Rectangle<float> (box.getRight(), y, gap, boxH), juce::Justification::centred);
-        }
-        x += boxW + gap;
-    }
-    // energy loop return arrow
-    if (loop)
-    {
-        g.setColour (amber.withAlpha (0.8f));
-        const float ly = y + boxH + 14.0f;
-        const float fromX = r.getX() + 4.0f * (boxW + gap) + boxW * 0.5f, toX = r.getX() + 1.0f * (boxW + gap) + boxW * 0.5f;
-        g.drawLine (fromX, y + boxH, fromX, ly, 1.2f);
-        g.drawLine (fromX, ly, toX, ly, 1.2f);
-        g.drawLine (toX, ly, toX, y + boxH + 2.0f, 1.2f);
-        g.drawText ("ENERGY LOOP RETURN", juce::Rectangle<float> (toX, ly + 2.0f, fromX - toX, 14.0f), juce::Justification::centred);
-    }
-    g.setColour (textSecondary);
-    g.setFont (font (10.0f));
-    juce::String info = "Quality: " + choices::qualityModes()[q] + "  -  exciter chain oversampling " + juce::String (os) + "x"
-                        + "  -  control rate " + juce::String (q == 0 ? 64 : 32) + " samples";
-    g.drawText (info, r.withTrimmedTop (boxH + 44.0f).withHeight (16.0f), juce::Justification::centredLeft);
-    g.setColour (textDim);
-    g.drawText ("Sidechain: route audio into the plugin's side-chain input and pick the Sidechain model in an exciter slot (or the Breath model's Sidechain knob).",
-                r.withTrimmedTop (boxH + 62.0f).withHeight (16.0f), juce::Justification::centredLeft);
-}
-
-SpacePage::MidiPanel::MidiPanel (AeriformProcessor& p) : SectionPanel ("MIDI CONTROL", theme::teal), processor (p)
-{
-    clearButton.setTooltip ("Removes every MIDI CC mapping");
-    clearButton.onClick = [this] { processor.getMidiLearn().clearAll(); repaint(); };
-    addAndMakeVisible (clearButton);
-    startTimerHz (2);
-}
-
-void SpacePage::MidiPanel::resized()
-{
-    clearButton.setBounds (getLocalBounds().removeFromTop (theme::sectionTitleHeight).removeFromRight (100).reduced (6, 2));
-}
-
-void SpacePage::MidiPanel::paint (juce::Graphics& g)
-{
-    SectionPanel::paint (g);
-    auto r = getContentArea();
-    g.setColour (textDim);
-    g.setFont (font (10.0f));
-    g.drawText ("Right-click any knob for MIDI Learn. Mappings are saved with the session and with presets exported as files.",
-                r.removeFromTop (16), juce::Justification::centredLeft);
-    r.removeFromTop (6);
-    auto& learn = processor.getMidiLearn();
-    juce::StringArray lines;
-    for (int cc = 0; cc < MidiLearn::kNumCCs; ++cc)
-    {
-        const auto id = learn.getMappedParam (cc);
-        if (id.isEmpty()) continue;
-        const auto* info = findParamInfo (id);
-        lines.add ("CC " + juce::String (cc).paddedLeft (' ', 3) + "   " + (info != nullptr ? info->name : id));
-    }
-    if (learn.isLearning())
-        lines.insert (0, "Learning: move a controller for " + (findParamInfo (learn.getLearningParam()) != nullptr ? findParamInfo (learn.getLearningParam())->name : learn.getLearningParam()));
-    if (lines.isEmpty())
-    {
-        g.setColour (textDim);
-        g.drawText ("No MIDI mappings yet.", r.removeFromTop (18), juce::Justification::centredLeft);
-        return;
-    }
-    const int rowH = 17, cols = 3;
-    const int perCol = juce::jmax (1, r.getHeight() / rowH);
-    const int colW = r.getWidth() / cols;
-    g.setFont (monoFont (10.5f));
-    for (int i = 0; i < lines.size() && i < perCol * cols; ++i)
-    {
-        const int c = i / perCol, row = i % perCol;
-        g.setColour (i == 0 && learn.isLearning() ? amber : textSecondary);
-        g.drawText (lines[i], juce::Rectangle<int> (r.getX() + c * colW, r.getY() + row * rowH, colW - 8, rowH), juce::Justification::centredLeft);
-    }
-}
-
-SpacePage::SpacePage (AeriformProcessor& p)
-{
-    space  = add<SpacePanel> (p, true);
-    master = add<MasterPanel> (p);
-    flow   = add<FlowPanel> (p);
-    midi   = add<MidiPanel> (p);
-}
-
-void SpacePage::resized()
-{
-    auto r = getLocalBounds();
-    space->setBounds (r.removeFromTop (262));
-    r.removeFromTop (8);
-    auto row = r.removeFromTop (200);
-    master->setBounds (row.removeFromRight (392));
-    row.removeFromRight (8);
-    flow->setBounds (row);
-    r.removeFromTop (8);
-    midi->setBounds (r);
-}
+SpacePage::SpacePage (AeriformProcessor& p) { space = add<SpacePanel> (p, true); }
+void SpacePage::resized() { space->setBounds (getLocalBounds()); }
 } // namespace aeriform

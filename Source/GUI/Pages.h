@@ -69,8 +69,12 @@ public:
 private:
     Visualizer* visualizer;
     ExcitersOverviewPanel* exciters;
-    ResonatorPanel* resonator;
+    PageTabs* resonatorTabs;
+    PageTabs* visualizerTabs;
+    std::array<ResonatorPanel*, 3> resonators;
     MotionPanel* motion;
+    SpacePanel* effects;
+    juce::Label* macros;
     NetworkOverviewPanel* network;
     MasterPanel* master;
 };
@@ -99,7 +103,7 @@ private:
     WavefolderPanel* folder;
 };
 
-/** NETWORK: the interactive diagram, network controls and the three resonator slots. */
+/** NETWORK: routing controls and the three complete resonator slots. */
 class NetworkPage : public Page
 {
 public:
@@ -109,7 +113,9 @@ private:
     class DiagramPanel : public SectionPanel
     {
     public:
-        explicit DiagramPanel (AeriformProcessor& p) : SectionPanel ("RESONATOR NETWORK", theme::brass), diagram (p, false) { addAndMakeVisible (diagram); }
+        explicit DiagramPanel (AeriformProcessor& p)
+            : SectionPanel ("RESONATOR NETWORK", theme::brass), diagram (p, false)
+        { addAndMakeVisible (diagram); }
         void resized() override { diagram.setBounds (getContentArea()); }
     private:
         NetworkDiagram diagram;
@@ -129,38 +135,13 @@ private:
     MotionPanel* motion;
 };
 
-/** SPACE: effects, master duplicate and the signal-flow legend. */
+/** Dedicated view of the same fixed effects used on Main. */
 class SpacePage : public Page
 {
 public:
     explicit SpacePage (AeriformProcessor&);
     void resized() override;
 private:
-    class FlowPanel : public SectionPanel, private juce::Timer
-    {
-    public:
-        explicit FlowPanel (AeriformProcessor& p);
-        ~FlowPanel() override { stopTimer(); }
-        void paint (juce::Graphics&) override;
-    private:
-        AeriformProcessor& processor;
-        void timerCallback() override { repaint(); }
-    };
-    class MidiPanel : public SectionPanel, private juce::Timer
-    {
-    public:
-        explicit MidiPanel (AeriformProcessor& p);
-        ~MidiPanel() override { stopTimer(); }
-        void paint (juce::Graphics&) override;
-        void resized() override;
-    private:
-        AeriformProcessor& processor;
-        juce::TextButton clearButton { "CLEAR ALL" };
-        void timerCallback() override { repaint(); }
-    };
     SpacePanel* space;
-    MasterPanel* master;
-    FlowPanel* flow;
-    MidiPanel* midi;
 };
 } // namespace aeriform

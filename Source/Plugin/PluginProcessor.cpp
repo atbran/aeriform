@@ -28,6 +28,7 @@ void AeriformProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     setReturnAudition(ReturnAudition::Off);
     currentSampleRate = sampleRate;
+    visualizer.sampleRate.store ((float) sampleRate, std::memory_order_relaxed);
     engine.prepare (sampleRate, juce::jmax (1, samplesPerBlock));
     preparedBlock=juce::jmax(1,samplesPerBlock);
     morphEngine.prepare(sampleRate,preparedBlock);morphOutput.prepare(sampleRate);patchTools.prepare(sampleRate);
@@ -84,6 +85,20 @@ void AeriformProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     // the output buffer, so the input copy is consumed by the engine first.
     auto outBus = getBusBuffer (buffer, false, 0);
     processMorph(outBus,extPtr,midi,position);
+    // Full-rate analysis observes the final output, including a Deep Morph blend.
+    if (outBus.getNumChannels() > 0)
+    {
+        const float* left = outBus.getReadPointer (0);
+        const float* right = outBus.getReadPointer (juce::jmin (1, outBus.getNumChannels() - 1));
+        float peak = 0.0f;
+        for (int i = 0; i < numSamples; ++i)
+        {
+            visualizer.pushScopeSample (0.5f * (left[i] + right[i]));
+            visualizer.spectrumScope.push (0.5f * (left[i] + right[i]), 1);
+            peak = juce::jmax (peak, std::fabs (left[i]), std::fabs (right[i]));
+        }
+        visualizer.masterPeak.store (peak, std::memory_order_relaxed);
+    }
     for(const auto event:midi) {if(event.numBytes>3)continue;auto m=event.getMessage();
         if(m.isNoteOnOrOff())heldNotes[(size_t)((m.getChannel()-1)*128+m.getNoteNumber())]=m.isNoteOn()?m.getVelocity():0;
         else if(m.isAllNotesOff()||m.isAllSoundOff())heldNotes.fill(0);
@@ -151,6 +166,12 @@ void AeriformProcessor::processBlockBypassed (juce::AudioBuffer<float>& buffer, 
     juce::ignoreUnused (midi);
     engine.allNotesOff();
     buffer.clear();
+    for (int i = 0; i < buffer.getNumSamples(); ++i)
+    {
+        visualizer.pushScopeSample (0.0f);
+        visualizer.spectrumScope.push (0.0f, 1);
+    }
+    visualizer.masterPeak.store (0.0f, std::memory_order_relaxed);
 }
 
 // ---------------------------------------------------------------------------
@@ -164,6 +185,7 @@ std::unique_ptr<juce::XmlElement> AeriformProcessor::createStateXml()
     xml->setAttribute ("presetDirty", presetManager.isDirty());
     xml->setAttribute ("editorScale", (double) editorScale.load());
     xml->setAttribute ("editorPage", editorPage.load());
+    xml->setAttribute ("editorLayoutVersion", 2);
     for(int i=0;i<6;++i)xml->setAttribute("editorSection"+juce::String(i),getEditorSection(i));
 
     if (auto params = apvts.copyState().createXml())
@@ -197,6 +219,14 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
     setEditorScale ((float) xml.getDoubleAttribute ("editorScale", 1.0));
     setEditorPage (xml.getIntAttribute ("editorPage", 0));
     for(int i=0;i<6;++i)setEditorSection(i,xml.getIntAttribute("editorSection"+juce::String(i),0));
+    if (xml.getIntAttribute ("editorLayoutVersion", 1) < 2)
+    {
+        const int oldPage = getEditorPage();
+        const bool acoustic = oldPage == 7 || (oldPage == 2 && getEditorSection (2) > 0);
+        setEditorSection (2, 0);
+        setEditorSection (4, acoustic ? 1 : 0);
+        if (acoustic || oldPage == 6) setEditorPage (4);
+    }
     presetManager.setCurrentName (xml.getStringAttribute ("presetName", "Init"),
                                   xml.getStringAttribute ("presetCategory", "Init"),
                                   ! xml.getBoolAttribute ("presetDirty", false));

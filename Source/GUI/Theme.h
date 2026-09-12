@@ -3,44 +3,44 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 // Visual identity of AERIFORM: dark industrial-scientific, graphite panels,
-// muted copper/brass controls, cool teal for modulation and airflow.
+// blue primary controls, warm resonator accents and sea-glass modulation. Color identifiers remain stable for existing panels.
 namespace aeriform::theme
 {
-inline const juce::Colour background   { 0xff17191d };
-inline const juce::Colour panel        { 0xff1f2227 };
-inline const juce::Colour panelRaised  { 0xff262a30 };
-inline const juce::Colour panelBorder  { 0xff2f343b };
-inline const juce::Colour inset        { 0xff121417 };
-inline const juce::Colour grid         { 0xff2a2e34 };
+inline const juce::Colour background   { 0xff111820 };
+inline const juce::Colour panel        { 0xff1b2430 };
+inline const juce::Colour panelRaised  { 0xff253140 };
+inline const juce::Colour panelBorder  { 0xff344253 };
+inline const juce::Colour inset        { 0xff0e141c };
+inline const juce::Colour grid         { 0xff273544 };
 
-inline const juce::Colour textPrimary  { 0xffd9dce0 };
-inline const juce::Colour textSecondary{ 0xff8f959d };
-inline const juce::Colour textDim      { 0xff5d636b };
+inline const juce::Colour textPrimary  { 0xffedf0f3 };
+inline const juce::Colour textSecondary{ 0xffacb9c8 };
+inline const juce::Colour textDim      { 0xff8191a4 };
 
-inline const juce::Colour copper       { 0xffc27a3f };
-inline const juce::Colour copperBright { 0xffe0a35a };
-inline const juce::Colour copperDim    { 0xff7a4d29 };
-inline const juce::Colour brass        { 0xffd8b46a };
+inline const juce::Colour copper       { 0xff73a8ed };
+inline const juce::Colour copperBright { 0xffa6ccff };
+inline const juce::Colour copperDim    { 0xff304d70 };
+inline const juce::Colour brass        { 0xffcbb895 };
 
-inline const juce::Colour teal         { 0xff3fb8c4 };
-inline const juce::Colour tealBright   { 0xff6fe0ea };
-inline const juce::Colour tealDim      { 0xff23636a };
+inline const juce::Colour teal         { 0xff73c9ba };
+inline const juce::Colour tealBright   { 0xffa2e3d5 };
+inline const juce::Colour tealDim      { 0xff315f5a };
 
 inline const juce::Colour amber        { 0xffe6a23c };
 inline const juce::Colour danger       { 0xffd9534f };
 
-inline const juce::Colour knobBody     { 0xff2c3036 };
-inline const juce::Colour knobRim      { 0xff3d424a };
-inline const juce::Colour knobTrack    { 0xff35393f };
-inline const juce::Colour knobPointer  { 0xffe8e2d6 };
+inline const juce::Colour knobBody     { 0xff2d3a49 };
+inline const juce::Colour knobRim      { 0xff4b5c70 };
+inline const juce::Colour knobTrack    { 0xff3b4b5e };
+inline const juce::Colour knobPointer  { 0xfff1f3f7 };
 
 // v2.1 accents: exciter slots and resonator nodes
-inline const juce::Colour exciterA     { 0xffe0a35a };
-inline const juce::Colour exciterB     { 0xffd87a6a };
-inline const juce::Colour nodeA        { 0xffd8b46a };
-inline const juce::Colour nodeB        { 0xff8fbf7f };
-inline const juce::Colour nodeC        { 0xff6fb8e0 };
-inline const juce::Colour folder       { 0xffc98ad6 };
+inline const juce::Colour exciterA     { 0xffa6ccff };
+inline const juce::Colour exciterB     { 0xffb6a2df };
+inline const juce::Colour nodeA        { 0xffcbb895 };
+inline const juce::Colour nodeB        { 0xff8ebce3 };
+inline const juce::Colour nodeC        { 0xffb0a1d6 };
+inline const juce::Colour folder       { 0xffb6a2df };
 
 // Logical layout constants (the editor scales everything uniformly)
 inline constexpr int editorWidth  = 1180;

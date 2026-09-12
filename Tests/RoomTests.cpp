@@ -27,10 +27,10 @@ AERIFORM_TEST(room_host_send_and_network_return_reach_audio) {
 }
 
 AERIFORM_TEST(room_page_and_session_restore) {
-    TestHost h;h.processor.setEditorPage(2);h.processor.setEditorSection(2,3);h.set(ids::roomOn,1);h.set(ids::roomReturnDelay,47);h.noteOn(60);h.render(.3);
+    TestHost h;h.processor.setEditorPage(4);h.processor.setEditorSection(4,1);h.set(ids::roomOn,1);h.set(ids::roomReturnDelay,47);h.noteOn(60);h.render(.3);
     std::unique_ptr<juce::AudioProcessorEditor> e(h.processor.createEditor());
     juce::Image image(juce::Image::ARGB,e->getWidth(),e->getHeight(),true);juce::Graphics g(image);e->paintEntireComponent(g,true);
     auto stream=juce::File::getCurrentWorkingDirectory().getChildFile("docs/experimental/room.png").createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}
     juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost restored;restored.processor.setStateInformation(state.getData(),(int)state.getSize());
-    CHECK(restored.processor.getEditorSection(2)==3);CHECK_NEAR(restored.processor.getAPVTS().getRawParameterValue(ids::roomReturnDelay)->load(),47,.001);
+    CHECK(restored.processor.getEditorSection(4)==1);CHECK_NEAR(restored.processor.getAPVTS().getRawParameterValue(ids::roomReturnDelay)->load(),47,.001);
 }

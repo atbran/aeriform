@@ -326,9 +326,9 @@ void AeriformLookAndFeel::drawSectionPanel (juce::Graphics& g, juce::Rectangle<f
 {
     g.setColour (panel);
     g.fillRoundedRectangle (bounds, cornerRadius);
-    // subtle top highlight and bottom shade for depth
-    g.setColour (juce::Colours::white.withAlpha (0.035f));
-    g.fillRoundedRectangle (bounds.withHeight (bounds.getHeight() * 0.5f), cornerRadius);
+    // A quiet header tint gives sections hierarchy without splitting the body.
+    g.setColour (accent.withAlpha (0.045f));
+    g.fillRoundedRectangle (bounds.withHeight ((float) sectionTitleHeight), cornerRadius);
     g.setColour (panelBorder);
     g.drawRoundedRectangle (bounds.reduced (0.5f), cornerRadius, 1.0f);
 

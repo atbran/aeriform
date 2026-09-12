@@ -8,10 +8,11 @@
 namespace aeriform
 {
 /** Single-producer lock-free ring buffer of decimated samples for a GUI scope. */
-class ScopeBuffer
+template <int Size>
+class SampleBuffer
 {
 public:
-    static constexpr int kSize = 512;
+    static constexpr int kSize = Size;
 
     void push (float v, int decimation) noexcept
     {
@@ -38,6 +39,8 @@ private:
     std::atomic<int> writePos { 0 };
     int counter = 0;
 };
+
+using ScopeBuffer = SampleBuffer<512>;
 
 /**
     Lock-free bridge between the audio engine and the GUI visualiser.
@@ -97,11 +100,16 @@ public:
 
     // ---- scopes (audio thread writes, GUI reads) ---------------------------
     ScopeBuffer outputScope;     // stereo mix
+    SampleBuffer<2048> spectrumScope; // full-rate output; never FFT the decimated scope
+    std::atomic<float> sampleRate { 48000.0f };
     ScopeBuffer exciterAScope;   // newest voice, exciter A output
     ScopeBuffer exciterBScope;   // newest voice, exciter B output
     ScopeBuffer foldScope;       // newest voice, after the wavefolder (network input)
 
-    void pushScopeSample (float mono) noexcept { outputScope.push (mono, kDecimation); }
+    void pushScopeSample (float mono) noexcept
+    {
+        outputScope.push (mono, kDecimation);
+    }
     void readScope (float* dest, int count) const noexcept { outputScope.read (dest, count); }
 };
 } // namespace aeriform

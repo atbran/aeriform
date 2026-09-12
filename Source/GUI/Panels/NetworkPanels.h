@@ -38,7 +38,7 @@ private:
     Knob *loopAmount, *loopFilter, *loopDelay, *loopSat;
 };
 
-/** MAIN-page overview: compact diagram, routing, Repipe and the essential network knobs. */
+/** MAIN-page overview: routing, Repipe and essential network controls. */
 class NetworkOverviewPanel : public ParamPanel
 {
 public:

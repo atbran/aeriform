@@ -10,6 +10,7 @@ using namespace theme;
 Knob::Knob (AeriformProcessor& p, const juce::String& id, ModMapping m, int diam)
     : processor (p), paramID (id), mapping (m), diameter (diam), slider (*this)
 {
+    setComponentID (paramID);
     param = processor.getAPVTS().getParameter (paramID);
     info = findParamInfo (paramID);
     jassert (param != nullptr && info != nullptr);
@@ -71,7 +72,7 @@ void Knob::showValue()
 void Knob::sliderValueChanged (juce::Slider*)
 {
     if (showingValue) showValue();
-    else { showValue(); startTimer (1100); }
+    else if (slider.isMouseOverOrDragging() || slider.hasKeyboardFocus (true)) { showValue(); startTimer (1100); }
 }
 
 void Knob::sliderDragStarted (juce::Slider*) { processor.getPatchTools().begin("Edit "+paramID); stopTimer(); showValue(); }
@@ -107,7 +108,17 @@ void Knob::KnobSlider::mouseUp (const juce::MouseEvent& e)
 }
 
 void Knob::KnobSlider::mouseDoubleClick(const juce::MouseEvent& e) {owner.processor.getPatchTools().begin("Edit "+owner.paramID);juce::Slider::mouseDoubleClick(e);owner.processor.getPatchTools().end();}
-void Knob::KnobSlider::mouseWheelMove(const juce::MouseEvent& e,const juce::MouseWheelDetails& d) {owner.processor.getPatchTools().begin("Edit "+owner.paramID);juce::Slider::mouseWheelMove(e,d);owner.processor.getPatchTools().end();}
+void Knob::KnobSlider::mouseWheelMove(const juce::MouseEvent& e,const juce::MouseWheelDetails& d)
+{
+    if (findParentComponentOfClass<juce::Viewport>() != nullptr && ! e.mods.isShiftDown())
+    {
+        juce::Component::mouseWheelMove (e, d);
+        return;
+    }
+    owner.processor.getPatchTools().begin("Edit "+owner.paramID);
+    juce::Slider::mouseWheelMove(e,d);
+    owner.processor.getPatchTools().end();
+}
 
 int Knob::activeModSlot() const {
     if(mapping.dest==ModDest::None)return -1;
@@ -141,6 +152,7 @@ void Knob::showContextMenu()
     menu.addSectionHeader (info != nullptr ? info->name : paramID);
     menu.addItem (1, learning ? "Learning... (move a MIDI controller)" : "MIDI Learn", ! learning);
     menu.addItem (2, mappedCC >= 0 ? "Clear MIDI mapping (CC " + juce::String (mappedCC) + ")" : "No MIDI mapping", mappedCC >= 0);
+    menu.addItem (7, "Clear all MIDI mappings");
     menu.addSeparator();
     menu.addItem (3, "Reset to default");
     menu.addItem (5, "Lock for randomization",true,processor.getPatchTools().isLocked(paramID));
@@ -173,6 +185,7 @@ void Knob::showContextMenu()
                 }
                 break;
             case 4: l.cancelLearn(); safe->repaint(); break;
+            case 7: l.clearAll(); safe->repaint(); break;
             default: break;
         }
     });

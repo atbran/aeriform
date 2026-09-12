@@ -66,6 +66,7 @@ private:
     int slot;
     juce::Colour colour;
     float value = 0.0f;
+    double lastTick = 0.0;
     bool running = false;
     void timerCallback() override;
 };

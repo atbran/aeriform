@@ -13,6 +13,9 @@ public:
 
 private:
     bool full;
+    std::array<juce::TextButton, 3> tabs;
+    int selected = 0;
+    void selectEffect (int);
     juce::Label *chorusCaption, *delayCaption, *reverbCaption;
     Knob *chorusMix, *chorusRate, *chorusDepth, *chorusWidth;
     Knob *delayMix, *delayTime, *delayFeedback, *delayTone;

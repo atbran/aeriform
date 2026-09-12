@@ -169,8 +169,12 @@ EnergyBar::~EnergyBar() { stopTimer(); }
 
 void EnergyBar::timerCallback()
 {
+    if (! isShowing()) { lastTick = 0.0; return; }
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    const float dt = lastTick > 0.0 ? (float) juce::jlimit (0.001, 0.25, (now-lastTick)/1000.0) : 1.0f/30.0f;
+    lastTick = now;
     const float e = juce::jlimit (0.0f, 1.0f, model.resonatorEnergy[(size_t) slot].load (std::memory_order_relaxed) * 1.6f);
-    value = e > value ? value + 0.5f * (e - value) : value * 0.9f;
+    value += (1.0f - std::exp (-dt / (e > value ? 0.01f : 0.3f))) * (e - value);
     running = model.resonatorRunning[(size_t) slot].load (std::memory_order_relaxed) != 0;
     repaint();
 }

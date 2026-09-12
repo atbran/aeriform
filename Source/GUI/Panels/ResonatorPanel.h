@@ -4,11 +4,11 @@
 
 namespace aeriform
 {
-/** RESONATOR: tuning, tube character, feedback, body. */
+/** Shared main-page resonator controls; body EQ remains on Network. */
 class ResonatorPanel : public ParamPanel
 {
 public:
-    explicit ResonatorPanel (AeriformProcessor&);
+    ResonatorPanel (AeriformProcessor&, int slot = 0);
     void resized() override;
 
 private:
@@ -16,7 +16,6 @@ private:
     ChoiceBox* mode;
     Knob *feedback, *damping, *brightness, *dispersion;
     Knob *shape, *reflection, *saturation;
-    Knob *bodyFreq, *bodyRes, *bodyMix, *bodyTrack;
-    juce::Label *tuneCaption, *tubeCaption, *bodyCaption;
+    juce::Label *tuneCaption, *tubeCaption;
 };
 } // namespace aeriform

@@ -727,7 +727,6 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             const float a = std::fabs (L[i]), b = std::fabs (R[i]);
             if (! (a <= 8.0f && b <= 8.0f)) { finite = false; break; }
             peak = std::max (peak, std::max (a, b));
-            vis.pushScopeSample (0.5f * (L[i] + R[i]));
         }
         if (! finite)
         {

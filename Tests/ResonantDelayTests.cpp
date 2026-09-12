@@ -36,8 +36,8 @@ AERIFORM_TEST(resdelay_host_audio_and_state) {
 }
 
 AERIFORM_TEST(resdelay_page_renders_and_restores) {
-    TestHost h;h.processor.setEditorPage(4);h.processor.setEditorSection(4,2);h.set(ids::rdOn,1);
+    TestHost h;h.processor.setEditorPage(4);h.processor.setEditorSection(4,0);h.set(ids::rdOn,1);
     std::unique_ptr<juce::AudioProcessorEditor> e(h.processor.createEditor());juce::Image image(juce::Image::ARGB,e->getWidth(),e->getHeight(),true);juce::Graphics g(image);e->paintEntireComponent(g,true);
     auto stream=juce::File::getCurrentWorkingDirectory().getChildFile("docs/experimental/resonant-delay.png").createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}
-    juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost restored;restored.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK(restored.processor.getEditorSection(4)==2);
+    juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost restored;restored.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK(restored.processor.getEditorSection(4)==0);
 }

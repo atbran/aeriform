@@ -10,7 +10,7 @@ public:
     }
     void showSection(int index){selected=std::clamp(index,0,(int)sections.size()-1);for(size_t i=0;i<sections.size();++i){sections[i]->setVisible((int)i==selected);buttons[i]->setToggleState((int)i==selected,juce::dontSendNotification);}processor.setEditorSection(workspaceIndex,selected);}
     void resized() override {auto r=getLocalBounds();auto bar=r.removeFromTop(30);r.removeFromTop(10);int width=std::min(200,bar.getWidth()/std::max(1,(int)buttons.size()));for(auto& b:buttons)b->setBounds(bar.removeFromLeft(width).reduced(2,0));for(auto& s:sections)s->setBounds(r);}
-    std::vector<ParamPanel*> getPanels() override {std::vector<ParamPanel*> panels;for(auto& section:sections){auto children=section->getPanels();panels.insert(panels.end(),children.begin(),children.end());}return panels;}
+    std::vector<ParamPanel*> getPanels() override {std::vector<ParamPanel*> panels;for(auto& section:sections)if(section->isVisible()){auto children=section->getPanels();panels.insert(panels.end(),children.begin(),children.end());}return panels;}
 private:
     AeriformProcessor& processor;int workspaceIndex,selected=0;
     std::vector<std::unique_ptr<Page>> sections;

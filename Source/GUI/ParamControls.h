@@ -26,6 +26,7 @@ class ChoiceBox : public juce::Component
 public:
     ChoiceBox (AeriformProcessor& p, const juce::String& paramID, const juce::String& caption = {})
     {
+        setComponentID (paramID);
         box.onLock=[this,&p,paramID]{showParameterLock(box,p,paramID);};
         auto* param = dynamic_cast<juce::AudioParameterChoice*> (p.getAPVTS().getParameter (paramID));
         jassert (param != nullptr);
@@ -68,6 +69,7 @@ class Toggle : public juce::Component
 public:
     Toggle (AeriformProcessor& p, const juce::String& paramID, const juce::String& caption = {})
     {
+        setComponentID (paramID);
         button.onLock=[this,&p,paramID]{showParameterLock(button,p,paramID);};
         button.setButtonText (caption.isNotEmpty() ? caption : (findParamInfo (paramID) != nullptr ? findParamInfo (paramID)->name : paramID));
         button.setTooltip (findParamInfo (paramID) != nullptr ? findParamInfo (paramID)->tooltip : juce::String());
@@ -90,6 +92,7 @@ class HSlider : public juce::Component
 public:
     HSlider (AeriformProcessor& p, const juce::String& paramID, bool showValueBox = false)
     {
+        setComponentID (paramID);
         auto* param = p.getAPVTS().getParameter (paramID);
         jassert (param != nullptr);
         if (param == nullptr) ++gui::unboundControlCount();

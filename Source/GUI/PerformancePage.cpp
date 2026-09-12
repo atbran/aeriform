@@ -28,7 +28,7 @@ PerformancePage::ToolsPanel::ToolsPanel(AeriformProcessor& p):ParamPanel(p,"PLAY
     commit.onClick=[this]{processor.getPatchTools().commitMorph();};
     commit.setTooltip("Commit Parameter Morph, or either Deep Morph endpoint. An interior Deep blend contains two physical structures and cannot be flattened into one patch.");
     help.setFont(font(12));help.setColour(juce::Label::textColourId,textSecondary);
-    help.setText("Controls edit the selected endpoint. Right-click any knob to lock it. Parameter mode holds structure; Deep renders both structures.",juce::dontSendNotification);
+    engine->getBox().setTooltip("Parameter mode holds structure; Deep renders both structures. Controls edit the selected endpoint.");
     startTimerHz(15);timerCallback();
 }
 void PerformancePage::ToolsPanel::choosePreset(int slot) {

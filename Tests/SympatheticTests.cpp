@@ -33,9 +33,9 @@ AERIFORM_TEST(sympathetic_host_audio_and_chord_state) {
 }
 
 AERIFORM_TEST(sympathetic_page_and_six_tab_navigation_restore) {
-    TestHost h;h.processor.setEditorPage(2);h.processor.setEditorSection(2,2);h.set(ids::symOn,1);std::unique_ptr<juce::AudioProcessorEditor> e(h.processor.createEditor());
-    auto* editor=dynamic_cast<AeriformEditor*>(e.get());CHECK(editor->getCurrentPage()==2);CHECK(h.processor.getEditorSection(2)==2);
+    TestHost h;h.processor.setEditorPage(4);h.processor.setEditorSection(4,1);h.set(ids::symOn,1);std::unique_ptr<juce::AudioProcessorEditor> e(h.processor.createEditor());
+    auto* editor=dynamic_cast<AeriformEditor*>(e.get());CHECK(editor->getCurrentPage()==4);CHECK(h.processor.getEditorSection(4)==1);
     juce::Image image(juce::Image::ARGB,e->getWidth(),e->getHeight(),true);juce::Graphics g(image);e->paintEntireComponent(g,true);auto file=juce::File::getCurrentWorkingDirectory().getChildFile("docs/experimental/sympathetic.png");auto stream=file.createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}
-    editor->showPage(6);CHECK(editor->getCurrentPage()==4);CHECK(h.processor.getEditorSection(4)==1);editor->showPage(7);CHECK(editor->getCurrentPage()==2);CHECK(h.processor.getEditorSection(2)==1);
-    juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost b;b.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK(b.processor.getEditorSection(4)==1);CHECK(b.processor.getEditorSection(2)==1);
+    editor->showPage(6);CHECK(editor->getCurrentPage()==4);CHECK(h.processor.getEditorSection(4)==0);editor->showPage(7);CHECK(editor->getCurrentPage()==4);CHECK(h.processor.getEditorSection(4)==1);
+    juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost b;b.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK(b.processor.getEditorSection(4)==1);CHECK(b.processor.getEditorSection(2)==0);
 }

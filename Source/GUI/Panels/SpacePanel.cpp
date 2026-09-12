@@ -2,7 +2,7 @@
 
 namespace aeriform
 {
-SpacePanel::SpacePanel (AeriformProcessor& p, bool f) : ParamPanel (p, "SPACE", theme::tealDim.brighter (0.4f)), full (f)
+SpacePanel::SpacePanel (AeriformProcessor& p, bool f) : ParamPanel (p, "EFFECTS", theme::teal), full (f)
 {
     using namespace ids;
     const int s = full ? theme::knobSizeLarge : theme::knobSizeSmall;
@@ -32,6 +32,29 @@ SpacePanel::SpacePanel (AeriformProcessor& p, bool f) : ParamPanel (p, "SPACE", 
     revMod   = knob (reverbModulation, "Motion", {}, s);
 
     for (auto& k : knobs) k->setAccentColour (theme::teal);
+    if (! full)
+    {
+        const char* names[] = { "CHORUS", "DELAY", "REVERB" };
+        for (int i = 0; i < 3; ++i)
+        {
+            auto& button = tabs[(size_t) i];
+            button.setButtonText (names[i]);
+            button.onClick = [this, i] { selectEffect (i); };
+            addAndMakeVisible (button);
+        }
+        selectEffect (0);
+    }
+}
+
+void SpacePanel::selectEffect (int index)
+{
+    selected = index;
+    for (auto* c : std::initializer_list<juce::Component*> { chorusMix, chorusRate, chorusDepth, chorusWidth }) c->setVisible (index == 0);
+    for (auto* c : std::initializer_list<juce::Component*> { delayMix, delayTime, delayFeedback, delayTone, delaySync, delayPingPong, delayDiv }) c->setVisible (index == 1);
+    for (auto* c : { revMix, revSize, revDecay, revDamp, revPre, revWidth, revMod }) c->setVisible (index == 2);
+    chorusCaption->setVisible (false); delayCaption->setVisible (false); reverbCaption->setVisible (false);
+    for (int i = 0; i < 3; ++i) tabs[(size_t) i].setToggleState (i == index, juce::dontSendNotification);
+    resized();
 }
 
 void SpacePanel::resized()
@@ -55,10 +78,10 @@ void SpacePanel::resized()
         knobRow (delayArea.removeFromTop (rowH), { delayMix, delayTime, delayFeedback, delayTone });
         delayArea.removeFromTop (10);
         auto switches = delayArea.removeFromTop (44);
-        delaySync->setBounds (switches.removeFromLeft (80).withTrimmedTop (14));
-        delayPingPong->setBounds (switches.removeFromLeft (110).withTrimmedTop (14));
+        delaySync->setBounds (switches.removeFromLeft (60).withTrimmedTop (14));
+        delayPingPong->setBounds (switches.removeFromLeft (90).withTrimmedTop (14));
         switches.removeFromLeft (8);
-        delayDiv->setBounds (switches.removeFromLeft (150));
+        delayDiv->setBounds (switches);
         delayDiv->setCaptionVisible (true);
 
         reverbCaption->setBounds (reverbArea.removeFromTop (capH));
@@ -67,26 +90,18 @@ void SpacePanel::resized()
         return;
     }
 
-    const int knobW = 56;
-    const int rowH = 66;
-    auto top = r.removeFromTop (capH + rowH);
-    auto chorusArea = top.removeFromLeft (knobW * 4);
-    top.removeFromLeft (16);
-    auto delayArea = top;
-
-    chorusCaption->setBounds (chorusArea.removeFromTop (capH));
-    knobRow (chorusArea, { chorusMix, chorusRate, chorusDepth, chorusWidth });
-
-    delayCaption->setBounds (delayArea.removeFromTop (capH));
-    auto switches = delayArea.removeFromRight (118);
-    knobRow (delayArea.removeFromLeft (knobW * 4), { delayMix, delayTime, delayFeedback, delayTone });
-    delaySync->setBounds (switches.removeFromTop (20));
-    delayPingPong->setBounds (switches.removeFromTop (20));
-    delayDiv->setBounds (switches.removeFromTop (24).withTrimmedTop (2));
-    delayDiv->setCaptionVisible (false);
-
-    r.removeFromTop (6);
-    reverbCaption->setBounds (r.removeFromTop (capH));
-    knobRow (r.removeFromTop (rowH).removeFromLeft (knobW * 7), { revMix, revSize, revDecay, revDamp, revPre, revWidth, revMod });
+    auto bar = getLocalBounds().removeFromTop (26).withTrimmedLeft (76).reduced (4, 2);
+    const int w = bar.getWidth() / 3;
+    for (auto& button : tabs) button.setBounds (bar.removeFromLeft (w).reduced (2, 0));
+    r.removeFromTop (4);
+    knobRow (r.withHeight (70), { chorusMix, chorusRate, chorusDepth, chorusWidth });
+    auto delayArea = r;
+    knobRow (delayArea.removeFromTop (70), { delayMix, delayTime, delayFeedback, delayTone });
+    auto switches = delayArea.removeFromTop (40);
+    delaySync->setBounds (switches.removeFromLeft (66).withTrimmedTop (12));
+    delayPingPong->setBounds (switches.removeFromLeft (96).withTrimmedTop (12));
+    delayDiv->setBounds (switches);
+    knobRow (r.removeFromTop (70), { revMix, revSize, revDecay, revDamp });
+    knobRow (r.removeFromTop (70), { revPre, revWidth, revMod, nullptr });
 }
 } // namespace aeriform

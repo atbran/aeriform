@@ -6,7 +6,7 @@
 namespace aeriform
 {
 /** MOTION: three LFOs, modulation envelope and the routing matrix.
-    Compact (MAIN page column): matrix slots 1-8. Full (MOTION page): LFOs side by side, all 16 slots. */
+    Compact (MAIN page column): LFOs and envelope only. Full (MOD MATRIX page): all 16 slots. */
 class MotionPanel : public ParamPanel
 {
 public:
@@ -25,7 +25,7 @@ private:
     LfoRow lfos[ids::numLFOs];
     juce::Label* envCaption;
     Knob *menvA, *menvD, *menvS, *menvR;
-    juce::Label* matrixCaption;
-    ModMatrixPanel* matrix;
+    juce::Label* matrixCaption = nullptr;
+    ModMatrixPanel* matrix = nullptr;
 };
 } // namespace aeriform

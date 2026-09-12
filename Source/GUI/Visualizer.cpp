@@ -101,14 +101,33 @@ void Visualizer::rebuildBackground()
 
 void Visualizer::timerCallback()
 {
+    if (! isShowing()) { lastTick = 0.0; return; }
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    const float dt = lastTick > 0.0 ? (float) juce::jlimit (0.001, 0.25, (now - lastTick) / 1000.0) : 1.0f / 30.0f;
+    lastTick = now;
     const float pressure = model.masterPressure.load (std::memory_order_relaxed);
     const float energy = model.masterEnergy.load (std::memory_order_relaxed);
     const float peak = model.masterPeak.load (std::memory_order_relaxed);
     smoothedPressure += 0.25f * (pressure - smoothedPressure);
     smoothedEnergy += 0.2f * (juce::jmin (1.5f, energy * 2.0f) - smoothedEnergy);
-    smoothedPeak = peak > smoothedPeak ? peak : smoothedPeak * 0.92f;
+    const float response = 1.0f - std::exp (-dt / (peak > smoothedPeak ? 0.008f : 0.3f));
+    smoothedPeak += response * (peak - smoothedPeak);
+    if (peak >= displayPeak) { displayPeak = peak; peakHold = 0.7f; }
+    else if ((peakHold -= dt) <= 0.0f) displayPeak *= std::pow (10.0f, -18.0f * dt / 20.0f);
     activeVoices = model.activeVoices.load (std::memory_order_relaxed);
     model.readScope (scope.data(), (int) scope.size());
+    if (mode == 2)
+    {
+        fftData.fill (0.0f);
+        model.spectrumScope.read (fftData.data(), 2048);
+        window.multiplyWithWindowingTable (fftData.data(), 2048);
+        fft.performFrequencyOnlyForwardTransform (fftData.data());
+        for (size_t i = 0; i < spectrum.size(); ++i)
+        {
+            const float magnitude = fftData[i] * (4.0f / 2048.0f);
+            spectrum[i] += (1.0f - std::exp (-dt / (magnitude > spectrum[i] ? 0.025f : 0.18f))) * (magnitude - spectrum[i]);
+        }
+    }
 
     // advance airflow particles: speed follows breath pressure, idle drift when silent
     const float flow = 0.15f + 2.2f * smoothedPressure + 0.6f * smoothedEnergy;
@@ -123,6 +142,7 @@ void Visualizer::timerCallback()
 
 void Visualizer::paint (juce::Graphics& g)
 {
+    if (mode != 0) { paintAnalysis (g); return; }
     if (background.isValid())
         g.drawImageAt (background, 0, 0);
 
@@ -190,5 +210,63 @@ void Visualizer::paint (juce::Graphics& g)
     g.drawText (juce::String (db, 1) + " dB", getLocalBounds().reduced (12, 6), juce::Justification::bottomRight);
     g.setColour (textDim);
     g.drawText ("AIRFLOW  /  RESONANCE", getLocalBounds().reduced (12, 6), juce::Justification::topRight);
+}
+void Visualizer::paintAnalysis (juce::Graphics& g)
+{
+    auto r = getLocalBounds();
+    g.setColour (inset); g.fillRoundedRectangle (r.toFloat(), cornerRadius);
+    g.setColour (panelBorder); g.drawRoundedRectangle (r.toFloat().reduced (0.5f), cornerRadius, 1.0f);
+    auto plot = r.reduced (10, 8).withTrimmedBottom (16).withTrimmedRight (12).toFloat();
+    if (plot.getWidth() < 2 || plot.getHeight() < 2) return;
+    for (int i = 1; i < 4; ++i)
+    {
+        g.setColour (grid);
+        g.drawHorizontalLine ((int) (plot.getY() + plot.getHeight() * i / 4.0f), plot.getX(), plot.getRight());
+    }
+    juce::Path trace;
+    if (mode == 1)
+    {
+        // Positive-going trigger stabilises the scope without altering its gain.
+        int start = 0;
+        for (int i = 1; i < 128; ++i) if (scope[(size_t)i-1] <= 0 && scope[(size_t)i] > 0) { start = i; break; }
+        for (int i = 0; i < 128; ++i)
+        {
+            const float x = plot.getX() + plot.getWidth() * i / 127.0f;
+            const float y = plot.getCentreY() - juce::jlimit (-1.0f, 1.0f, scope[(size_t)(start+i)]) * plot.getHeight() * 0.48f;
+            if (i == 0) trace.startNewSubPath (x, y); else trace.lineTo (x, y);
+        }
+    }
+    else
+    {
+        const float rate = juce::jmax (1.0f, model.sampleRate.load (std::memory_order_relaxed));
+        const float hi = juce::jmin (20000.0f, rate * 0.5f);
+        const float lo = juce::jmin (20.0f, hi * 0.5f);
+        for (int i = 0; i < 256; ++i)
+        {
+            const float frequency = lo * std::pow (hi / lo, i / 255.0f);
+            const float next = lo * std::pow (hi / lo, (i + 1) / 255.0f);
+            const int bin = juce::jlimit (1, 1024, (int) (frequency * 2048 / rate));
+            const int end = juce::jlimit (bin, 1024, (int) std::ceil (next * 2048 / rate));
+            float magnitude = 0.0f;
+            for (int b = bin; b <= end; ++b) magnitude = juce::jmax (magnitude, spectrum[(size_t)b]);
+            const float db = juce::Decibels::gainToDecibels (magnitude, -84.0f);
+            const float x = plot.getX() + plot.getWidth() * i / 255.0f;
+            const float y = plot.getBottom() - juce::jlimit (0.0f, 1.0f, (db + 84.0f) / 84.0f) * plot.getHeight();
+            if (i == 0) trace.startNewSubPath (x, y); else trace.lineTo (x, y);
+        }
+        g.setFont (monoFont (9)); g.setColour (textSecondary);
+        for (float hz : { 100.0f, 1000.0f, 10000.0f })
+        {
+            if (hz > hi) continue;
+            const float x = plot.getX() + std::log (hz / lo) / std::log (hi / lo) * plot.getWidth();
+            g.drawText (hz < 1000 ? "100" : hz < 10000 ? "1k" : "10k", (int)x-14, (int)plot.getBottom()+2, 28, 14, juce::Justification::centred);
+        }
+    }
+    g.setColour (tealBright); g.strokePath (trace, juce::PathStrokeType (1.5f));
+    auto meter = juce::Rectangle<float> ((float)getWidth()-11, plot.getY(), 4, plot.getHeight());
+    auto normal = [] (float value) { return juce::jlimit (0.0f, 1.0f, (juce::Decibels::gainToDecibels (value, -60.0f)+60)/60); };
+    g.setColour (knobTrack); g.fillRect (meter);
+    g.setColour (copper); g.fillRect (meter.withTop (meter.getBottom()-normal(smoothedPeak)*meter.getHeight()));
+    g.setColour (textPrimary); g.fillRect (meter.withY (meter.getBottom()-normal(displayPeak)*meter.getHeight()).withHeight (1));
 }
 } // namespace aeriform

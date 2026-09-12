@@ -27,8 +27,11 @@ MotionPanel::MotionPanel (AeriformProcessor& p, bool f) : ParamPanel (p, "MOTION
     menvR = knob (menvRelease, "Release", {}, d);
     for (auto& k : knobs) k->setAccentColour (theme::teal);
 
-    matrixCaption = caption (full ? "MODULATION MATRIX  (16 slots)" : "MODULATION MATRIX  (slots 1-8, all 16 on the MOTION page)");
-    matrix = control<ModMatrixPanel> (processor, 1, full ? ids::numModSlots : ids::numModSlotsV01, full ? 2 : 1);
+    if (full)
+    {
+        matrixCaption = caption ("MODULATION MATRIX / 16 SLOTS");
+        matrix = control<ModMatrixPanel> (processor, 1, ids::numModSlots, 2);
+    }
 }
 
 void MotionPanel::resized()
@@ -69,7 +72,7 @@ void MotionPanel::resized()
         return;
     }
 
-    const int lfoRowH = 62;
+    const int lfoRowH = 60;
     for (auto& l : lfos)
     {
         l.caption->setBounds (r.removeFromTop (capH));
@@ -93,8 +96,5 @@ void MotionPanel::resized()
     auto envRow = r.removeFromTop (60);
     knobRow (envRow.removeFromLeft (52 * 4), { menvA, menvD, menvS, menvR });
 
-    r.removeFromTop (4);
-    matrixCaption->setBounds (r.removeFromTop (capH));
-    matrix->setBounds (r);
 }
 } // namespace aeriform
