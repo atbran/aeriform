@@ -54,6 +54,24 @@ void Knob::setDisplayName (const juce::String& name)
     showName();
 }
 
+void Knob::makeNameEditable (std::function<void (const juce::String&)> onEdited)
+{
+    label.setInterceptsMouseClicks (true, false);
+    label.setEditable (false, true, false);
+    label.setColour (juce::Label::textWhenEditingColourId, theme::textPrimary);
+    label.setColour (juce::Label::backgroundWhenEditingColourId, theme::panelRaised);
+    label.setTooltip ("Double-click to rename");
+    label.onTextChange = [this, onEdited]
+    {
+        auto newName = label.getText().trim();
+        if (newName.isNotEmpty())
+        {
+            displayName = newName;
+            if (onEdited) onEdited (newName);
+        }
+    };
+}
+
 void Knob::showName()
 {
     showingValue = false;
@@ -158,20 +176,70 @@ void Knob::showContextMenu()
     menu.addItem (5, "Lock for randomization",true,processor.getPatchTools().isLocked(paramID));
     if (learning) menu.addItem (4, "Cancel learn");
     menu.addSeparator();
-    if(mapping.dest!=ModDest::None){
-        juce::PopupMenu sources;const auto& names=choices::modSources();
-        for(int i=1;i<(int)ModSource::Count;++i){const bool assigned=KnobModulation::find(processor,mapping.dest,(ModSource)i)>0;sources.addItem(100+i,names[i],assigned||KnobModulation::empty(processor)>0,assigned);}menu.addSubMenu("Assign modulation source",sources);
-        for(int slot=1;slot<=ids::numModSlots;++slot)if((int)KnobModulation::value(processor,slot,ids::ModField::Dst)==(int)mapping.dest&&KnobModulation::value(processor,slot,ids::ModField::Src)>0){const auto name=names[(int)KnobModulation::value(processor,slot,ids::ModField::Src)];menu.addItem(3000+slot,"Edit depth: "+name,true,activeModSlot()==slot);menu.addItem(2000+slot,"Remove: "+name);}
-        menu.addItem(6,"Drag the teal ring to set depth; Alt-drag also works",false);
-    }else menu.addItem(6,"This control has no matrix destination",false);
+    if (mapping.dest != ModDest::None)
+    {
+        juce::PopupMenu macrosMenu;
+        for (int m = 1; m <= 4; ++m)
+        {
+            const auto src = (ModSource) ((int) ModSource::Macro1 + m - 1);
+            const bool assigned = KnobModulation::find (processor, mapping.dest, src) > 0;
+            macrosMenu.addItem (500 + m, "Macro " + juce::String (m), assigned || KnobModulation::empty (processor) > 0, assigned);
+        }
+        menu.addSubMenu ("Assign Macro", macrosMenu);
+
+        juce::PopupMenu sources;
+        const auto& names = choices::modSources();
+        for (int i = 1; i < (int) ModSource::Count; ++i)
+        {
+            const bool assigned = KnobModulation::find (processor, mapping.dest, (ModSource) i) > 0;
+            sources.addItem (100 + i, names[i], assigned || KnobModulation::empty (processor) > 0, assigned);
+        }
+        menu.addSubMenu ("Assign modulation source", sources);
+        for (int slot = 1; slot <= ids::numModSlots; ++slot)
+        {
+            if ((int) KnobModulation::value (processor, slot, ids::ModField::Dst) == (int) mapping.dest && KnobModulation::value (processor, slot, ids::ModField::Src) > 0)
+            {
+                const auto name = names[(int) KnobModulation::value (processor, slot, ids::ModField::Src)];
+                menu.addItem (3000 + slot, "Edit depth: " + name, true, activeModSlot() == slot);
+                menu.addItem (2000 + slot, "Remove: " + name);
+            }
+        }
+        menu.addItem (6, "Drag the teal ring to set depth; Alt-drag also works", false);
+    }
+    else
+    {
+        menu.addItem (6, "This control has no matrix destination", false);
+    }
 
     juce::Component::SafePointer<Knob> safe (this);
     menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [safe] (int result)
     {
         if (safe == nullptr) return;
-        if(result>100&&result<100+(int)ModSource::Count){safe->selectedModSlot=KnobModulation::assign(safe->processor,safe->mapping.dest,(ModSource)(result-100));safe->repaint();return;}
-        if(result>2000&&result<=2000+ids::numModSlots){KnobModulation::remove(safe->processor,result-2000);safe->repaint();return;}
-        if(result>3000&&result<=3000+ids::numModSlots){safe->selectedModSlot=result-3000;safe->repaint();return;}
+        if (result >= 501 && result <= 504)
+        {
+            const auto src = (ModSource) ((int) ModSource::Macro1 + (result - 501));
+            safe->selectedModSlot = KnobModulation::assign (safe->processor, safe->mapping.dest, src);
+            safe->repaint();
+            return;
+        }
+        if (result > 100 && result < 100 + (int) ModSource::Count)
+        {
+            safe->selectedModSlot = KnobModulation::assign (safe->processor, safe->mapping.dest, (ModSource) (result - 100));
+            safe->repaint();
+            return;
+        }
+        if (result > 2000 && result <= 2000 + ids::numModSlots)
+        {
+            KnobModulation::remove (safe->processor, result - 2000);
+            safe->repaint();
+            return;
+        }
+        if (result > 3000 && result <= 3000 + ids::numModSlots)
+        {
+            safe->selectedModSlot = result - 3000;
+            safe->repaint();
+            return;
+        }
         auto& l = safe->processor.getMidiLearn();
         switch (result)
         {

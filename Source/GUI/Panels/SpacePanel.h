@@ -13,7 +13,31 @@ public:
 
 private:
     bool full;
-    std::array<juce::TextButton, 3> tabs;
+    struct TabButton : public juce::Button
+    {
+        TabButton (const juce::String& name = {}) : juce::Button (name) {}
+        void paintButton (juce::Graphics& g, bool isMouseOver, bool) override
+        {
+            auto bounds = getLocalBounds().toFloat();
+            const bool active = getToggleState();
+            if (active)
+            {
+                g.setColour (theme::tealDim.withAlpha (0.45f));
+                g.fillRoundedRectangle (bounds.reduced (1.0f), 3.0f);
+                g.setColour (theme::teal);
+                g.fillRect (bounds.getX() + 5.0f, bounds.getBottom() - 2.0f, bounds.getWidth() - 10.0f, 2.0f);
+            }
+            else if (isMouseOver)
+            {
+                g.setColour (juce::Colours::white.withAlpha (0.05f));
+                g.fillRoundedRectangle (bounds.reduced (1.0f), 3.0f);
+            }
+            g.setColour (active ? theme::textPrimary : (isMouseOver ? theme::textPrimary : theme::textSecondary));
+            g.setFont (theme::titleFont (11.0f));
+            g.drawText (getButtonText(), bounds, juce::Justification::centred);
+        }
+    };
+    std::array<TabButton, 3> tabs;
     int selected = 0;
     void selectEffect (int);
     juce::Label *chorusCaption, *delayCaption, *reverbCaption;

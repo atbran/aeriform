@@ -109,3 +109,33 @@ AERIFORM_TEST (parameters_reach_the_dsp)
     CHECK (loud.rms > 1.0e-3);
     CHECK (quiet.rms < loud.rms * 0.01);
 }
+
+AERIFORM_TEST (macro_parameters_and_modulation_evaluation)
+{
+    TestHost host;
+    CHECK (host.processor.getAPVTS().getParameter (ids::macro1) != nullptr);
+    CHECK (host.processor.getAPVTS().getParameter (ids::macro2) != nullptr);
+    CHECK (host.processor.getAPVTS().getParameter (ids::macro3) != nullptr);
+    CHECK (host.processor.getAPVTS().getParameter (ids::macro4) != nullptr);
+
+    // Test ModMatrix evaluate with macro modulation and downstream propagation
+    dsp::ModConfig cfg;
+    // Slot 1: LFO1 -> Macro1 (depth +0.5)
+    cfg.slots[0] = { ModSource::LFO1, ModDest::Macro1, 0.5f };
+    // Slot 2: Macro1 -> ResBFeedback (depth +0.8)
+    cfg.slots[1] = { ModSource::Macro1, ModDest::ResBFeedback, 0.8f };
+
+    dsp::ModSources src {};
+    src[(size_t) ModSource::LFO1] = 0.6f;
+    src[(size_t) ModSource::Macro1] = 0.2f; // base macro knob value
+
+    dsp::ModValues out {};
+    dsp::ModMatrix::evaluate (cfg, src, out);
+
+    // Macro1 incoming modulation = 0.5 * 0.6 = 0.3
+    CHECK_NEAR (out[(size_t) ModDest::Macro1], 0.3, 1.0e-5);
+    // Effective Macro1 = clamp01(0.2 + 0.3) = 0.5
+    // Downstream ResBFeedback = 0.8 * 0.5 = 0.4
+    CHECK_NEAR (out[(size_t) ModDest::ResBFeedback], 0.4, 1.0e-5);
+}
+

@@ -9,6 +9,7 @@
 #include "Panels/NetworkPanels.h"
 #include "Panels/MotionPanel.h"
 #include "Panels/SpacePanel.h"
+#include "Panels/MacroPanel.h"
 #include "Panels/MasterPanel.h"
 
 namespace aeriform
@@ -74,7 +75,7 @@ private:
     std::array<ResonatorPanel*, 3> resonators;
     MotionPanel* motion;
     SpacePanel* effects;
-    juce::Label* macros;
+    MacroPanel* macros;
     NetworkOverviewPanel* network;
     MasterPanel* master;
 };

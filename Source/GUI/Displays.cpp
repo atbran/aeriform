@@ -405,7 +405,14 @@ void NetworkDiagram::paint (juce::Graphics& g)
     g.setFont (font (8.5f, true));
     g.drawText ("OUT", juce::Rectangle<float> (r.getRight() - 30.0f, nodePos[1].y - 20.0f, 26.0f, 12.0f), juce::Justification::centredRight);
 
-    if(value(ids::netBypass)>.5f||(!running[0]&&!running[1]&&!running[2])){g.setColour(teal);g.drawLine(10,r.getCentreY(),r.getRight()-10,r.getCentreY(),2);g.setFont(font(10,true));g.drawText("DIRECT EXCITER PATH",r.reduced(10).removeFromBottom(20),juce::Justification::centred);}
+    if (value (ids::netBypass) > 0.5f || (! running[0] && ! running[1] && ! running[2]))
+    {
+        g.setColour (teal);
+        g.drawLine (10.0f, r.getCentreY(), r.getRight() - 10.0f, r.getCentreY(), 2.0f);
+        g.setFont (font (9.5f, true));
+        const float textW = juce::jmax (100.0f, nodePos[2].x - nodeRadius - 20.0f - (r.getX() + 12.0f));
+        g.drawText ("DIRECT EXCITER PATH", juce::Rectangle<float> (r.getX() + 12.0f, r.getBottom() - 22.0f, textW, 18.0f), juce::Justification::centredLeft);
+    }
     // ---- nodes ---------------------------------------------------------------------------------------------
     static const char* names[3] = { "A", "B", "C" };
     for (int i = 0; i < 3; ++i)

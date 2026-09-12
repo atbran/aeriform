@@ -187,6 +187,8 @@ std::unique_ptr<juce::XmlElement> AeriformProcessor::createStateXml()
     xml->setAttribute ("editorPage", editorPage.load());
     xml->setAttribute ("editorLayoutVersion", 2);
     for(int i=0;i<6;++i)xml->setAttribute("editorSection"+juce::String(i),getEditorSection(i));
+    for (int i = 0; i < 4; ++i)
+        xml->setAttribute ("macroName" + juce::String (i + 1), getMacroName (i));
 
     if (auto params = apvts.copyState().createXml())
         xml->addChildElement (params.release());
@@ -203,6 +205,9 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
     setReturnAudition(ReturnAudition::Off);
     const int version = xml.getIntAttribute ("version", 1);
     juce::ignoreUnused (version);   // future migrations branch on this
+
+    for (int i = 0; i < 4; ++i)
+        setMacroName (i, xml.getStringAttribute ("macroName" + juce::String (i + 1), "Macro " + juce::String (i + 1)));
 
     if (auto* params = xml.getChildByName (apvts.state.getType()))
     {

@@ -80,14 +80,7 @@ MainPage::MainPage (AeriformProcessor& p)
     effects = add<SpacePanel> (p, false);
     network = add<NetworkOverviewPanel> (p);
     master = add<MasterPanel> (p);
-    macros = add<juce::Label>();
-    macros->setText ("MACROS\nComing soon", juce::dontSendNotification);
-    macros->setFont (theme::titleFont (13.0f));
-    macros->setJustificationType (juce::Justification::centred);
-    macros->setColour (juce::Label::backgroundColourId, theme::panel);
-    macros->setColour (juce::Label::textColourId, theme::textSecondary);
-    macros->setColour (juce::Label::outlineColourId, theme::panelBorder);
-    macros->setTooltip ("Macro controls are planned for a future update.");
+    macros = add<MacroPanel> (p);
 }
 
 void MainPage::resized()

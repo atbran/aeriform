@@ -90,7 +90,7 @@ void SpacePanel::resized()
         return;
     }
 
-    auto bar = getLocalBounds().removeFromTop (26).withTrimmedLeft (76).reduced (4, 2);
+    auto bar = getLocalBounds().removeFromTop (theme::sectionTitleHeight).withTrimmedLeft (74).reduced (4, 2);
     const int w = bar.getWidth() / 3;
     for (auto& button : tabs) button.setBounds (bar.removeFromLeft (w).reduced (2, 0));
     r.removeFromTop (4);

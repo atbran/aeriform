@@ -337,6 +337,25 @@ register_network(F,C,B,I)
 from effect_params import register as register_effects
 register_effects(F,C,B,I)
 
+# --------------------------------------------------------------------------
+# Macros
+# --------------------------------------------------------------------------
+S = 'Master'
+F('macro1', 'macro_1', 'Macro 1', S, 0, 1, 0.0, '%', 'Percent', 'Macro control 1.')
+F('macro2', 'macro_2', 'Macro 2', S, 0, 1, 0.0, '%', 'Percent', 'Macro control 2.')
+F('macro3', 'macro_3', 'Macro 3', S, 0, 1, 0.0, '%', 'Percent', 'Macro control 3.')
+F('macro4', 'macro_4', 'Macro 4', S, 0, 1, 0.0, '%', 'Percent', 'Macro control 4.')
+
+# --------------------------------------------------------------------------
+# Matrix slots 17..32
+# --------------------------------------------------------------------------
+S = 'Motion'
+for i in range(17, 33):
+    n = 'Mod %d ' % i
+    C('mod%dSrc' % i, 'mod%d_src' % i, n + 'Source', S, 'ModSources', 0, 'Modulation source for this slot.')
+    C('mod%dDst' % i, 'mod%d_dst' % i, n + 'Destination', S, 'ModDests', 0, 'Parameter modulated by this slot.')
+    F('mod%dDepth' % i, 'mod%d_depth' % i, n + 'Depth', S, -1, 1, 0, '%', 'BipolarPercent', 'Bipolar modulation depth. Positive raises the destination, negative lowers it.')
+
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]
 assert len(set(ids)) == len(ids), 'duplicate id'
@@ -370,7 +389,7 @@ for r in rows:
 h.append('};\n\n')
 h.append('inline constexpr const char* id (P p) noexcept { return all[(int) p]; }\n\n')
 h.append('inline constexpr int numLFOs     = 3;\n')
-h.append('inline constexpr int numModSlots = 16;\n')
+h.append('inline constexpr int numModSlots = 32;\n')
 h.append('inline constexpr int numModSlotsV01 = 8;\n\n')
 h.append('inline constexpr const char* lfoShapeSuffix = "_shape";\ninline constexpr const char* lfoRateSuffix = "_rate";\n')
 h.append('inline constexpr const char* lfoSyncSuffix = "_sync";\ninline constexpr const char* lfoDivSuffix = "_div";\n')
@@ -384,10 +403,11 @@ h.append('enum class LfoField { Shape, Rate, Sync, Div, Mode, Fade, Phase };\n')
 h.append('enum class ModField { Src, Dst, Depth };\n')
 h.append('/** Enum of an LFO parameter (LFO 1..3). */\n')
 h.append('inline constexpr P lfoP (int lfoIndex1Based, LfoField f) noexcept { return (P) ((int) P::lfo1Shape + (lfoIndex1Based - 1) * 7 + (int) f); }\n')
-h.append('/** Enum of a matrix slot parameter (slot 1..16). */\n')
+h.append('/** Enum of a matrix slot parameter (slot 1..32). */\n')
 h.append('inline constexpr P modP (int slotIndex1Based, ModField f) noexcept\n{\n')
 h.append('    return slotIndex1Based <= numModSlotsV01 ? (P) ((int) P::mod1Src + (slotIndex1Based - 1) * 3 + (int) f)\n')
-h.append('                                             : (P) ((int) P::mod9Src + (slotIndex1Based - 9) * 3 + (int) f);\n}\n')
+h.append('         : slotIndex1Based <= 16             ? (P) ((int) P::mod9Src + (slotIndex1Based - 9) * 3 + (int) f)\n')
+h.append('                                             : (P) ((int) P::mod17Src + (slotIndex1Based - 17) * 3 + (int) f);\n}\n')
 h.append('} // namespace ids\n} // namespace aeriform\n')
 open(os.path.join(ROOT, 'Source/Params/ParamIDs.h'), 'w', encoding='utf-8', newline='\n').write(''.join(h))
 

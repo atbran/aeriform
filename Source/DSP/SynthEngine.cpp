@@ -508,6 +508,10 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         globalSources[(size_t) ModSource::ExpressionCC] = expressionCC;
         globalSources[(size_t) ModSource::PitchBend]    = globalBend;
         globalSources[(size_t) ModSource::SidechainEnv] = std::min (1.0f, sidechainEnv * 3.0f);
+        globalSources[(size_t) ModSource::Macro1]       = params.get (P::macro1);
+        globalSources[(size_t) ModSource::Macro2]       = params.get (P::macro2);
+        globalSources[(size_t) ModSource::Macro3]       = params.get (P::macro3);
+        globalSources[(size_t) ModSource::Macro4]       = params.get (P::macro4);
     }
 
     void renderVoiceSegment (int start, int numSamples,const float* roomInput=nullptr)

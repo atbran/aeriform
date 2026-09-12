@@ -1,5 +1,26 @@
 # Changelog
 
+## v3.1.0
+
+This release introduces an overhauled, streamlined user interface, four dedicated macro controls with full modulation routing, right-click macro mapping, and visual polish across the synth.
+
+### 4 Modulatable Macro Controls
+- **Dedicated Macro Panel**: 4 macro knobs arranged in a 2x2 grid on the Main page in copper accent styling.
+- **Right-Click Assignment**: Right-clicking any parameter now provides an "Assign Macro" menu (displaying Macro 1–4 with live custom names), mapping the macro immediately as an additive modulation source.
+- **Modulatable Macros**: Macros 1–4 are both modulation sources (`ModSource::Macro1..4`) and modulation destinations (`ModDest::Macro1..4`), evaluated in a two-pass resolution pass with additive offset $\text{effective} = \text{clamp01}(\text{baseKnob} + \text{modSum})$. LFOs, envelopes, and other macros can modulate macro knobs.
+- **Editable Macro Names**: Double-clicking a macro label allows in-place renaming; custom macro names are serialized into the plugin state XML and restored across sessions and presets.
+- **32-Slot Modulation Matrix**: Expanded the modulation matrix capacity from 16 to 32 slots (`ids::numModSlots = 32`) to accommodate macro assignments without consuming voice modulation slots.
+
+### UI Overhaul & Visual Polish
+- **Effects Tab Styling**: Replaced the previous button styling on the Effects / Space panel with clean, low-profile tab buttons featuring subtle dark backgrounds and teal active underlines.
+- **Network Diagram Bypass Path Alignment**: Repositioned the "DIRECT EXCITER PATH" bypass indicator to the bottom-left of the canvas, eliminating visual overlap with Resonator Node C.
+- **Streamlined Main Surface**: Clean arrangement uniting exciters, breath envelope, resonator tabs, visualizer modes (Pipe, Scope, Spectrum), LFOs, modulation envelope, network essentials, macros, and master section.
+
+### Verification & Compatibility
+- All 561 parameters preserved with backwards-compatible defaults, IDs, and normalized ranges.
+- Full test suite: 141 tests, 17,113,467 checks, 0 failures.
+- Complete VST3 host validation passing across 44.1/48/96 kHz and 32/256/1024-sample block sizes.
+
 ## v3.0.0
 
 A large expansion of the exciter/resonator instrument introduced in v2.1, developed and independently validated in parallel, then merged into the main release. Every original parameter ID, factory preset and default sound is unchanged; all new DSP defaults off. 40 original factory presets measured bit-identical against the v2.1 baseline (see [docs/AUDIBILITY_RESULTS.md](docs/AUDIBILITY_RESULTS.md)).

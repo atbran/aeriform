@@ -44,6 +44,7 @@ enum class ModSource
     // v2.1
     ExAEnv, ExBEnv, SidechainEnv, ResAEnergy, ResBEnergy, ResCEnergy, NetEnergy,
     SampleHold, SmoothRandom, ChaosX, ChaosY, NoteAge, KeyPosition, VoiceNumber, AlternateNote,
+    Macro1, Macro2, Macro3, Macro4,
     Count
 };
 
@@ -57,6 +58,7 @@ enum class ModDest
     Interaction, Balance, PreDrive, Fold, FoldDrive, FoldSymmetry, FoldBias,
     ResBPitch, ResBFeedback, ResBDamping, ResBBrightness, ResCPitch, ResCFeedback, ResCDamping, ResCBrightness,
     NetFeedback, NetWidth, Repipe, LoopAmount, ResAPan,
+    Macro1, Macro2, Macro3, Macro4,
     Count
 };
 

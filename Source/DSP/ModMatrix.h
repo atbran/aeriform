@@ -31,12 +31,45 @@ public:
     static inline void evaluate (const ModConfig& cfg, const ModSources& sources, ModValues& out) noexcept
     {
         out.fill (0.0f);
+        ModSources effSources = sources;
+
+        auto isMacroDest = [] (ModDest d) noexcept
+        {
+            return d >= ModDest::Macro1 && d <= ModDest::Macro4;
+        };
+
+        // Pass 1 & 2 for macro destinations (allowing standard modulators & chaining between macros)
+        for (int pass = 0; pass < 2; ++pass)
+        {
+            float macroMod[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            for (const auto& s : cfg.slots)
+            {
+                if (s.source == ModSource::None || ! isMacroDest (s.dest) || std::fabs (s.depth) < 1.0e-9f) continue;
+                const int mIdx = (int) s.dest - (int) ModDest::Macro1;
+                if (mIdx >= 0 && mIdx < 4)
+                    macroMod[mIdx] += s.depth * effSources[(size_t) s.source];
+            }
+            for (int i = 0; i < 4; ++i)
+            {
+                const auto d = (ModDest) ((int) ModDest::Macro1 + i);
+                const auto src = (ModSource) ((int) ModSource::Macro1 + i);
+                out[(size_t) d] = std::clamp (macroMod[i], -2.0f, 2.0f);
+                effSources[(size_t) src] = std::clamp (sources[(size_t) src] + out[(size_t) d], 0.0f, 1.0f);
+            }
+        }
+
+        // Final pass: evaluate all non-macro destinations using the modulated source values
         for (const auto& s : cfg.slots)
         {
-            if (s.source == ModSource::None || s.dest == ModDest::None || std::fabs (s.depth) < 1.0e-9f) continue;
-            out[(size_t) s.dest] += s.depth * sources[(size_t) s.source];
+            if (s.source == ModSource::None || s.dest == ModDest::None || isMacroDest (s.dest) || std::fabs (s.depth) < 1.0e-9f) continue;
+            out[(size_t) s.dest] += s.depth * effSources[(size_t) s.source];
         }
-        for (auto& v : out) v = std::clamp (v, -2.0f, 2.0f);
+
+        for (size_t i = 0; i < out.size(); ++i)
+        {
+            if (! isMacroDest ((ModDest) i))
+                out[i] = std::clamp (out[i], -2.0f, 2.0f);
+        }
     }
 
     /** True if any slot targets the destination (used by the GUI to show modulation rings). */

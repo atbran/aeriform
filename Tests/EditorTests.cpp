@@ -211,8 +211,8 @@ AERIFORM_TEST (editor_overhaul_controls_tabs_and_layout)
     CHECK (matrices.size() == 1);
     if (! matrices.empty())
     {
-        CHECK (descendants<ChoiceBox> (*matrices.front()).size() == 32);
-        CHECK (descendants<HSlider> (*matrices.front()).size() == 16);
+        CHECK (descendants<ChoiceBox> (*matrices.front()).size() == 2 * ids::numModSlots);
+        CHECK (descendants<HSlider> (*matrices.front()).size() == ids::numModSlots);
     }
     for (int page = 0; page < 6; ++page)
     {

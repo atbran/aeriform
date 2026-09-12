@@ -68,6 +68,20 @@ public:
     /** CPU load of the last blocks as a fraction of real time (0..1+). Audio thread writes, GUI reads. */
     float getCpuLoad() const noexcept { return cpuLoad.load(); }
 
+    juce::String getMacroName (int index) const
+    {
+        return index >= 0 && index < 4 ? macroNames[(size_t) index] : juce::String();
+    }
+    void setMacroName (int index, const juce::String& name)
+    {
+        if (index >= 0 && index < 4)
+        {
+            macroNames[(size_t) index] = name;
+            if (onMacroNameChanged) onMacroNameChanged (index, name);
+        }
+    }
+    std::function<void (int, const juce::String&)> onMacroNameChanged;
+
     /** Builds the complete state XML (parameters, preset name, MIDI learn, editor scale). */
     std::unique_ptr<juce::XmlElement> createStateXml();
     /** Restores from state XML; tolerant of missing / unknown / malformed content. */
@@ -102,6 +116,7 @@ private:
     std::atomic<int> editorPage { 5 };
     std::atomic<float> cpuLoad { 0.0f };
     double currentSampleRate = 44100.0;
+    std::array<juce::String, 4> macroNames { "Macro 1", "Macro 2", "Macro 3", "Macro 4" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AeriformProcessor)
 };

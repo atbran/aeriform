@@ -516,6 +516,58 @@ enum class P : int
     satHighModel,
     satHighMix,
     satHighOutput,
+    macro1,
+    macro2,
+    macro3,
+    macro4,
+    mod17Src,
+    mod17Dst,
+    mod17Depth,
+    mod18Src,
+    mod18Dst,
+    mod18Depth,
+    mod19Src,
+    mod19Dst,
+    mod19Depth,
+    mod20Src,
+    mod20Dst,
+    mod20Depth,
+    mod21Src,
+    mod21Dst,
+    mod21Depth,
+    mod22Src,
+    mod22Dst,
+    mod22Depth,
+    mod23Src,
+    mod23Dst,
+    mod23Depth,
+    mod24Src,
+    mod24Dst,
+    mod24Depth,
+    mod25Src,
+    mod25Dst,
+    mod25Depth,
+    mod26Src,
+    mod26Dst,
+    mod26Depth,
+    mod27Src,
+    mod27Dst,
+    mod27Depth,
+    mod28Src,
+    mod28Dst,
+    mod28Depth,
+    mod29Src,
+    mod29Dst,
+    mod29Depth,
+    mod30Src,
+    mod30Dst,
+    mod30Depth,
+    mod31Src,
+    mod31Dst,
+    mod31Depth,
+    mod32Src,
+    mod32Dst,
+    mod32Depth,
     Count
 };
 
@@ -1033,6 +1085,58 @@ inline constexpr const char* satHighDrive = "sat_high_drive";
 inline constexpr const char* satHighModel = "sat_high_model";
 inline constexpr const char* satHighMix = "sat_high_mix";
 inline constexpr const char* satHighOutput = "sat_high_output";
+inline constexpr const char* macro1 = "macro_1";
+inline constexpr const char* macro2 = "macro_2";
+inline constexpr const char* macro3 = "macro_3";
+inline constexpr const char* macro4 = "macro_4";
+inline constexpr const char* mod17Src = "mod17_src";
+inline constexpr const char* mod17Dst = "mod17_dst";
+inline constexpr const char* mod17Depth = "mod17_depth";
+inline constexpr const char* mod18Src = "mod18_src";
+inline constexpr const char* mod18Dst = "mod18_dst";
+inline constexpr const char* mod18Depth = "mod18_depth";
+inline constexpr const char* mod19Src = "mod19_src";
+inline constexpr const char* mod19Dst = "mod19_dst";
+inline constexpr const char* mod19Depth = "mod19_depth";
+inline constexpr const char* mod20Src = "mod20_src";
+inline constexpr const char* mod20Dst = "mod20_dst";
+inline constexpr const char* mod20Depth = "mod20_depth";
+inline constexpr const char* mod21Src = "mod21_src";
+inline constexpr const char* mod21Dst = "mod21_dst";
+inline constexpr const char* mod21Depth = "mod21_depth";
+inline constexpr const char* mod22Src = "mod22_src";
+inline constexpr const char* mod22Dst = "mod22_dst";
+inline constexpr const char* mod22Depth = "mod22_depth";
+inline constexpr const char* mod23Src = "mod23_src";
+inline constexpr const char* mod23Dst = "mod23_dst";
+inline constexpr const char* mod23Depth = "mod23_depth";
+inline constexpr const char* mod24Src = "mod24_src";
+inline constexpr const char* mod24Dst = "mod24_dst";
+inline constexpr const char* mod24Depth = "mod24_depth";
+inline constexpr const char* mod25Src = "mod25_src";
+inline constexpr const char* mod25Dst = "mod25_dst";
+inline constexpr const char* mod25Depth = "mod25_depth";
+inline constexpr const char* mod26Src = "mod26_src";
+inline constexpr const char* mod26Dst = "mod26_dst";
+inline constexpr const char* mod26Depth = "mod26_depth";
+inline constexpr const char* mod27Src = "mod27_src";
+inline constexpr const char* mod27Dst = "mod27_dst";
+inline constexpr const char* mod27Depth = "mod27_depth";
+inline constexpr const char* mod28Src = "mod28_src";
+inline constexpr const char* mod28Dst = "mod28_dst";
+inline constexpr const char* mod28Depth = "mod28_depth";
+inline constexpr const char* mod29Src = "mod29_src";
+inline constexpr const char* mod29Dst = "mod29_dst";
+inline constexpr const char* mod29Depth = "mod29_depth";
+inline constexpr const char* mod30Src = "mod30_src";
+inline constexpr const char* mod30Dst = "mod30_dst";
+inline constexpr const char* mod30Depth = "mod30_depth";
+inline constexpr const char* mod31Src = "mod31_src";
+inline constexpr const char* mod31Dst = "mod31_dst";
+inline constexpr const char* mod31Depth = "mod31_depth";
+inline constexpr const char* mod32Src = "mod32_src";
+inline constexpr const char* mod32Dst = "mod32_dst";
+inline constexpr const char* mod32Depth = "mod32_depth";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1544,12 +1648,64 @@ inline constexpr const char* const all[kNumParams] = {
     "sat_high_model",
     "sat_high_mix",
     "sat_high_output",
+    "macro_1",
+    "macro_2",
+    "macro_3",
+    "macro_4",
+    "mod17_src",
+    "mod17_dst",
+    "mod17_depth",
+    "mod18_src",
+    "mod18_dst",
+    "mod18_depth",
+    "mod19_src",
+    "mod19_dst",
+    "mod19_depth",
+    "mod20_src",
+    "mod20_dst",
+    "mod20_depth",
+    "mod21_src",
+    "mod21_dst",
+    "mod21_depth",
+    "mod22_src",
+    "mod22_dst",
+    "mod22_depth",
+    "mod23_src",
+    "mod23_dst",
+    "mod23_depth",
+    "mod24_src",
+    "mod24_dst",
+    "mod24_depth",
+    "mod25_src",
+    "mod25_dst",
+    "mod25_depth",
+    "mod26_src",
+    "mod26_dst",
+    "mod26_depth",
+    "mod27_src",
+    "mod27_dst",
+    "mod27_depth",
+    "mod28_src",
+    "mod28_dst",
+    "mod28_depth",
+    "mod29_src",
+    "mod29_dst",
+    "mod29_depth",
+    "mod30_src",
+    "mod30_dst",
+    "mod30_depth",
+    "mod31_src",
+    "mod31_dst",
+    "mod31_depth",
+    "mod32_src",
+    "mod32_dst",
+    "mod32_depth",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }
 
 inline constexpr int numLFOs     = 3;
-inline constexpr int numModSlots = 16;
+inline constexpr int numModSlots = 32;
 inline constexpr int numModSlotsV01 = 8;
 
 inline constexpr const char* lfoShapeSuffix = "_shape";
@@ -1570,11 +1726,12 @@ enum class LfoField { Shape, Rate, Sync, Div, Mode, Fade, Phase };
 enum class ModField { Src, Dst, Depth };
 /** Enum of an LFO parameter (LFO 1..3). */
 inline constexpr P lfoP (int lfoIndex1Based, LfoField f) noexcept { return (P) ((int) P::lfo1Shape + (lfoIndex1Based - 1) * 7 + (int) f); }
-/** Enum of a matrix slot parameter (slot 1..16). */
+/** Enum of a matrix slot parameter (slot 1..32). */
 inline constexpr P modP (int slotIndex1Based, ModField f) noexcept
 {
     return slotIndex1Based <= numModSlotsV01 ? (P) ((int) P::mod1Src + (slotIndex1Based - 1) * 3 + (int) f)
-                                             : (P) ((int) P::mod9Src + (slotIndex1Based - 9) * 3 + (int) f);
+         : slotIndex1Based <= 16             ? (P) ((int) P::mod9Src + (slotIndex1Based - 9) * 3 + (int) f)
+                                             : (P) ((int) P::mod17Src + (slotIndex1Based - 17) * 3 + (int) f);
 }
 } // namespace ids
 } // namespace aeriform

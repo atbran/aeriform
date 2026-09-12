@@ -44,7 +44,7 @@ namespace choices
                                            "Aftertouch", "Pitch Bend", "MPE Slide", "Key Track", "Random", "Breath CC2", "Expression CC11",
                                            "Exciter A Env", "Exciter B Env", "Sidechain Env", "Res A Energy", "Res B Energy", "Res C Energy",
                                            "Network Energy", "Sample & Hold", "Smooth Random", "Chaos X", "Chaos Y", "Note Age", "Key Position",
-                                           "Voice Number", "Alternate Note" };
+                                           "Voice Number", "Alternate Note", "Macro 1", "Macro 2", "Macro 3", "Macro 4" };
         return s;
     }
     const juce::StringArray& modDests()
@@ -58,7 +58,8 @@ namespace choices
                                            "Interaction", "A/B Balance", "Shaper Drive", "Fold", "Fold Drive", "Fold Symmetry", "Fold Bias",
                                            "Res B Pitch", "Res B Feedback", "Res B Damping", "Res B Brightness",
                                            "Res C Pitch", "Res C Feedback", "Res C Damping", "Res C Brightness",
-                                           "Network Feedback", "Network Width", "Repipe", "Loop Return", "Res A Pan" };
+                                           "Network Feedback", "Network Width", "Repipe", "Loop Return", "Res A Pan",
+                                           "Macro 1", "Macro 2", "Macro 3", "Macro 4" };
         return s;
     }
     const juce::StringArray& exciterModels()

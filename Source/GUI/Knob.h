@@ -33,6 +33,7 @@ public:
     ~Knob() override;
 
     void setDisplayName (const juce::String& name);
+    void makeNameEditable (std::function<void (const juce::String&)> onEdited);
     void setAccentColour (juce::Colour c) { slider.setColour (juce::Slider::rotarySliderFillColourId, c); }
     void setKnobDiameter (int d) { diameter = d; resized(); }
 

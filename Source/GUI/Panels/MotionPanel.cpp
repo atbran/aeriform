@@ -29,7 +29,7 @@ MotionPanel::MotionPanel (AeriformProcessor& p, bool f) : ParamPanel (p, "MOTION
 
     if (full)
     {
-        matrixCaption = caption ("MODULATION MATRIX / 16 SLOTS");
+        matrixCaption = caption ("MODULATION MATRIX / " + juce::String (ids::numModSlots) + " SLOTS");
         matrix = control<ModMatrixPanel> (processor, 1, ids::numModSlots, 2);
     }
 }
