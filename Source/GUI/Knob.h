@@ -41,6 +41,11 @@ public:
     void updateModRing (const dsp::ModConfig& config, const std::array<float, (size_t) ModDest::Count>& live);
 
     const juce::String& getParamID() const noexcept { return paramID; }
+    float getModMinNorm() const noexcept { return modMinNorm; }
+    float getModMaxNorm() const noexcept { return modMaxNorm; }
+    float getModDepthNorm() const noexcept { return std::fabs (modMaxNorm - modMinNorm); }
+    float getModLiveNorm() const noexcept { return modLiveNorm; }
+    bool getHasMod() const noexcept { return hasMod; }
 
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -80,8 +85,9 @@ private:
     void dragModulation(const juce::MouseEvent&);
     void endModulationDrag();
     bool showingValue = false;
-    float modDepthNorm = 0.0f;   // normalised half-width of the ring
-    float modLiveNorm = 0.0f;    // normalised live offset from the knob value
+    float modMinNorm = 0.0f;     // normalised minimum of the ring [0..1]
+    float modMaxNorm = 0.0f;     // normalised maximum of the ring [0..1]
+    float modLiveNorm = 0.0f;    // normalised live position [0..1]
     bool  hasMod = false;
 
     void sliderValueChanged (juce::Slider*) override;

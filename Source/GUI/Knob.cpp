@@ -91,6 +91,12 @@ void Knob::sliderValueChanged (juce::Slider*)
 {
     if (showingValue) showValue();
     else if (slider.isMouseOverOrDragging() || slider.hasKeyboardFocus (true)) { showValue(); startTimer (1100); }
+    if (hasMod)
+    {
+        std::array<float, (size_t) ModDest::Count> live {};
+        processor.getVisualizerModel().readLiveMod (live);
+        updateModRing (processor.getEngine().getModConfig(), live);
+    }
 }
 
 void Knob::sliderDragStarted (juce::Slider*) { processor.getPatchTools().begin("Edit "+paramID); stopTimer(); showValue(); }
@@ -153,7 +159,11 @@ bool Knob::beginModulationDrag(const juce::MouseEvent& e) {
 void Knob::dragModulation(const juce::MouseEvent& e) {
     if(modulationDragSlot<0)return;float depth=std::clamp(modulationDragStart+(modulationDragY-e.getScreenY())/(e.mods.isShiftDown()?1200.0f:150.0f),-1.0f,1.0f);
     auto* parameter=processor.getAPVTS().getParameter(ids::id(ids::modP(modulationDragSlot,ids::ModField::Depth)));parameter->setValueNotifyingHost(parameter->convertTo0to1(depth));
-    const int source=(int)KnobModulation::value(processor,modulationDragSlot,ids::ModField::Src);label.setText(choices::modSources()[source]+" "+juce::String((int)std::round(depth*100))+"%",juce::dontSendNotification);label.setColour(juce::Label::textColourId,tealBright);repaint();
+    const int source=(int)KnobModulation::value(processor,modulationDragSlot,ids::ModField::Src);label.setText(choices::modSources()[source]+" "+juce::String((int)std::round(depth*100))+"%",juce::dontSendNotification);label.setColour(juce::Label::textColourId,tealBright);
+    std::array<float, (size_t) ModDest::Count> live {};
+    processor.getVisualizerModel().readLiveMod (live);
+    updateModRing (processor.getEngine().getModConfig(), live);
+    repaint();
 }
 void Knob::endModulationDrag(){if(modulationDragSlot<0)return;processor.getAPVTS().getParameter(ids::id(ids::modP(modulationDragSlot,ids::ModField::Depth)))->endChangeGesture();modulationDragSlot=-1;processor.getPatchTools().end();startTimer(900);}
 void Knob::mouseDown(const juce::MouseEvent& e){if(e.mods.isPopupMenu())showContextMenu();else beginModulationDrag(e);}
@@ -246,18 +256,27 @@ void Knob::showContextMenu()
         {
             const auto src = (ModSource) ((int) ModSource::Macro1 + (result - 501));
             safe->selectedModSlot = KnobModulation::assign (safe->processor, safe->mapping.dest, src);
+            std::array<float, (size_t) ModDest::Count> live {};
+            safe->processor.getVisualizerModel().readLiveMod (live);
+            safe->updateModRing (safe->processor.getEngine().getModConfig(), live);
             safe->repaint();
             return;
         }
         if (result > 100 && result < 100 + (int) ModSource::Count)
         {
             safe->selectedModSlot = KnobModulation::assign (safe->processor, safe->mapping.dest, (ModSource) (result - 100));
+            std::array<float, (size_t) ModDest::Count> live {};
+            safe->processor.getVisualizerModel().readLiveMod (live);
+            safe->updateModRing (safe->processor.getEngine().getModConfig(), live);
             safe->repaint();
             return;
         }
         if (result > 2000 && result <= 2000 + ids::numModSlots)
         {
             KnobModulation::remove (safe->processor, result - 2000);
+            std::array<float, (size_t) ModDest::Count> live {};
+            safe->processor.getVisualizerModel().readLiveMod (live);
+            safe->updateModRing (safe->processor.getEngine().getModConfig(), live);
             safe->repaint();
             return;
         }
@@ -316,17 +335,25 @@ void Knob::updateModRing (const dsp::ModConfig& config, const std::array<float, 
 {
     if (mapping.dest == ModDest::None || param == nullptr)
         return;
-    const float depth = dsp::ModMatrix::maxDepth (config, mapping.dest);
-    const bool nowHasMod = depth > 0.0005f;
-    const float norm = param->getValue();
-    const float newDepthNorm = nowHasMod ? juce::jmax (std::fabs (modulatedNorm (depth) - norm), std::fabs (norm - modulatedNorm (-depth))) : 0.0f;
-    const float liveValue = live[(size_t) mapping.dest];
-    const float newLiveNorm = nowHasMod ? modulatedNorm (liveValue) - norm : 0.0f;
 
-    if (nowHasMod != hasMod || std::fabs (newDepthNorm - modDepthNorm) > 0.002f || std::fabs (newLiveNorm - modLiveNorm) > 0.004f)
+    const auto [minMod, maxMod] = dsp::ModMatrix::modulationRange (config, mapping.dest);
+    const bool nowHasMod = (maxMod - minMod) > 0.0005f;
+
+    const float norm = param->getValue();
+    const float newMinNorm = nowHasMod ? juce::jlimit (0.0f, 1.0f, modulatedNorm (minMod)) : norm;
+    const float newMaxNorm = nowHasMod ? juce::jlimit (0.0f, 1.0f, modulatedNorm (maxMod)) : norm;
+
+    const float liveValue = live[(size_t) mapping.dest];
+    const float newLiveNorm = nowHasMod ? juce::jlimit (0.0f, 1.0f, modulatedNorm (liveValue)) : norm;
+
+    if (nowHasMod != hasMod
+        || std::fabs (newMinNorm - modMinNorm) > 0.002f
+        || std::fabs (newMaxNorm - modMaxNorm) > 0.002f
+        || std::fabs (newLiveNorm - modLiveNorm) > 0.004f)
     {
         hasMod = nowHasMod;
-        modDepthNorm = newDepthNorm;
+        modMinNorm = newMinNorm;
+        modMaxNorm = newMaxNorm;
         modLiveNorm = newLiveNorm;
         repaint();
     }
@@ -355,17 +382,21 @@ void Knob::paint (juce::Graphics& g)
     const float radius = sb.getWidth() * 0.5f + 1.5f;
     const float start = juce::MathConstants<float>::pi * 1.2f, end = juce::MathConstants<float>::pi * 2.8f;
 
-    if ((hasMod||activeModSlot()>0) && param != nullptr)
+    if ((hasMod || activeModSlot() > 0) && param != nullptr)
     {
-        const float norm = param->getValue();
-        const float a0 = start + juce::jlimit (0.0f, 1.0f, norm - modDepthNorm) * (end - start);
-        const float a1 = start + juce::jlimit (0.0f, 1.0f, norm + modDepthNorm) * (end - start);
-        juce::Path ring;
-        ring.addCentredArc (centre.x, centre.y, radius, radius, 0.0f, a0, a1, true);
-        g.setColour (teal.withAlpha (0.55f));
-        g.strokePath (ring, juce::PathStrokeType (2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        const float arcStart = juce::jmin (modMinNorm, modMaxNorm);
+        const float arcEnd   = juce::jmax (modMinNorm, modMaxNorm);
+        if (arcEnd - arcStart > 0.001f)
+        {
+            const float a0 = start + arcStart * (end - start);
+            const float a1 = start + arcEnd   * (end - start);
+            juce::Path ring;
+            ring.addCentredArc (centre.x, centre.y, radius, radius, 0.0f, a0, a1, true);
+            g.setColour (teal.withAlpha (0.55f));
+            g.strokePath (ring, juce::PathStrokeType (2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        }
 
-        const float aLive = start + juce::jlimit (0.0f, 1.0f, norm + modLiveNorm) * (end - start);
+        const float aLive = start + modLiveNorm * (end - start);
         const auto dot = centre.getPointOnCircumference (radius, aLive);
         g.setColour (tealBright);
         g.fillEllipse (dot.x - 2.5f, dot.y - 2.5f, 5.0f, 5.0f);

@@ -82,3 +82,73 @@ AERIFORM_TEST(continuous_modulation_destinations_reach_dsp_and_render_finite) {
     }
 }
 
+AERIFORM_TEST(unipolar_macro_modulation_ring_and_indicator_travel_match) {
+    TestHost h;
+    auto& p = h.processor;
+
+    // Case 1: Knob at 0.0, Macro depth +1.0 -> Ring should span 0.0 to 1.0 unidirectionally
+    h.set (ids::resWet, 0.0f);
+    h.set (ids::id (ids::modP (1, ids::ModField::Src)), (float) ModSource::Macro1);
+    h.set (ids::id (ids::modP (1, ids::ModField::Dst)), (float) ModDest::ResAWet);
+    h.set (ids::id (ids::modP (1, ids::ModField::Depth)), 1.0f);
+    h.set (ids::macro1, 0.0f);
+    h.render (0.05);
+
+    std::array<float, (size_t) ModDest::Count> liveMod {};
+    p.getVisualizerModel().readLiveMod (liveMod);
+    auto config = p.getEngine().getModConfig();
+
+    Knob wetKnob (p, ids::resWet, KnobModMapping (ModDest::ResAWet, KnobModMapping::Kind::Additive, 1.0f));
+    wetKnob.updateModRing (config, liveMod);
+
+    CHECK (wetKnob.getHasMod());
+    CHECK_NEAR (wetKnob.getModMinNorm(), 0.0f, 1e-4f);
+    CHECK_NEAR (wetKnob.getModMaxNorm(), 1.0f, 1e-4f);
+    CHECK_NEAR (wetKnob.getModLiveNorm(), 0.0f, 1e-4f);
+
+    // Macro at 50% -> live indicator at 0.50
+    h.set (ids::macro1, 0.5f);
+    h.render (0.05);
+    p.getVisualizerModel().readLiveMod (liveMod);
+    wetKnob.updateModRing (config, liveMod);
+    CHECK_NEAR (wetKnob.getModLiveNorm(), 0.5f, 1e-4f);
+
+    // Macro at 100% -> live indicator at 1.00 (reaches end of ring)
+    h.set (ids::macro1, 1.0f);
+    h.render (0.05);
+    p.getVisualizerModel().readLiveMod (liveMod);
+    wetKnob.updateModRing (config, liveMod);
+    CHECK_NEAR (wetKnob.getModLiveNorm(), 1.0f, 1e-4f);
+
+    // Case 2: Knob at 0.5 (centered), Macro depth +0.4 -> Unidirectional arc from 0.5 to 0.9 (NOT 0.1 to 0.9)
+    h.set (ids::resWet, 0.5f);
+    h.set (ids::id (ids::modP (1, ids::ModField::Depth)), 0.4f);
+    h.set (ids::macro1, 0.0f);
+    h.render (0.05);
+    config = p.getEngine().getModConfig();
+    p.getVisualizerModel().readLiveMod (liveMod);
+    wetKnob.updateModRing (config, liveMod);
+
+    CHECK_NEAR (wetKnob.getModMinNorm(), 0.5f, 1e-4f);
+    CHECK_NEAR (wetKnob.getModMaxNorm(), 0.9f, 1e-4f);
+    CHECK_NEAR (wetKnob.getModLiveNorm(), 0.5f, 1e-4f);
+
+    h.set (ids::macro1, 1.0f);
+    h.render (0.05);
+    p.getVisualizerModel().readLiveMod (liveMod);
+    wetKnob.updateModRing (config, liveMod);
+    // At macro 1.0, indicator dot moves to 0.9 (100% of the drawn arc, not stopping halfway!)
+    CHECK_NEAR (wetKnob.getModLiveNorm(), 0.9f, 1e-4f);
+
+    // Case 3: Bipolar LFO modulation on centered knob -> Symmetrical arc from [norm - depth, norm + depth]
+    h.set (ids::id (ids::modP (1, ids::ModField::Src)), (float) ModSource::LFO1);
+    h.set (ids::id (ids::modP (1, ids::ModField::Depth)), 0.2f);
+    h.render (0.05);
+    config = p.getEngine().getModConfig();
+    p.getVisualizerModel().readLiveMod (liveMod);
+    wetKnob.updateModRing (config, liveMod);
+
+    CHECK_NEAR (wetKnob.getModMinNorm(), 0.3f, 1e-4f);
+    CHECK_NEAR (wetKnob.getModMaxNorm(), 0.7f, 1e-4f);
+}
+

@@ -48,6 +48,52 @@ enum class ModSource
     Count
 };
 
+inline constexpr bool isModSourceUnipolar (ModSource s) noexcept
+{
+    switch (s)
+    {
+        case ModSource::ModEnv:
+        case ModSource::AmpEnv:
+        case ModSource::Velocity:
+        case ModSource::ModWheel:
+        case ModSource::Aftertouch:
+        case ModSource::MpeSlide:
+        case ModSource::Random:
+        case ModSource::BreathCC:
+        case ModSource::ExpressionCC:
+        case ModSource::ExAEnv:
+        case ModSource::ExBEnv:
+        case ModSource::SidechainEnv:
+        case ModSource::ResAEnergy:
+        case ModSource::ResBEnergy:
+        case ModSource::ResCEnergy:
+        case ModSource::NetEnergy:
+        case ModSource::SampleHold:
+        case ModSource::NoteAge:
+        case ModSource::KeyPosition:
+        case ModSource::VoiceNumber:
+        case ModSource::Macro1:
+        case ModSource::Macro2:
+        case ModSource::Macro3:
+        case ModSource::Macro4:
+            return true;
+
+        case ModSource::None:
+        case ModSource::LFO1:
+        case ModSource::LFO2:
+        case ModSource::LFO3:
+        case ModSource::PitchBend:
+        case ModSource::KeyTrack:
+        case ModSource::SmoothRandom:
+        case ModSource::ChaosX:
+        case ModSource::ChaosY:
+        case ModSource::AlternateNote:
+        case ModSource::Count:
+        default:
+            return false;
+    }
+}
+
 enum class ModDest
 {
     None, Pressure, Noise, NoiseColor, ExciterLP, ExciterHP, Turbulence, Pitch,

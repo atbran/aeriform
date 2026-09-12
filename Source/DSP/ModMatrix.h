@@ -88,5 +88,30 @@ public:
             if (s.dest == dest && s.source != ModSource::None) d += std::fabs (s.depth);
         return std::min (d, 2.0f);
     }
+
+    /** Minimum and maximum modulation depth reaching a destination, taking unipolar vs bipolar sources into account. */
+    static std::pair<float, float> modulationRange (const ModConfig& cfg, ModDest dest) noexcept
+    {
+        float minMod = 0.0f;
+        float maxMod = 0.0f;
+        for (const auto& s : cfg.slots)
+        {
+            if (s.dest == dest && s.source != ModSource::None && std::fabs (s.depth) >= 1.0e-6f)
+            {
+                if (isModSourceUnipolar (s.source))
+                {
+                    minMod += std::min (0.0f, s.depth);
+                    maxMod += std::max (0.0f, s.depth);
+                }
+                else
+                {
+                    const float absD = std::fabs (s.depth);
+                    minMod -= absD;
+                    maxMod += absD;
+                }
+            }
+        }
+        return { std::clamp (minMod, -2.0f, 2.0f), std::clamp (maxMod, -2.0f, 2.0f) };
+    }
 };
 } // namespace aeriform::dsp
