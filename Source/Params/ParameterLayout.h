@@ -59,6 +59,17 @@ enum class ModDest
     ResBPitch, ResBFeedback, ResBDamping, ResBBrightness, ResCPitch, ResCFeedback, ResCDamping, ResCBrightness,
     NetFeedback, NetWidth, Repipe, LoopAmount, ResAPan,
     Macro1, Macro2, Macro3, Macro4,
+    // v3.2: continuous sound controls
+    ResAWet, ResBWet, ResCWet,
+    ResAWidth, ResBWidth, ResCWidth,
+    ResAInharm, ResBInharm, ResCInharm,
+    ResASize, ResBSize, ResCSize,
+    ResASaturation, ResBSaturation, ResCSaturation,
+    Pluck, PluckLength,
+    FoldMix, FoldShape,
+    ChorusRate, ChorusDepth,
+    DelayTimeL, DelayTimeR, DelayFeedback, DelayFilter,
+    ReverbDecay, ReverbSize, ReverbDamp, ReverbPredelay,
     Count
 };
 

@@ -294,3 +294,47 @@ AERIFORM_TEST (all_resonator_types_are_finite_in_every_slot_at_extremes)
     }
 }
 
+AERIFORM_TEST (resonator_individual_dry_wet_controls_blend_cleanly)
+{
+    TestHost h (48000.0, 256);
+    dryFx (h);
+    h.set (ids::netMode, (float) NetMode::Single);
+    h.set (ids::resMode, (float) ResMode::OpenPipe);
+    h.set (ids::resWet, 1.0f);
+    h.noteOn (60);
+    std::vector<float> wetSig;
+    h.render (0.4, &wetSig);
+    h.noteOff (60);
+    h.render (0.3);
+
+    // Now 0.0 wet (dry pass-through of exciter)
+    h.set (ids::resWet, 0.0f);
+    h.noteOn (60);
+    std::vector<float> drySig;
+    h.render (0.4, &drySig);
+    h.noteOff (60);
+    h.render (0.3);
+
+    // Now 0.5 wet (intermediate blend)
+    h.set (ids::resWet, 0.5f);
+    h.noteOn (60);
+    std::vector<float> blendSig;
+    auto sBlend = h.render (0.4, &blendSig);
+    CHECK (sBlend.finite);
+    CHECK (sBlend.peak < 1.5f);
+    CHECK (sBlend.rms > 1.0e-4);
+
+    // Compare wet vs dry: resonator ringing makes them distinct
+    double diff = 0.0, energy = 0.0;
+    for (size_t i = 0; i < wetSig.size(); ++i) {
+        diff += (wetSig[i] - drySig[i]) * (wetSig[i] - drySig[i]);
+        energy += wetSig[i] * wetSig[i];
+    }
+    CHECK_MSG (diff > 0.05 * energy, "dry and wet signals are distinct");
+
+    // Also verify slots B and C wet parameters exist and default to 1.0
+    CHECK_NEAR (h.get (ids::resWet), 0.5f, 1e-4);
+    CHECK_NEAR (h.get (ids::rbWet), 1.0f, 1e-4);
+    CHECK_NEAR (h.get (ids::rcWet), 1.0f, 1e-4);
+}
+

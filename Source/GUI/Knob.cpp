@@ -168,11 +168,12 @@ void Knob::showContextMenu()
 
     juce::PopupMenu menu;
     menu.addSectionHeader (info != nullptr ? info->name : paramID);
+    menu.addItem (10, "Enter value...");
+    menu.addItem (3, "Reset to default");
     menu.addItem (1, learning ? "Learning... (move a MIDI controller)" : "MIDI Learn", ! learning);
     menu.addItem (2, mappedCC >= 0 ? "Clear MIDI mapping (CC " + juce::String (mappedCC) + ")" : "No MIDI mapping", mappedCC >= 0);
     menu.addItem (7, "Clear all MIDI mappings");
     menu.addSeparator();
-    menu.addItem (3, "Reset to default");
     menu.addItem (5, "Lock for randomization",true,processor.getPatchTools().isLocked(paramID));
     if (learning) menu.addItem (4, "Cancel learn");
     menu.addSeparator();
@@ -215,6 +216,32 @@ void Knob::showContextMenu()
     menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [safe] (int result)
     {
         if (safe == nullptr) return;
+        if (result == 10 && safe->param != nullptr)
+        {
+            auto* w = new juce::AlertWindow ("Set " + (safe->info != nullptr ? safe->info->name : safe->paramID),
+                                             "Enter value (current: " + safe->param->getText (safe->param->getValue(), 24) + "):",
+                                             juce::AlertWindow::NoIcon);
+            w->addTextEditor ("val", safe->param->getText (safe->param->getValue(), 24), "Value:");
+            w->addButton ("OK", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
+            w->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+            w->enterModalState (true, juce::ModalCallbackFunction::create ([safe, w] (int r)
+            {
+                std::unique_ptr<juce::AlertWindow> window (w);
+                if (r == 1 && safe != nullptr && safe->param != nullptr)
+                {
+                    const auto txt = window->getTextEditorContents ("val").trim();
+                    if (txt.isNotEmpty())
+                    {
+                        const float rawVal = txt.retainCharacters ("0123456789.-+").getFloatValue();
+                        const float clamped = juce::jlimit (safe->param->getNormalisableRange().start,
+                                                            safe->param->getNormalisableRange().end,
+                                                            rawVal);
+                        safe->processor.getPatchTools().setParameter (safe->paramID, clamped);
+                    }
+                }
+            }));
+            return;
+        }
         if (result >= 501 && result <= 504)
         {
             const auto src = (ModSource) ((int) ModSource::Macro1 + (result - 501));

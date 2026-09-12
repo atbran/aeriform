@@ -6,10 +6,12 @@ void PerformancePage::resized(){tools->setBounds(getLocalBounds());}
 PerformancePage::ToolsPanel::ToolsPanel(AeriformProcessor& p):ParamPanel(p,"PLAY / SNAPSHOT LAB",copper) {
     for(int i=0;i<2;++i) {
         capture[(size_t)i].setButtonText("CAPTURE");load[(size_t)i].setButtonText("LOAD PRESET");editEndpoint[(size_t)i].setButtonText(i==0?"EDIT A":"EDIT B");
-        for(auto* c:std::initializer_list<juce::Component*>{&capture[(size_t)i],&load[(size_t)i],&editEndpoint[(size_t)i],&endpointName[(size_t)i]})addAndMakeVisible(c);
+        copyToOther[(size_t)i].setButtonText(i==0?"COPY TO B":"COPY TO A");
+        for(auto* c:std::initializer_list<juce::Component*>{&capture[(size_t)i],&load[(size_t)i],&editEndpoint[(size_t)i],&copyToOther[(size_t)i],&endpointName[(size_t)i]})addAndMakeVisible(c);
         endpointName[(size_t)i].setFont(titleFont(20));endpointName[(size_t)i].setColour(juce::Label::textColourId,i==0?copperBright:teal);
         capture[(size_t)i].onClick=[this,i]{processor.getPatchTools().capture(i);};
         load[(size_t)i].onClick=[this,i]{choosePreset(i);};editEndpoint[(size_t)i].onClick=[this,i]{processor.getPatchTools().selectEndpoint(i);};
+        copyToOther[(size_t)i].onClick=[this,i]{if(i==0)processor.getPatchTools().copyAtoB();else processor.getPatchTools().copyBtoA();};
     }
     enabled=control<Toggle>(p,ids::morphOn,"A/B MORPH");engine=control<ChoiceBox>(p,ids::morphMode,"Engine");morph=control<HSlider>(p,ids::morphPosition,true);
     wild=control<Toggle>(p,ids::randomWild,"WILD");mutation=knob(ids::randomMutation,"Mutation",{},72);
@@ -36,13 +38,28 @@ void PerformancePage::ToolsPanel::choosePreset(int slot) {
     juce::Component::SafePointer<ToolsPanel> safe(this);menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&load[(size_t)slot]),[safe,slot](int id){if(safe&&id>0)safe->processor.getPatchTools().loadSnapshot(slot,id-1);});
 }
 void PerformancePage::ToolsPanel::timerCallback() {
-    auto& s=processor.getPatchTools();for(int i=0;i<2;++i){endpointName[(size_t)i].setText(juce::String(i==0?"A  /  ":"B  /  ")+s.snapshotName(i),juce::dontSendNotification);editEndpoint[(size_t)i].setToggleState(s.selectedEndpoint()==i,juce::dontSendNotification);}
+    auto& s=processor.getPatchTools();
+    for(int i=0;i<2;++i){
+        const bool isActive = (s.selectedEndpoint() == i);
+        endpointName[(size_t)i].setText(juce::String(i==0?"A  /  ":"B  /  ")+s.snapshotName(i)+(isActive ? "  [ACTIVE]" : ""),juce::dontSendNotification);
+        endpointName[(size_t)i].setColour(juce::Label::textColourId, isActive ? (i==0 ? copperBright : teal) : textSecondary);
+        editEndpoint[(size_t)i].setToggleState(isActive,juce::dontSendNotification);
+    }
     if(!seed.hasKeyboardFocus(false))seed.setText(juce::String((juce::int64)s.getSeed()),false);
     const float t=processor.getAPVTS().getRawParameterValue(ids::morphPosition)->load();commit.setEnabled(!s.deep()||t<0.001f||t>0.999f);repaint();
 }
 void PerformancePage::ToolsPanel::resized() {
     auto r=getContentArea().reduced(16,8);auto ends=r.removeFromTop(100);const int gap=40,w=(ends.getWidth()-gap)/2;
-    for(int i=0;i<2;++i){auto box=ends.removeFromLeft(w);endpointName[(size_t)i].setBounds(box.removeFromTop(44));auto buttons=box.removeFromTop(30);capture[(size_t)i].setBounds(buttons.removeFromLeft(100));buttons.removeFromLeft(8);load[(size_t)i].setBounds(buttons.removeFromLeft(130));buttons.removeFromLeft(8);editEndpoint[(size_t)i].setBounds(buttons.removeFromLeft(100));ends.removeFromLeft(gap);}
+    for(int i=0;i<2;++i){
+        auto box=ends.removeFromLeft(w);
+        endpointName[(size_t)i].setBounds(box.removeFromTop(44));
+        auto buttons=box.removeFromTop(30);
+        capture[(size_t)i].setBounds(buttons.removeFromLeft(90));buttons.removeFromLeft(6);
+        load[(size_t)i].setBounds(buttons.removeFromLeft(110));buttons.removeFromLeft(6);
+        editEndpoint[(size_t)i].setBounds(buttons.removeFromLeft(90));buttons.removeFromLeft(6);
+        copyToOther[(size_t)i].setBounds(buttons.removeFromLeft(95));
+        ends.removeFromLeft(gap);
+    }
     auto controls=r.removeFromTop(44);enabled->setBounds(controls.removeFromLeft(150));engine->setBounds(controls.removeFromLeft(180));commit.setBounds(controls.removeFromRight(100).withSizeKeepingCentre(100,28));morph->setBounds(controls.reduced(28,4));
     r.removeFromTop(112);help.setBounds(r.removeFromTop(26));r.removeFromTop(14);
     knobRow(r.removeFromTop(106),{repipe,coupling,feedback,folder,brightness,width,room,mutation},12);r.removeFromTop(24);

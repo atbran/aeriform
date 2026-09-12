@@ -6,8 +6,21 @@ namespace {
 class StateAction final : public juce::UndoableAction {
 public:
     StateAction(AeriformProcessor& p,std::unique_ptr<juce::XmlElement> a,std::unique_ptr<juce::XmlElement> b):processor(p),oldState(std::move(a)),newState(std::move(b)){}
-    bool perform() override { if(first) first=false; else processor.applyStateXml(*newState); return true; }
-    bool undo() override { processor.applyStateXml(*oldState); return true; }
+    bool perform() override {
+        if(first) first=false;
+        else {
+            processor.getPatchTools().beginRestore();
+            processor.applyStateXml(*newState);
+            processor.getPatchTools().endRestore();
+        }
+        return true;
+    }
+    bool undo() override {
+        processor.getPatchTools().beginRestore();
+        processor.applyStateXml(*oldState);
+        processor.getPatchTools().endRestore();
+        return true;
+    }
     int getSizeInUnits() override { return kNumParams*4; }
 private:
     AeriformProcessor& processor;
@@ -92,6 +105,17 @@ bool PatchStateManager::loadSnapshot(int slot,int presetIndex) {
         }
     }
     perform("Load snapshot",[&]{writeSnapshot(slot,v);names[(size_t)slot]=entry.name;if(slot==selected.load())apply(v);});return true;
+}
+void PatchStateManager::copySnapshot(int fromSlot, int toSlot) {
+    fromSlot = std::clamp(fromSlot, 0, 1);
+    toSlot = std::clamp(toSlot, 0, 1);
+    if (fromSlot == toSlot) return;
+    perform(fromSlot == 0 ? "Copy A to B" : "Copy B to A", [&] {
+        const Values src = (fromSlot == selected.load()) ? current() : readSnapshot(fromSlot);
+        writeSnapshot(toSlot, src);
+        names[(size_t)toSlot] = names[(size_t)fromSlot];
+        if (toSlot == selected.load()) apply(src);
+    });
 }
 void PatchStateManager::selectEndpoint(int slot) {
     slot=std::clamp(slot,0,1);if(slot==selected.load())return;

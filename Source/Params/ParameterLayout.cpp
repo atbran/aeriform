@@ -59,7 +59,17 @@ namespace choices
                                            "Res B Pitch", "Res B Feedback", "Res B Damping", "Res B Brightness",
                                            "Res C Pitch", "Res C Feedback", "Res C Damping", "Res C Brightness",
                                            "Network Feedback", "Network Width", "Repipe", "Loop Return", "Res A Pan",
-                                           "Macro 1", "Macro 2", "Macro 3", "Macro 4" };
+                                           "Macro 1", "Macro 2", "Macro 3", "Macro 4",
+                                           "Res A Wet", "Res B Wet", "Res C Wet",
+                                           "Res A Width", "Res B Width", "Res C Width",
+                                           "Res A Inharm", "Res B Inharm", "Res C Inharm",
+                                           "Res A Size", "Res B Size", "Res C Size",
+                                           "Res A Saturation", "Res B Saturation", "Res C Saturation",
+                                           "Pluck", "Pluck Length",
+                                           "Fold Mix", "Fold Shape",
+                                           "Chorus Rate", "Chorus Depth",
+                                           "Delay Time L", "Delay Time R", "Delay Feedback", "Delay Filter",
+                                           "Reverb Decay", "Reverb Size", "Reverb Damp", "Reverb Pre-Delay" };
         return s;
     }
     const juce::StringArray& exciterModels()

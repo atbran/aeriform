@@ -104,8 +104,8 @@ WavefolderPanel::WavefolderPanel (AeriformProcessor& p) : ParamPanel (p, "WAVEFO
     symmetry = knob (wfSymmetry, "Symmetry", additive (ModDest::FoldSymmetry));
     bias     = knob (wfBias, "Bias", additive (ModDest::FoldBias));
     stages   = knob (wfStages, "Stages");
-    shape    = knob (wfShape, "Shape");
-    mix      = knob (wfMix, "Mix");
+    shape    = knob (wfShape, "Shape", additive (ModDest::FoldShape));
+    mix      = knob (wfMix, "Mix", additive (ModDest::FoldMix));
     comp     = knob (wfComp, "Comp");
     postLp   = knob (wfLp, "Post LP");
     dynamics = knob (dynAmount, "Dynamics");

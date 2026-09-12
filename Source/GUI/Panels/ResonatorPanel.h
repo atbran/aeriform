@@ -15,7 +15,7 @@ private:
     Knob *coarse, *fine, *length, *keyTrack;
     ChoiceBox* mode;
     Knob *feedback, *damping, *brightness, *dispersion;
-    Knob *shape, *reflection, *saturation;
+    Knob *shape, *reflection, *saturation, *wet;
     juce::Label *tuneCaption, *tubeCaption;
 };
 } // namespace aeriform

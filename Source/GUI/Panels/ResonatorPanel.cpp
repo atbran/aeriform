@@ -24,7 +24,8 @@ ResonatorPanel::ResonatorPanel (AeriformProcessor& p, int slot)
     dispersion = knob (id (resDispersion, "_dispersion"), "Dispersion", slot == 0 ? additive (ModDest::Dispersion) : Knob::ModMapping(), 64);
     shape = knob (id (resShape, "_shape"), "Shape", slot == 0 ? additive (ModDest::Shape) : Knob::ModMapping());
     reflection = knob (id (resReflection, "_reflect"), "Reflection", slot == 0 ? additive (ModDest::Reflection) : Knob::ModMapping());
-    saturation = knob (id (resSaturation, "_saturation"), "Saturation");
+    saturation = knob (id (resSaturation, "_saturation"), "Saturation", additive (dest (ModDest::ResASaturation, ModDest::ResBSaturation, ModDest::ResCSaturation)));
+    wet = knob (id (resWet, "_wet"), "Wet", additive (dest (ModDest::ResAWet, ModDest::ResBWet, ModDest::ResCWet)));
     for (auto& k : knobs) k->setAccentColour (getAccent());
 }
 
@@ -38,6 +39,6 @@ void ResonatorPanel::resized()
     r.removeFromTop (4);
     tubeCaption->setBounds (r.removeFromTop (14));
     knobRow (r.removeFromTop (84), { feedback, damping, brightness, dispersion });
-    knobRow (r.removeFromTop (72), { shape, reflection, saturation });
+    knobRow (r.removeFromTop (72), { shape, reflection, saturation, wet });
 }
 } // namespace aeriform

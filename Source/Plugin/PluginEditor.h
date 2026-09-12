@@ -49,6 +49,7 @@ private:
     juce::TextButton scaleButton { "100 %" };
     aeriform::PageTabs tabs;
     juce::TextButton undoButton{"UNDO"},redoButton{"REDO"};
+    juce::TextButton aButton{"A"},bButton{"B"};
 
     // pages
     std::array<std::unique_ptr<aeriform::Page>, 6> pages;

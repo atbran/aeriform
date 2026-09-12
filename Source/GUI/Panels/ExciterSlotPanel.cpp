@@ -65,9 +65,9 @@ ExciterSlotPanel::ExciterSlotPanel (AeriformProcessor& p, int s, bool c)
     make (ids::excNoiseColor, "Color", additive (ModDest::NoiseColor), md);
     make (ids::excPressure, "Pressure", additive (ModDest::Pressure), md);
     make (ids::excReed, "Reed", {}, md);
-    make (ids::excPluck, "Pluck", {}, md);
+    make (ids::excPluck, "Pluck", additive (ModDest::Pluck), md);
     make (ids::excExternalIn, "Sidechain", {}, md);
-    make (ids::excPluckLength, "Pluck Len", {}, md);
+    make (ids::excPluckLength, "Pluck Len", additive (ModDest::PluckLength), md);
     make (ids::excTurbulence, "Turbulence", additive (ModDest::Turbulence), md);
     make (ids::excVelocity, "Vel > Lvl", {}, md);
     make (ids::excAttackClick, "Transient", {}, md);

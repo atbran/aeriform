@@ -13,7 +13,7 @@ private:
         void resized() override;
         void paint(juce::Graphics&) override;
     private:
-        std::array<juce::TextButton,2> capture,load,editEndpoint;
+        std::array<juce::TextButton,2> capture,load,editEndpoint,copyToOther;
         std::array<juce::Label,2> endpointName;
         juce::TextButton randomize{"RANDOMIZE"},mutate{"MUTATE"},newSeed{"NEW SEED"},lockAll{"LOCK ALL"},unlockAll{"UNLOCK ALL"},lockSection{"LOCK SECTION"},unlockSection{"UNLOCK SECTION"},commit{"COMMIT"};
         juce::TextEditor seed;

@@ -568,6 +568,9 @@ enum class P : int
     mod32Src,
     mod32Dst,
     mod32Depth,
+    resWet,
+    rbWet,
+    rcWet,
     Count
 };
 
@@ -1137,6 +1140,9 @@ inline constexpr const char* mod31Depth = "mod31_depth";
 inline constexpr const char* mod32Src = "mod32_src";
 inline constexpr const char* mod32Dst = "mod32_dst";
 inline constexpr const char* mod32Depth = "mod32_depth";
+inline constexpr const char* resWet = "res_wet";
+inline constexpr const char* rbWet = "rb_wet";
+inline constexpr const char* rcWet = "rc_wet";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1700,6 +1706,9 @@ inline constexpr const char* const all[kNumParams] = {
     "mod32_src",
     "mod32_dst",
     "mod32_depth",
+    "res_wet",
+    "rb_wet",
+    "rc_wet",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

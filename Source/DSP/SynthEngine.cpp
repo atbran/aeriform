@@ -483,6 +483,14 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                 case 2:  breathCC = (float) value / 127.0f; break;
                 case 11: expressionCC = (float) value / 127.0f; break;
                 case 120: for (auto& v : voices) v.kill (3.0f); break;
+                case 121:
+                    modWheel = 0.0f;
+                    breathCC = 0.0f;
+                    expressionCC = 1.0f;
+                    globalBend = 0.0f;
+                    for (auto& v : voices) v.setPressure (0.0f);
+                    break;
+                case 123: allNotesOff(); break;
                 default: break;
             }
             mpe.processNextMidiEvent (m);
@@ -491,6 +499,23 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         if (m.isPitchWheel())
             globalBend = (float) (m.getPitchWheelValue() - 8192) / 8192.0f;
+
+        if (m.isAftertouch())
+        {
+            const int targetNote = m.getNoteNumber();
+            const float val = (float) m.getAfterTouchValue() / 127.0f;
+            for (auto& v : voices)
+                if (v.isActive() && v.getNote() == targetNote)
+                    v.setPressure (val);
+        }
+        else if (m.isChannelPressure())
+        {
+            const float val = (float) m.getChannelPressureValue() / 127.0f;
+            for (auto& v : voices)
+                if (v.isActive())
+                    v.setPressure (val);
+        }
+
         mpe.processNextMidiEvent (m);
     }
 
@@ -670,15 +695,21 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
 
         globalFilters.update(params,filterNote,filterEnvelope,numSamples);
         for(int i=0;i<numSamples;++i){globalFilters.advance();filterFrames[(size_t)i]=globalFilters.weights();L[i]=globalFilters.atWeighted(FilterPosition::PreEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PreEffects,R[i],3,filterFrames[(size_t)i]);}
-        chorus.setParams (clamp01 (params.get (P::chorusMix) + globalMod[(size_t) ModDest::ChorusMix]), params.get (P::chorusRate),
-                          params.get (P::chorusDepth), params.get (P::chorusWidth));
+        const float cMix = clamp01 (params.get (P::chorusMix) + globalMod[(size_t) ModDest::ChorusMix]);
+        const float cRate = std::clamp (params.get (P::chorusRate) * std::exp2 (globalMod[(size_t) ModDest::ChorusRate] * 2.0f), 0.05f, 10.0f);
+        const float cDepth = clamp01 (params.get (P::chorusDepth) + globalMod[(size_t) ModDest::ChorusDepth]);
+        chorus.setParams (cMix, cRate, cDepth, params.get (P::chorusWidth));
         chorus.process (L, R, numSamples);
 
         float delayMs = params.get (P::delayTime);
         if (params.getb (P::delaySync))
             delayMs = (float) (60000.0 / (bpm > 1.0 ? bpm : 120.0) * choices::syncDivisionBeats (params.geti (P::delayDiv)));
-        delay.setParams (clamp01 (params.get (P::delayMix) + globalMod[(size_t) ModDest::DelayMix]), delayMs, params.get (P::delayFeedback),
-                         params.get (P::delayTone), params.getb (P::delayPingPong));
+        else
+            delayMs = std::clamp (delayMs * std::exp2 (globalMod[(size_t) ModDest::DelayTimeL] * 2.0f), 1.0f, 2000.0f);
+        const float dFb = clamp01 (params.get (P::delayFeedback) + globalMod[(size_t) ModDest::DelayFeedback]);
+        const float dTone = clamp01 (params.get (P::delayTone) + globalMod[(size_t) ModDest::DelayFilter]);
+        delay.setParams (clamp01 (params.get (P::delayMix) + globalMod[(size_t) ModDest::DelayMix]), delayMs, dFb,
+                         dTone, params.getb (P::delayPingPong));
         delay.process (L, R, numSamples);
 
         ResonantDelayParams rd;rd.enabled=params.getb(P::rdOn);rd.timeMs=params.get(P::rdTime);
@@ -687,8 +718,12 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         rd.damping=params.get(P::rdDamping);rd.dispersion=params.get(P::rdDispersion);rd.amount=params.get(P::rdAmount);rd.saturation=params.get(P::rdSaturation);rd.stereoOffsetMs=params.get(P::rdOffset);rd.mix=params.get(P::rdMix);
         resonantDelay.setParams(rd);resonantDelay.process(L,R,numSamples);
 
-        reverb.setParams (clamp01 (params.get (P::reverbMix) + globalMod[(size_t) ModDest::ReverbMix]), params.get (P::reverbSize),
-                          params.get (P::reverbDecay), params.get (P::reverbDamping), params.get (P::reverbPreDelay),
+        const float rMix = clamp01 (params.get (P::reverbMix) + globalMod[(size_t) ModDest::ReverbMix]);
+        const float rSize = clamp01 (params.get (P::reverbSize) + globalMod[(size_t) ModDest::ReverbSize]);
+        const float rDecay = std::clamp (params.get (P::reverbDecay) * std::exp2 (globalMod[(size_t) ModDest::ReverbDecay] * 2.0f), 0.1f, 30.0f);
+        const float rDamp = clamp01 (params.get (P::reverbDamping) + globalMod[(size_t) ModDest::ReverbDamp]);
+        const float rPre = std::clamp (params.get (P::reverbPreDelay) + globalMod[(size_t) ModDest::ReverbPredelay] * 100.0f, 0.0f, 250.0f);
+        reverb.setParams (rMix, rSize, rDecay, rDamp, rPre,
                           params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);
         ShimmerParams sh;sh.enabled=params.getb(P::shOn);sh.semitones=params.get(P::shInterval);sh.feedback=params.get(P::shFeedback);sh.diffusion=params.get(P::shDiffusion);sh.damping=params.get(P::shDamping);sh.size=params.get(P::shSize);sh.spread=params.get(P::shSpread);sh.lowCutHz=params.get(P::shLowCut);sh.highCutHz=params.get(P::shHighCut);sh.mix=params.get(P::shMix);

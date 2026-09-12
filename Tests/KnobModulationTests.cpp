@@ -51,3 +51,34 @@ AERIFORM_TEST(macro_knob_assignment_and_macro_modulation) {
     CHECK(h2.processor.getMacroName(2) == "Macro 3");
 }
 
+AERIFORM_TEST(continuous_modulation_destinations_reach_dsp_and_render_finite) {
+    TestHost h;
+    h.set(ids::resOn, 1.0f); h.set(ids::rbOn, 1.0f); h.set(ids::rcOn, 1.0f);
+    h.set(ids::netMode, (float)NetMode::Parallel);
+
+    const ModDest testDests[] = {
+        ModDest::ResAWet, ModDest::ResBWet, ModDest::ResCWet,
+        ModDest::ResAWidth, ModDest::ResBWidth, ModDest::ResCWidth,
+        ModDest::ResAInharm, ModDest::ResBInharm, ModDest::ResCInharm,
+        ModDest::ResASize, ModDest::ResBSize, ModDest::ResCSize,
+        ModDest::ResASaturation, ModDest::ResBSaturation, ModDest::ResCSaturation,
+        ModDest::Pluck, ModDest::PluckLength,
+        ModDest::FoldMix, ModDest::FoldShape,
+        ModDest::ChorusRate, ModDest::ChorusDepth,
+        ModDest::DelayTimeL, ModDest::DelayFeedback, ModDest::DelayFilter,
+        ModDest::ReverbDecay, ModDest::ReverbSize, ModDest::ReverbDamp, ModDest::ReverbPredelay
+    };
+
+    for (auto dst : testDests) {
+        h.set(ids::id(ids::modP(1, ids::ModField::Src)), (float)ModSource::LFO1);
+        h.set(ids::id(ids::modP(1, ids::ModField::Dst)), (float)dst);
+        h.set(ids::id(ids::modP(1, ids::ModField::Depth)), 0.5f);
+        h.noteOn(60);
+        auto s = h.render(0.04);
+        CHECK(s.finite);
+        CHECK(s.peak < 2.0f);
+        h.noteOff(60);
+        h.render(0.02);
+    }
+}
+

@@ -69,3 +69,50 @@ AERIFORM_TEST(patchtools_play_page_paints_and_exports_screenshot) {
     juce::Image image(juce::Image::ARGB,ed->getWidth(),ed->getHeight(),true);juce::Graphics g(image);ed->paintEntireComponent(g,true);
     auto file=juce::File::getCurrentWorkingDirectory().getChildFile("docs/experimental/play.png");file.getParentDirectory().createDirectory();auto stream=file.createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}
 }
+
+AERIFORM_TEST(patchtools_copy_a_to_b_and_b_to_a_undo_redo)
+{
+    TestHost h;
+    auto& s = h.processor.getPatchTools();
+    endpoints (h); // Snapshot A has excLowpass 1000, B has 9000
+    s.undo.clearUndoHistory();
+
+    CHECK_NEAR (s.getSnapshot(0)[(size_t)P::excLowpass], 1000.0f, 1.0f);
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 9000.0f, 1.0f);
+
+    // Copy A to B while endpoint 0 is selected
+    s.copyAtoB();
+    CHECK (s.undo.canUndo());
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 1000.0f, 1.0f);
+
+    // Undo should restore B's original snapshot value (9000)
+    CHECK (s.undo.undo());
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 9000.0f, 1.0f);
+
+    // Redo restores copy
+    CHECK (s.undo.redo());
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 1000.0f, 1.0f);
+
+    // Now test copy while destination is active: switch to B
+    s.selectEndpoint (1);
+    s.undo.clearUndoHistory();
+    // In B, change excLowpass to 7777
+    h.set (ids::excLowpass, 7777.0f);
+    s.capture (1);
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 7777.0f, 1.0f);
+    CHECK_NEAR (h.get (ids::excLowpass), 7777.0f, 1.0f);
+
+    // Copy A to B when B is currently active -> live param immediately updates to A (1000)
+    s.copyAtoB();
+    CHECK_NEAR (h.get (ids::excLowpass), 1000.0f, 1.0f);
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 1000.0f, 1.0f);
+
+    // Undo restores live param and snapshot B to 7777
+    CHECK (s.undo.undo());
+    CHECK_NEAR (h.get (ids::excLowpass), 7777.0f, 1.0f);
+    CHECK_NEAR (s.getSnapshot(1)[(size_t)P::excLowpass], 7777.0f, 1.0f);
+
+    // Redo re-applies copy
+    CHECK (s.undo.redo());
+    CHECK_NEAR (h.get (ids::excLowpass), 1000.0f, 1.0f);
+}

@@ -562,4 +562,7 @@ static const ParamDef kParamDefs[kNumParams] = {
     { P::mod32Src, "mod32_src", "Mod 32 Source", ParamSection::Motion, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ModSources, "Modulation source for this slot." },
     { P::mod32Dst, "mod32_dst", "Mod 32 Destination", ParamSection::Motion, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ModDests, "Parameter modulated by this slot." },
     { P::mod32Depth, "mod32_depth", "Mod 32 Depth", ParamSection::Motion, ParamKind::Float, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, "%", Fmt::BipolarPercent, ChoiceList::None, "Bipolar modulation depth. Positive raises the destination, negative lowers it." },
+    { P::resWet, "res_wet", "A Wet", ParamSection::Resonator, ParamKind::Float, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Wet / dry mix of Resonator A: blends incoming excitation with processed resonator output." },
+    { P::rbWet, "rb_wet", "Res B Wet", ParamSection::Network, ParamKind::Float, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Wet / dry mix of Resonator B." },
+    { P::rcWet, "rc_wet", "Res C Wet", ParamSection::Network, ParamKind::Float, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Wet / dry mix of Resonator C." },
 };

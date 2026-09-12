@@ -289,8 +289,8 @@ void Voice::buildExciterParams (ExciterSlot::Params& out, const VoiceParams& p, 
     auto& b = out.breath;
     b.noise = clamp01 (p.get (P::excNoise) + mod (ModDest::Noise) + (out.model == ExciterModel::Breath ? shapeMod : 0.0f));
     b.noiseColor = clamp01 (p.get (P::excNoiseColor) + mod (ModDest::NoiseColor));
-    b.pluck = p.get (P::excPluck);
-    b.pluckLengthMs = p.get (P::excPluckLength);
+    b.pluck = clamp01 (p.get (P::excPluck) + mod (ModDest::Pluck));
+    b.pluckLengthMs = std::clamp (p.get (P::excPluckLength) * std::pow (2.0f, mod (ModDest::PluckLength) * 2.0f), 0.3f, 80.0f);
     b.turbulence = clamp01 (p.get (P::excTurbulence) + mod (ModDest::Turbulence) + (out.model == ExciterModel::Breath ? chaosMod : 0.0f));
     b.velocityAmount = p.get (P::excVelocity);
     b.externalIn = p.get (P::excExternalIn);
@@ -330,9 +330,10 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
 
     // ---- resonator A (legacy res_* parameters) --------------------------------
     n.on[0] = p.getb (P::resOn);
+    n.wet[0] = clamp01 (p.get (P::resWet) + mod (ModDest::ResAWet));
     n.in[0] = p.get (P::resInput); n.out[0] = p.get (P::resOutput);
     n.pan[0] = std::clamp (p.get (P::resPan) + mod (ModDest::ResAPan), -1.0f, 1.0f);
-    n.width3[0] = p.get (P::resWidth);
+    n.width3[0] = clamp01 (p.get (P::resWidth) + mod (ModDest::ResAWidth));
     {
         auto& r = n.res[0];
         r.type = p.getEnum (P::resMode, ResMode::Count);
@@ -343,13 +344,13 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
         r.damping = clamp01 (p.get (P::resDamping) + mod (ModDest::Damping));
         r.brightness = clamp01 (p.get (P::resBrightness) + mod (ModDest::Brightness));
         r.dispersion = clamp01 (p.get (P::resDispersion) + mod (ModDest::Dispersion));
-        r.inharm = p.get (P::resInharm);
+        r.inharm = clamp01 (p.get (P::resInharm) + mod (ModDest::ResAInharm));
         r.shape = clamp01 (p.get (P::resShape) + mod (ModDest::Shape) + p.get (P::artVariation) * 0.05f * varShape);
         r.reflection = clamp01 (p.get (P::resReflection) + mod (ModDest::Reflection));
-        r.saturation = p.get (P::resSaturation);
+        r.saturation = clamp01 (p.get (P::resSaturation) + mod (ModDest::ResASaturation));
         r.reed = p.get (P::excReed);
         r.pressure = lastPressure;
-        r.size = p.get (P::resSize);
+        r.size = clamp01 (p.get (P::resSize) + mod (ModDest::ResASize));
         r.pickup = p.get (P::resPickup);
         r.variationDamping = p.get (P::artVariation) * 0.12f * varDamp;
         r.variationBright = p.get (P::artVariation) * 0.12f * varBright;
@@ -364,10 +365,16 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
         const ModDest dFb = slot == 1 ? ModDest::ResBFeedback : ModDest::ResCFeedback;
         const ModDest dDamp = slot == 1 ? ModDest::ResBDamping : ModDest::ResCDamping;
         const ModDest dBright = slot == 1 ? ModDest::ResBBrightness : ModDest::ResCBrightness;
+        const ModDest dWet = slot == 1 ? ModDest::ResBWet : ModDest::ResCWet;
+        const ModDest dWidth = slot == 1 ? ModDest::ResBWidth : ModDest::ResCWidth;
+        const ModDest dInharm = slot == 1 ? ModDest::ResBInharm : ModDest::ResCInharm;
+        const ModDest dSat = slot == 1 ? ModDest::ResBSaturation : ModDest::ResCSaturation;
+        const ModDest dSize = slot == 1 ? ModDest::ResBSize : ModDest::ResCSize;
 
         n.on[slot] = g (rbOn) > 0.5f;
+        n.wet[slot] = clamp01 (p.get (slot == 1 ? P::rbWet : P::rcWet) + mod (dWet));
         n.in[slot] = g (rbInput); n.out[slot] = g (rbOutput);
-        n.pan[slot] = g (rbPan); n.width3[slot] = g (rbWidth);
+        n.pan[slot] = g (rbPan); n.width3[slot] = clamp01 (g (rbWidth) + mod (dWidth));
         auto& r = n.res[slot];
         r.type = p.getEnum (offsetP (base, rbType), ResMode::Count);
         const float tracked = 60.0f + (baseNote - 60.0f) * g (rbKeytrack);
@@ -377,13 +384,13 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
         r.damping = clamp01 (g (rbDamping) + mod (dDamp));
         r.brightness = clamp01 (g (rbBrightness) + mod (dBright));
         r.dispersion = g (rbDispersion);
-        r.inharm = g (rbInharm);
+        r.inharm = clamp01 (g (rbInharm) + mod (dInharm));
         r.shape = clamp01 (g (rbShape) + p.get (P::artVariation) * 0.05f * varShape);
         r.reflection = g (rbReflect);
-        r.saturation = g (rbSaturation);
+        r.saturation = clamp01 (g (rbSaturation) + mod (dSat));
         r.reed = g (rbReed);
         r.pressure = lastPressure;
-        r.size = g (rbSize);
+        r.size = clamp01 (g (rbSize) + mod (dSize));
         r.pickup = g (rbPickup);
         r.variationDamping = p.get (P::artVariation) * 0.12f * varDamp;
         r.variationBright = p.get (P::artVariation) * 0.12f * varBright;
@@ -528,8 +535,8 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
         wp.symmetry = std::clamp (p.get (P::wfSymmetry) + mod (ModDest::FoldSymmetry), -1.0f, 1.0f);
         wp.bias = std::clamp (p.get (P::wfBias) + mod (ModDest::FoldBias), -1.0f, 1.0f);
         wp.stages = p.geti (P::wfStages);
-        wp.shape = p.get (P::wfShape);
-        wp.mix = p.get (P::wfMix);
+        wp.shape = clamp01 (p.get (P::wfShape) + mod (ModDest::FoldShape));
+        wp.mix = clamp01 (p.get (P::wfMix) + mod (ModDest::FoldMix));
         wp.comp = p.get (P::wfComp);
         wp.postLpHz = p.get (P::wfLp);
         folder.update (wp);

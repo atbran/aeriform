@@ -5,5 +5,5 @@
 namespace aeriform::dsp
 {
 static_assert ((int) ModSource::Count == 34, "Mod source list changed: update choices::modSources()");
-static_assert ((int) ModDest::Count == 58, "Mod destination list changed: update choices::modDests()");
+static_assert ((int) ModDest::Count == 87, "Mod destination list changed: update choices::modDests()");
 }

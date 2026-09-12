@@ -323,3 +323,51 @@ AERIFORM_TEST (bypass_releases_notes_and_outputs_silence)
     h.render (0.5);
     CHECK (h.activeVoices() == 0);
 }
+
+AERIFORM_TEST (polyphonic_and_channel_aftertouch_and_controller_reset)
+{
+    TestHost h;
+    quietPatch (h);
+
+    // Route aftertouch to amp with -1.0 depth: full pressure silences the voice
+    h.set (ids::modParam (1, ids::modSrcSuffix), (float) ModSource::Aftertouch);
+    h.set (ids::modParam (1, ids::modDstSuffix), (float) ModDest::Amp);
+    h.set (ids::modParam (1, ids::modDepthSuffix), -1.0f);
+
+    h.noteOn (60, 100);
+    h.render (0.2);
+    CHECK (h.activeVoices() == 1);
+    const auto before60 = h.render (0.2);
+    CHECK (before60.rms > 1.0e-4);
+
+    // Polyphonic aftertouch for note 60: silences note 60
+    h.midi.addEvent (juce::MidiMessage::aftertouchChange (1, 60, 127), 0);
+    h.render (0.05);
+    const auto afterPoly = h.render (0.2);
+    CHECK_MSG (afterPoly.rms < before60.rms * 0.15, "poly aftertouch for note 60 silences note 60");
+
+    // Release note 60 pressure
+    h.midi.addEvent (juce::MidiMessage::aftertouchChange (1, 60, 0), 0);
+    h.render (0.1);
+    const auto restored60 = h.render (0.2);
+    CHECK_MSG (restored60.rms > 1.0e-4, "releasing pressure restores note 60");
+
+    // Channel pressure -> silences note 60
+    h.midi.addEvent (juce::MidiMessage::channelPressureChange (1, 127), 0);
+    h.render (0.05);
+    const auto afterChan = h.render (0.2);
+    CHECK_MSG (afterChan.rms < restored60.rms * 0.15, "channel pressure silences voice");
+
+    // Performance MIDI must not generate undo transactions
+    CHECK (! h.processor.getPatchTools().undo.canUndo());
+
+    // Send CC 123 (All Notes Off)
+    h.midi.addEvent (juce::MidiMessage::controllerEvent (1, 123, 0), 0);
+    h.render (0.4);
+    CHECK (h.activeVoices() == 0);
+
+    // Send CC 121 (Reset All Controllers)
+    h.midi.addEvent (juce::MidiMessage::controllerEvent (1, 121, 0), 0);
+    h.render (0.05);
+    CHECK (! h.processor.getPatchTools().undo.canUndo());
+}

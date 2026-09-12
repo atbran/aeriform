@@ -356,6 +356,13 @@ for i in range(17, 33):
     C('mod%dDst' % i, 'mod%d_dst' % i, n + 'Destination', S, 'ModDests', 0, 'Parameter modulated by this slot.')
     F('mod%dDepth' % i, 'mod%d_depth' % i, n + 'Depth', S, -1, 1, 0, '%', 'BipolarPercent', 'Bipolar modulation depth. Positive raises the destination, negative lowers it.')
 
+# --------------------------------------------------------------------------
+# Individual resonator dry/wet controls
+# --------------------------------------------------------------------------
+F('resWet', 'res_wet', 'A Wet', 'Resonator', 0, 1, 1.0, '%', 'Percent', 'Wet / dry mix of Resonator A: blends incoming excitation with processed resonator output.')
+F('rbWet', 'rb_wet', 'Res B Wet', 'Network', 0, 1, 1.0, '%', 'Percent', 'Wet / dry mix of Resonator B.')
+F('rcWet', 'rc_wet', 'Res C Wet', 'Network', 0, 1, 1.0, '%', 'Percent', 'Wet / dry mix of Resonator C.')
+
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]
 assert len(set(ids)) == len(ids), 'duplicate id'

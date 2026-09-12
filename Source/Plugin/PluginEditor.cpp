@@ -53,7 +53,12 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     pages[5] = std::make_unique<PerformancePage>(p);
     undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
     redoButton.onClick=[this]{processor.getPatchTools().undo.redo();};
+    aButton.onClick=[this]{processor.getPatchTools().selectEndpoint(0);};
+    bButton.onClick=[this]{processor.getPatchTools().selectEndpoint(1);};
+    aButton.setTooltip("Select A snapshot for editing / audition");
+    bButton.setTooltip("Select B snapshot for editing / audition");
     content.addAndMakeVisible(undoButton);content.addAndMakeVisible(redoButton);
+    content.addAndMakeVisible(aButton);content.addAndMakeVisible(bButton);
     setWantsKeyboardFocus(true);
 
     for (auto* c : std::initializer_list<juce::Component*> { &titleLabel, &subtitleLabel, &statusLabel, &presetBar, &scaleButton, &tabs })
@@ -157,7 +162,10 @@ void AeriformEditor::layoutContent()
     top.removeFromTop (2);
     auto row2 = top.removeFromTop (26);
     subtitleLabel.setVisible(false);
-    undoButton.setBounds(row2.removeFromLeft(58));row2.removeFromLeft(4);redoButton.setBounds(row2.removeFromLeft(58));row2.removeFromLeft(12);
+    undoButton.setBounds(row2.removeFromLeft(54));row2.removeFromLeft(4);
+    redoButton.setBounds(row2.removeFromLeft(54));row2.removeFromLeft(8);
+    aButton.setBounds(row2.removeFromLeft(28));row2.removeFromLeft(2);
+    bButton.setBounds(row2.removeFromLeft(28));row2.removeFromLeft(10);
     presetBar.setBounds (row2.reduced (0, 1));
     r.removeFromTop (6);
 
@@ -185,6 +193,9 @@ void AeriformEditor::Content::resized() {}
 void AeriformEditor::timerCallback()
 {
     undoButton.setEnabled(processor.getPatchTools().undo.canUndo());redoButton.setEnabled(processor.getPatchTools().undo.canRedo());
+    const int sel = processor.getPatchTools().selectedEndpoint();
+    aButton.setColour(juce::TextButton::buttonColourId, sel == 0 ? aeriform::theme::copperBright.withAlpha(0.6f) : aeriform::theme::panel);
+    bButton.setColour(juce::TextButton::buttonColourId, sel == 1 ? aeriform::theme::teal.withAlpha(0.6f) : aeriform::theme::panel);
     // modulation rings of the visible page
     auto config = processor.getEngine().getModConfig();
     processor.getVisualizerModel().readLiveMod (liveMod);

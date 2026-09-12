@@ -178,7 +178,7 @@ AERIFORM_TEST (editor_overhaul_controls_tabs_and_layout)
     CHECK (resonators.size() == 3);
     for (auto* resonator : resonators)
     {
-        CHECK (resonator->getKnobs().size() == 11);
+        CHECK (resonator->getKnobs().size() == 12);
         for (const auto& knob : resonator->getKnobs()) CHECK (! knob->getParamID().contains ("body"));
     }
     for (int selected = 0; selected < 3; ++selected)

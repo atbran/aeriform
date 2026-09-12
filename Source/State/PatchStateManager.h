@@ -15,9 +15,16 @@ public:
     void setParameter(const juce::String& id,float value);
     void capture(int slot);
     bool loadSnapshot(int slot,int presetIndex);
+    void copySnapshot(int fromSlot,int toSlot);
+    void copyAtoB() { copySnapshot(0, 1); }
+    void copyBtoA() { copySnapshot(1, 0); }
+    Values getSnapshot(int slot) const { return readSnapshot(slot); }
     void selectEndpoint(int slot);
     int selectedEndpoint() const noexcept { return selected.load(); }
     juce::String snapshotName(int slot) const { return names[(size_t)std::clamp(slot,0,1)]; }
+    void beginRestore() noexcept { restoring = true; }
+    void endRestore() noexcept { restoring = false; }
+    bool isRestoring() const noexcept { return restoring; }
     void commitMorph();
     void randomize(Scope,float amount,bool mutation);
     uint32_t getSeed() const noexcept { return seed; }

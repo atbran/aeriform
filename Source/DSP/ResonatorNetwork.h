@@ -25,6 +25,7 @@ struct NetworkParams
 
     bool on[3] = { true, false, false };
     float in[3] = { 1.0f, 1.0f, 1.0f }, out[3] = { 1.0f, 1.0f, 1.0f }, pan[3] = { 0.0f, -0.3f, 0.3f }, width3[3] = { 0.0f, 0.0f, 0.0f };
+    float wet[3] = { 1.0f, 1.0f, 1.0f };
     ResonatorParams res[3];
 
     bool loopOn = false;
@@ -85,14 +86,20 @@ public:
         {
             float inA = ex * g[G_injA] + fb[0] + contactInjection[0]*contactLoss[0];
             if(filters)inA=filters->at(FilterPosition::ResAInput,inA,filterLane);
-            o[0] = slots[0].next (inA, pressureNow, t2[0]) * g[G_gateA];
+            const float r0 = slots[0].next (inA, pressureNow, t2[0]) * g[G_gateA];
+            const float w0 = g[G_wetA];
+            o[0] = (1.0f - w0) * inA + w0 * r0;
+            t2[0] = (1.0f - w0) * inA + w0 * t2[0];
             if(filters){o[0]=filters->at(FilterPosition::ResAOutput,o[0],filterLane);t2[0]=filters->at(FilterPosition::ResAOutput,t2[0],filterLane+1);}
         }
         if (running[1])
         {
             float inB = ex * g[G_injB] + o[0] * g[G_sendAB] + fb[1] + contactInjection[1]*contactLoss[1];
             if(filters)inB=filters->at(FilterPosition::ResBInput,inB,filterLane);
-            o[1] = slots[1].next (inB, pressureNow, t2[1]) * g[G_gateB];
+            const float r1 = slots[1].next (inB, pressureNow, t2[1]) * g[G_gateB];
+            const float w1 = g[G_wetB];
+            o[1] = (1.0f - w1) * inB + w1 * r1;
+            t2[1] = (1.0f - w1) * inB + w1 * t2[1];
             if(filters){o[1]=filters->at(FilterPosition::ResBOutput,o[1],filterLane);t2[1]=filters->at(FilterPosition::ResBOutput,t2[1],filterLane+1);}
         }
         if (running[2])
@@ -100,7 +107,10 @@ public:
             const float serialIn = hybrid ? o[0] : o[1];
             float inC = ex * g[G_injC] + serialIn * g[G_sendBC] + fb[2] + contactInjection[2]*contactLoss[2];
             if(filters)inC=filters->at(FilterPosition::ResCInput,inC,filterLane);
-            o[2] = slots[2].next (inC, pressureNow, t2[2]) * g[G_gateC];
+            const float r2 = slots[2].next (inC, pressureNow, t2[2]) * g[G_gateC];
+            const float w2 = g[G_wetC];
+            o[2] = (1.0f - w2) * inC + w2 * r2;
+            t2[2] = (1.0f - w2) * inC + w2 * t2[2];
             if(filters){o[2]=filters->at(FilterPosition::ResCOutput,o[2],filterLane);t2[2]=filters->at(FilterPosition::ResCOutput,t2[2],filterLane+1);}
         }
 
@@ -186,7 +196,8 @@ private:
     {
         G_injA, G_injB, G_injC, G_sendAB, G_sendBC, G_ab, G_ba, G_bc, G_cb, G_ca, G_ac, G_fbScale,
         G_gateA, G_gateB, G_gateC, G_outA, G_outB, G_outC, G_widthA, G_widthB, G_widthC,
-        G_panLA, G_panLB, G_panLC, G_panRA, G_panRB, G_panRC, G_mix, G_loop, kNumGains
+        G_panLA, G_panLB, G_panLC, G_panRA, G_panRB, G_panRC, G_mix, G_loop,
+        G_wetA, G_wetB, G_wetC, kNumGains
     };
 
     inline float routeProcess (int i, float raw) noexcept

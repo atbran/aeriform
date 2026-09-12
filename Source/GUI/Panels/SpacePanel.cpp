@@ -9,25 +9,25 @@ SpacePanel::SpacePanel (AeriformProcessor& p, bool f) : ParamPanel (p, "EFFECTS"
 
     chorusCaption = caption ("CHORUS");
     chorusMix   = knob (ids::chorusMix, "Mix", additive (ModDest::ChorusMix), s);
-    chorusRate  = knob (ids::chorusRate, "Rate", {}, s);
-    chorusDepth = knob (ids::chorusDepth, "Depth", {}, s);
+    chorusRate  = knob (ids::chorusRate, "Rate", additive (ModDest::ChorusRate), s);
+    chorusDepth = knob (ids::chorusDepth, "Depth", additive (ModDest::ChorusDepth), s);
     chorusWidth = knob (ids::chorusWidth, "Width", {}, s);
 
     delayCaption  = caption ("DELAY");
     delayMix      = knob (ids::delayMix, "Mix", additive (ModDest::DelayMix), s);
-    delayTime     = knob (ids::delayTime, "Time", {}, s);
-    delayFeedback = knob (ids::delayFeedback, "Feedback", {}, s);
-    delayTone     = knob (ids::delayTone, "Tone", {}, s);
+    delayTime     = knob (ids::delayTime, "Time", additive (ModDest::DelayTimeL), s);
+    delayFeedback = knob (ids::delayFeedback, "Feedback", additive (ModDest::DelayFeedback), s);
+    delayTone     = knob (ids::delayTone, "Tone", additive (ModDest::DelayFilter), s);
     delaySync     = control<Toggle> (processor, ids::delaySync, "Sync");
     delayPingPong = control<Toggle> (processor, ids::delayPingPong, "Ping-Pong");
     delayDiv      = control<ChoiceBox> (processor, ids::delayDiv, "Division");
 
     reverbCaption = caption ("REVERB");
     revMix   = knob (reverbMix, "Mix", additive (ModDest::ReverbMix), s);
-    revSize  = knob (reverbSize, "Size", {}, s);
-    revDecay = knob (reverbDecay, "Decay", {}, s);
-    revDamp  = knob (reverbDamping, "Damping", {}, s);
-    revPre   = knob (reverbPreDelay, "Pre-Delay", {}, s);
+    revSize  = knob (reverbSize, "Size", additive (ModDest::ReverbSize), s);
+    revDecay = knob (reverbDecay, "Decay", additive (ModDest::ReverbDecay), s);
+    revDamp  = knob (reverbDamping, "Damping", additive (ModDest::ReverbDamp), s);
+    revPre   = knob (reverbPreDelay, "Pre-Delay", additive (ModDest::ReverbPredelay), s);
     revWidth = knob (reverbWidth, "Width", {}, s);
     revMod   = knob (reverbModulation, "Motion", {}, s);
 

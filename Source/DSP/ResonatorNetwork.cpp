@@ -22,6 +22,9 @@ void ResonatorNetwork::prepare (float sr)
     loopDelay.prepare ((int) (0.1f * sr) + 16);
     loopLP.setCutoff (3000.0f, sr);
     for (int i = 0; i < kNumGains; ++i) g[i] = gTarget[i] = 0.0f;
+    g[G_wetA] = gTarget[G_wetA] = 1.0f;
+    g[G_wetB] = gTarget[G_wetB] = 1.0f;
+    g[G_wetC] = gTarget[G_wetC] = 1.0f;
     reset();
 }
 
@@ -180,6 +183,9 @@ void ResonatorNetwork::update (const NetworkParams& p, bool snapLength)
     }
     gTarget[G_mix] = anyRequested&&!p.bypass?clamp01(p.mix):0;
     gTarget[G_loop] = p.loopOn&&anyRequested&&!p.bypass ? clamp01 (p.loopAmount) : 0.0f;
+    gTarget[G_wetA] = clamp01 (p.wet[0]);
+    gTarget[G_wetB] = clamp01 (p.wet[1]);
+    gTarget[G_wetC] = clamp01 (p.wet[2]);
 
     // ---- route processing ------------------------------------------------------------------------
     fbDelayTarget = std::clamp (p.fbDelayMs * 0.001f * sampleRate, 0.0f, 0.05f * sampleRate);

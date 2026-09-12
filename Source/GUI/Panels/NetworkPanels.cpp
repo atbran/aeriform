@@ -25,11 +25,11 @@ ResonatorSlotPanel::ResonatorSlotPanel (AeriformProcessor& p, int s)
         loopCaption = caption ("LOOP");
         loopRow = { knob (resFeedback, "Feedback", additive (ModDest::Feedback), d), knob (resDamping, "Damping", additive (ModDest::Damping), d),
                     knob (resBrightness, "Brightness", additive (ModDest::Brightness), d), knob (resDispersion, "Dispersion", additive (ModDest::Dispersion), d),
-                    knob (resInharm, "Inharmonic", {}, d), knob (resSize, "Size", {}, d), knob (resSaturation, "Saturation", {}, d) };
+                    knob (resInharm, "Inharmonic", additive (ModDest::ResAInharm), d), knob (resSize, "Size", additive (ModDest::ResASize), d), knob (resSaturation, "Saturation", additive (ModDest::ResASaturation), d) };
         charCaption = caption ("CHARACTER");
         charRow = { knob (resShape, "Shape", additive (ModDest::Shape), d), knob (resReflection, "Reflection", additive (ModDest::Reflection), d),
                     knob (excReed, "Reed", {}, d), knob (excPressure, "Pressure", additive (ModDest::Pressure), d),
-                    knob (resPickup, "Pickup", {}, d), knob (resWidth, "Width", {}, d), nullptr };
+                    knob (resPickup, "Pickup", {}, d), knob (resWidth, "Width", additive (ModDest::ResAWidth), d), knob (resWet, "Wet", additive (ModDest::ResAWet), d) };
         bodyCaption = caption ("BODY / FORMANT");
         bodyRow = { knob (resBodyFreq, "Body Freq", exponential (ModDest::BodyFreq, 3.0f), d), knob (resBodyRes, "Body Res", {}, d),
                     knob (resBodyMix, "Body Mix", additive (ModDest::BodyMix), d), knob (resBodyTrack, "Body Track", {}, d), nullptr, nullptr, nullptr };
@@ -40,6 +40,11 @@ ResonatorSlotPanel::ResonatorSlotPanel (AeriformProcessor& p, int s)
         const ModDest dFb    = slot == 1 ? ModDest::ResBFeedback : ModDest::ResCFeedback;
         const ModDest dDamp  = slot == 1 ? ModDest::ResBDamping : ModDest::ResCDamping;
         const ModDest dBright= slot == 1 ? ModDest::ResBBrightness : ModDest::ResCBrightness;
+        const ModDest dInharm= slot == 1 ? ModDest::ResBInharm : ModDest::ResCInharm;
+        const ModDest dSize  = slot == 1 ? ModDest::ResBSize : ModDest::ResCSize;
+        const ModDest dSat   = slot == 1 ? ModDest::ResBSaturation : ModDest::ResCSaturation;
+        const ModDest dWidth = slot == 1 ? ModDest::ResBWidth : ModDest::ResCWidth;
+        const ModDest dWet   = slot == 1 ? ModDest::ResBWet : ModDest::ResCWet;
         on   = control<Toggle> (processor, sid ("_on"), "On");
         type = control<ChoiceBox> (processor, sid ("_type"), "Model");
         tuneCaption = caption ("TUNING / LEVELS");
@@ -49,10 +54,10 @@ ResonatorSlotPanel::ResonatorSlotPanel (AeriformProcessor& p, int s)
         loopCaption = caption ("LOOP");
         loopRow = { knob (sid ("_feedback"), "Feedback", additive (dFb), d), knob (sid ("_damping"), "Damping", additive (dDamp), d),
                     knob (sid ("_brightness"), "Brightness", additive (dBright), d), knob (sid ("_dispersion"), "Dispersion", {}, d),
-                    knob (sid ("_inharm"), "Inharmonic", {}, d), knob (sid ("_size"), "Size", {}, d), knob (sid ("_saturation"), "Saturation", {}, d) };
+                    knob (sid ("_inharm"), "Inharmonic", additive (dInharm), d), knob (sid ("_size"), "Size", additive (dSize), d), knob (sid ("_saturation"), "Saturation", additive (dSat), d) };
         charCaption = caption ("CHARACTER");
         charRow = { knob (sid ("_shape"), "Shape", {}, d), knob (sid ("_reflect"), "Reflection", {}, d), knob (sid ("_reed"), "Reed", {}, d),
-                    knob (sid ("_pickup"), "Pickup", {}, d), knob (sid ("_width"), "Width", {}, d), nullptr, nullptr };
+                    knob (sid ("_pickup"), "Pickup", {}, d), knob (sid ("_width"), "Width", additive (dWidth), d), knob (sid ("_wet"), "Wet", additive (dWet), d), nullptr };
     }
     for (auto& k : knobs) k->setAccentColour (accent);
     energy = std::make_unique<EnergyBar> (processor.getVisualizerModel(), slot, accent);
