@@ -763,4 +763,6 @@ static const ParamDef kParamDefs[kNumParams] = {
     { P::breathSettle, "breath_settle", "Air Settle", ParamSection::Breath, ParamKind::Float, 20.0f, 2000.0f, 280.0f, 300.0f, 0.0f, "ms", Fmt::Ms, ChoiceList::None, "Time for initial exhalation emphasis to settle." },
     { P::breathContour, "breath_contour", "Contour Amount", ParamSection::Breath, ParamKind::Float, 0.0f, 1.0f, 0.4f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Initial exhalation emphasis, independent of the amplitude envelope." },
     { P::breathEdge, "breath_edge", "Air Edge", ParamSection::Breath, ParamKind::Float, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Broad upper air band for flute-mouthpiece and jet characters." },
+    { P::chorusType, "chorus_type", "Chorus Type", ParamSection::Space, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ChorusTypes, "Chorus algorithm: Ensemble, Juno I, Juno II, Juno I+II, Dimension." },
+    { P::reverbType, "rev_type", "Reverb Type", ParamSection::Space, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ReverbTypes, "Reverb space algorithm: Hall (FDN), Room / Chamber, Plate (Dattorro)." },
 };

@@ -696,6 +696,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         const float cMix = clamp01 (params.get (P::chorusMix) + globalMod[(size_t) ModDest::ChorusMix]);
         const float cRate = std::clamp (params.get (P::chorusRate) * std::exp2 (globalMod[(size_t) ModDest::ChorusRate] * 2.0f), 0.05f, 10.0f);
         const float cDepth = clamp01 (params.get (P::chorusDepth) + globalMod[(size_t) ModDest::ChorusDepth]);
+        chorus.setType (params.getEnum (P::chorusType, ChorusType::Count));
         chorus.setParams (cMix, cRate, cDepth, params.get (P::chorusWidth));
         chorus.process (L, R, numSamples);
 
@@ -715,6 +716,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         const float rDecay = std::clamp (params.get (P::reverbDecay) * std::exp2 (globalMod[(size_t) ModDest::ReverbDecay] * 2.0f), 0.1f, 30.0f);
         const float rDamp = clamp01 (params.get (P::reverbDamping) + globalMod[(size_t) ModDest::ReverbDamp]);
         const float rPre = std::clamp (params.get (P::reverbPreDelay) + globalMod[(size_t) ModDest::ReverbPredelay] * 100.0f, 0.0f, 250.0f);
+        reverb.setType (params.getEnum (P::reverbType, ReverbType::Count));
         reverb.setParams (rMix, rSize, rDecay, rDamp, rPre,
                           params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);

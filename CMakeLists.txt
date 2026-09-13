@@ -73,6 +73,7 @@ set(AERIFORM_SOURCES
     Source/DSP/ResonatorNetwork.cpp
     Source/DSP/ModMatrix.cpp
     Source/DSP/Effects/Chorus.cpp
+    Source/DSP/Effects/JunoChorus.cpp
     Source/DSP/Effects/Delay.cpp
     Source/DSP/Effects/ResonantDelay.cpp
     Source/DSP/Effects/ShimmerReverb.cpp
@@ -230,7 +231,8 @@ if(AERIFORM_BUILD_TESTS)
         Tests/StereoNetworkTests.cpp
         Tests/CollisionTests.cpp
         Tests/ModularFilterTests.cpp
-        Tests/SmokeTests.cpp)
+        Tests/SmokeTests.cpp
+        Tests/SpaceEffectsTests.cpp)
     target_include_directories(AeriformTests PRIVATE
         Source Tests
         $<TARGET_PROPERTY:Aeriform,INCLUDE_DIRECTORIES>)

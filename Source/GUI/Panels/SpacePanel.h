@@ -38,6 +38,9 @@ private:
         }
     };
     std::array<TabButton, 3> tabs;
+    std::array<TabButton, 5> chorusTypeButtons;
+    std::unique_ptr<juce::ParameterAttachment> chorusTypeAttachment;
+
     int selected = 0;
     void selectEffect (int);
     juce::Label *chorusCaption, *delayCaption, *reverbCaption;
@@ -45,6 +48,7 @@ private:
     Knob *delayMix, *delayTime, *delayFeedback, *delayTone;
     Toggle *delaySync, *delayPingPong;
     ChoiceBox* delayDiv;
+    ChoiceBox* reverbType;
     Knob *revMix, *revSize, *revDecay, *revDamp, *revPre, *revWidth, *revMod;
 };
 } // namespace aeriform

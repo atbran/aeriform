@@ -1,4 +1,5 @@
 #include "Reverb.h"
+#include <algorithm>
 
 namespace aeriform::dsp
 {
@@ -34,6 +35,11 @@ void FdnReverb::prepare (double sr)
     coefsDirty = true;
     recomputeGains();
     lineLengthCur = lineLength;
+
+    room.prepare (sr);
+    plate.prepare (sr);
+    xfadeRamp = 1.0f - std::exp (-1.0f / (0.020f * (float) sr));
+
     reset();
 }
 
@@ -47,6 +53,18 @@ void FdnReverb::reset()
     dcL.reset(); dcR.reset();
     lineOut.fill (0.0f);
     mixSmooth.reset (mixTarget);
+
+    room.reset();
+    plate.reset();
+
+    currentType = targetType;
+    for (int k = 0; k < 3; ++k)
+        xfadeCur[k] = (k == (int) currentType) ? 1.0f : 0.0f;
+}
+
+void FdnReverb::setType (ReverbType type) noexcept
+{
+    targetType = type;
 }
 
 void FdnReverb::setParams (float mix, float size, float decay, float damping, float preDelayMs, float w, float modulation) noexcept
@@ -65,6 +83,9 @@ void FdnReverb::setParams (float mix, float size, float decay, float damping, fl
     preDelaySamples = std::clamp (preDelayMs * 0.001f * sampleRate, 1.0f, 0.24f * sampleRate);
     width = clamp01 (w);
     modDepth = clamp01 (modulation) * 9.0f * sampleRate / 44100.0f;
+
+    room.setParams (mix, size, decay, damping, preDelayMs, w, modulation);
+    plate.setParams (mix, size, decay, damping, preDelayMs, w, modulation);
 }
 
 void FdnReverb::recomputeGains() noexcept
@@ -79,10 +100,8 @@ void FdnReverb::recomputeGains() noexcept
     coefsDirty = false;
 }
 
-void FdnReverb::process (float* left, float* right, int numSamples) noexcept
+void FdnReverb::processHall (float* left, float* right, int numSamples) noexcept
 {
-    if (mixTarget <= 0.0005f && mixSmooth.getState() <= 0.0005f)
-        return;
     if (coefsDirty) recomputeGains();
 
     constexpr float householder = -2.0f / (float) kLines;
@@ -147,4 +166,98 @@ void FdnReverb::process (float* left, float* right, int numSamples) noexcept
         right[i] = inR * dryGain + wetR * mix;
     }
 }
+
+void FdnReverb::process (float* left, float* right, int numSamples) noexcept
+{
+    if (mixTarget <= 0.0005f && mixSmooth.getState() <= 0.0005f)
+        return;
+
+    const int tgtIdx = (int) targetType;
+
+    // Fast-path: steady state Hall
+    if (targetType == ReverbType::Hall && currentType == ReverbType::Hall && xfadeCur[0] >= 0.9999f)
+    {
+        processHall (left, right, numSamples);
+        return;
+    }
+
+    // Fast-path: steady state Room
+    if (targetType == ReverbType::Room && currentType == ReverbType::Room && xfadeCur[1] >= 0.9999f)
+    {
+        room.process (left, right, numSamples);
+        return;
+    }
+
+    // Fast-path: steady state Plate
+    if (targetType == ReverbType::Plate && currentType == ReverbType::Plate && xfadeCur[2] >= 0.9999f)
+    {
+        plate.process (left, right, numSamples);
+        return;
+    }
+
+    // Dynamic crossfade between algorithms
+    float origL[128], origR[128];
+    float hallL[128], hallR[128];
+    float roomL[128], roomR[128];
+    float plateL[128], plateR[128];
+
+    for (int offset = 0; offset < numSamples; offset += 128)
+    {
+        const int n = std::min (128, numSamples - offset);
+        float* L = left + offset;
+        float* R = right + offset;
+
+        std::copy (L, L + n, origL);
+        std::copy (R, R + n, origR);
+
+        // Render engines whose weights are active or transitioning
+        const bool runHall  = (tgtIdx == 0 || xfadeCur[0] > 0.001f);
+        const bool runRoom  = (tgtIdx == 1 || xfadeCur[1] > 0.001f);
+        const bool runPlate = (tgtIdx == 2 || xfadeCur[2] > 0.001f);
+
+        if (runHall)
+        {
+            std::copy (origL, origL + n, hallL);
+            std::copy (origR, origR + n, hallR);
+            processHall (hallL, hallR, n);
+        }
+        if (runRoom)
+        {
+            std::copy (origL, origL + n, roomL);
+            std::copy (origR, origR + n, roomR);
+            room.process (roomL, roomR, n);
+        }
+        if (runPlate)
+        {
+            std::copy (origL, origL + n, plateL);
+            std::copy (origR, origR + n, plateR);
+            plate.process (plateL, plateR, n);
+        }
+
+        for (int i = 0; i < n; ++i)
+        {
+            for (int k = 0; k < 3; ++k)
+            {
+                const float tgt = (k == tgtIdx) ? 1.0f : 0.0f;
+                xfadeCur[k] += (tgt - xfadeCur[k]) * xfadeRamp;
+            }
+
+            float outL = 0.0f, outR = 0.0f;
+            if (runHall)  { outL += hallL[i]  * xfadeCur[0]; outR += hallR[i]  * xfadeCur[0]; }
+            if (runRoom)  { outL += roomL[i]  * xfadeCur[1]; outR += roomR[i]  * xfadeCur[1]; }
+            if (runPlate) { outL += plateL[i] * xfadeCur[2]; outR += plateR[i] * xfadeCur[2]; }
+
+            L[i] = outL;
+            R[i] = outR;
+        }
+    }
+
+    if (std::abs (xfadeCur[tgtIdx] - 1.0f) < 0.001f)
+    {
+        for (int k = 0; k < 3; ++k)
+            xfadeCur[k] = (k == tgtIdx) ? 1.0f : 0.0f;
+        currentType = targetType;
+    }
+}
+
 } // namespace aeriform::dsp

@@ -377,6 +377,8 @@ F('breathSwell','breath_swell','Air Swell','Breath',5,500,65,'ms','Ms','Soft ons
 F('breathSettle','breath_settle','Air Settle','Breath',20,2000,280,'ms','Ms','Time for initial exhalation emphasis to settle.',centre=300)
 F('breathContour','breath_contour','Contour Amount','Breath',0,1,.4,'%','Percent','Initial exhalation emphasis, independent of the amplitude envelope.')
 F('breathEdge','breath_edge','Air Edge','Breath',0,1,0,'%','Percent','Broad upper air band for flute-mouthpiece and jet characters.')
+C('chorusType','chorus_type','Chorus Type','Space','ChorusTypes',0,'Chorus algorithm: Ensemble, Juno I, Juno II, Juno I+II, Dimension.')
+C('reverbType','rev_type','Reverb Type','Space','ReverbTypes',0,'Reverb space algorithm: Hall (FDN), Room / Chamber, Plate (Dattorro).')
 
 for r in rows:
  if r['enum']=='excAttackClick': r['default']=.02

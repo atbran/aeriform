@@ -143,6 +143,16 @@ namespace choices
         static const juce::StringArray s { "Eco", "Normal", "High" };
         return s;
     }
+    const juce::StringArray& chorusTypes()
+    {
+        static const juce::StringArray s { "Ensemble", "Juno I", "Juno II", "Juno I+II", "Dimension" };
+        return s;
+    }
+    const juce::StringArray& reverbTypes()
+    {
+        static const juce::StringArray s { "Hall", "Room", "Plate" };
+        return s;
+    }
 } // namespace choices
 
 const juce::StringArray& choiceStrings (ChoiceList list)
@@ -169,6 +179,8 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::LoopDests:        return choices::loopDests();
         case ChoiceList::NetModes:         return choices::netModes();
         case ChoiceList::QualityModes:     return choices::qualityModes();
+        case ChoiceList::ChorusTypes:      return choices::chorusTypes();
+        case ChoiceList::ReverbTypes:      return choices::reverbTypes();
         case ChoiceList::MorphModes: { static const juce::StringArray v { "Parameter", "Deep" }; return v; }
         case ChoiceList::SaturationModels: { static const juce::StringArray v { "Soft", "Warm", "Clip", "Fold" }; return v; }
         case ChoiceList::DelayResTypes: { static const juce::StringArray v { "Harmonic", "Metallic bar", "Membrane", "Vowel body" }; return v; }

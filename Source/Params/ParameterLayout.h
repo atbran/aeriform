@@ -36,6 +36,8 @@ enum class LoopSource      { Mix, A, B, C, Count };
 enum class LoopDest        { ShaperIn, FolderIn, NetworkIn, Count };
 enum class NetMode         { Single, Serial, Parallel, Hybrid, Count };
 enum class QualityMode     { Eco, Normal, High, Count };
+enum class ChorusType      { Ensemble, JunoI, JunoII, JunoDual, Dimension, Count };
+enum class ReverbType      { Hall, Room, Plate, Count };
 
 enum class ModSource
 {
@@ -142,6 +144,8 @@ namespace choices
     const juce::StringArray& loopDests();
     const juce::StringArray& netModes();
     const juce::StringArray& qualityModes();
+    const juce::StringArray& chorusTypes();
+    const juce::StringArray& reverbTypes();
 
     /** Length of a sync division expressed in quarter notes (beats). */
     double syncDivisionBeats (int index);
@@ -154,7 +158,8 @@ enum class ChoiceList
 {
     None, LfoShapes, LfoModes, SyncDivs, ResTypes, VoiceModes, ModSources, ModDests, ExciterModels, RetrigModes,
     InteractionModes, PreFilterTypes, ShaperOrders, FoldModes, Polarities, InjectPoints, OutputTaps, LoopSources,
-    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels, RackTypes
+    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels, RackTypes,
+    ChorusTypes, ReverbTypes
 };
 
 /** One row of the generated parameter table. */
