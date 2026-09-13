@@ -765,6 +765,10 @@
     <Param id="breath_settle" value="280.0000305175781"/>
     <Param id="breath_contour" value="0.4000000059604645"/>
     <Param id="breath_edge" value="0.0"/>
+    <Param id="chorus_type" value="0.0"/>
+    <Param id="rev_type" value="0.0"/>
+    <Param id="vib_rate" value="5.000000476837158"/>
+    <Param id="vib_depth" value="0.0"/>
   </Parameters>
   <PatchTools version="1" selected="0" seed="20260905">
     <Snapshot slot="0" name="Snapshot A">
@@ -1530,6 +1534,10 @@
       <P id="breath_settle" value="280.0000305175781"/>
       <P id="breath_contour" value="0.4000000059604645"/>
       <P id="breath_edge" value="0.0"/>
+      <P id="chorus_type" value="0.0"/>
+      <P id="rev_type" value="0.0"/>
+      <P id="vib_rate" value="5.000000476837158"/>
+      <P id="vib_depth" value="0.0"/>
     </Snapshot>
     <Snapshot slot="1" name="Snapshot B">
       <P id="exc_noise" value="0.6000000238418579"/>
@@ -2294,6 +2302,10 @@
       <P id="breath_settle" value="280.0000305175781"/>
       <P id="breath_contour" value="0.4000000059604645"/>
       <P id="breath_edge" value="0.0"/>
+      <P id="chorus_type" value="0.0"/>
+      <P id="rev_type" value="0.0"/>
+      <P id="vib_rate" value="5.000000476837158"/>
+      <P id="vib_depth" value="0.0"/>
     </Snapshot>
     <SympatheticChord note0="-1" note1="-1" note2="-1" note3="-1" note4="-1" note5="-1"
                       note6="-1" note7="-1" note8="-1" note9="-1" note10="-1" note11="-1"/>
