@@ -11,12 +11,20 @@ void ShimmerReverb::process(float* left,float* right,int samples) noexcept {
     if(!p.enabled&&wet==0)return;
     for(int i=0;i<samples;++i){wet+=std::clamp((p.enabled?p.mix:0.0f)-wet,-step,step);
         if(wet<1e-7f&&!p.enabled){if(wasActive)reset();return;}wasActive=true;feedback+=(p.feedback-feedback)*feedbackSmooth;
-        // Convex excitation/return blend; the outer return itself is soft bounded.
-        const float gain=.35f*feedback;float l,r;
-        room.next((1-gain)*sanitize(left[i])+gain*returned[0],(1-gain)*sanitize(right[i])+gain*returned[1],1,l,r);
+        const float returnGain=(1.2f+2.4f*feedback)*feedback;
+        float l,r;
+        room.next(sanitize(left[i])+returnGain*returned[0],sanitize(right[i])+returnGain*returned[1],1,l,r);
         const float roomOutput[2]={l,r};
-        for(int ch=0;ch<2;++ch){float value=shift[(size_t)ch].next(roomOutput[ch]);value=lowpass[(size_t)ch].process(value);value-=highpass[(size_t)ch].process(value);returned[(size_t)ch]=std::tanh(value);}
-        left[i]=lerp(left[i],l,wet);right[i]=lerp(right[i],r,wet);
+        for(int ch=0;ch<2;++ch){
+            float value=shift[(size_t)ch].next(roomOutput[ch]);
+            value=lowpass[(size_t)ch].process(value);
+            value=highpass[(size_t)ch].processHighpass(value);
+            returned[(size_t)ch]=fastTanh(value);
+        }
+        float outL=2.6f*l,outR=2.6f*r;
+        if(std::abs(outL)>1.6f)outL=1.6f*fastTanh(outL/1.6f);
+        if(std::abs(outR)>1.6f)outR=1.6f*fastTanh(outR/1.6f);
+        left[i]=lerp(left[i],outL,wet);right[i]=lerp(right[i],outR,wet);
     }
 }
 }

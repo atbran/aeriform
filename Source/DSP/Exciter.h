@@ -52,11 +52,22 @@ public:
         mouthNow += smooth * (mouthTarget-mouthNow);
         edgeNow += smooth * (edgeTarget-edgeNow);
         if ((shapeTick++ & 15u)==0) {
-            mouthFilter.set(650.0f*std::exp2(2.4f*mouthNow),.65f);
-            edgeFilter.set(2400.0f+3500.0f*mouthNow,.6f);
+            const float drift = 1.0f + 0.03f * slowDrift.next();
+            const float f1Hz = 320.0f + 500.0f * std::sin (kPi * mouthNow);
+            const float f2Hz = 850.0f * std::exp2 (1.6f * mouthNow);
+            const float f3Hz = 2200.0f + 1100.0f * mouthNow;
+            const float edgeHz = 4800.0f + 2000.0f * mouthNow;
+            f1Filter.set (std::clamp (f1Hz * drift, 50.0f, sampleRate * 0.45f), 3.0f);
+            f2Filter.set (std::clamp (f2Hz * drift, 100.0f, sampleRate * 0.45f), 3.5f);
+            f3Filter.set (std::clamp (f3Hz * drift, 200.0f, sampleRate * 0.45f), 3.0f);
+            edgeFilter.set (std::clamp (edgeHz, 300.0f, sampleRate * 0.45f), 2.0f);
         }
-        // Broad low-Q air bands, not ringing speech formants.
-        breathNoise = 1.8f*mouthFilter.bandpass(breathNoise) + edgeNow*1.1f*edgeFilter.bandpass(white);
+        // Resonant vocal tract formant coloration plus embouchure/edge air band.
+        const float f1 = f1Filter.bandpass (breathNoise);
+        const float f2 = f2Filter.bandpass (breathNoise);
+        const float f3 = f3Filter.bandpass (breathNoise);
+        const float edgeBand = edgeFilter.bandpass (white);
+        breathNoise = 0.9f * f1 + 0.7f * f2 + 0.4f * f3 + (edgeNow * 0.6f) * edgeBand;
         onset += onsetRate*(1-onset);
         emphasis *= settleRate;
         contourNow += smooth*(contourAmount-contourNow);
@@ -107,7 +118,7 @@ private:
     Noise rng;
     PinkFilter pinkFilter;
     SlowRandom slowTurb, fastTurb, slowDrift;
-    SVF lpFilter, hpFilter, mouthFilter, edgeFilter;
+    SVF lpFilter, hpFilter, f1Filter, f2Filter, f3Filter, edgeFilter;
     float smooth=.001f,mouthNow=.35f,mouthTarget=.35f,edgeNow=0,edgeTarget=0;
     float onset=0,emphasis=1,onsetRate=.001f,settleRate=.999f,contourAmount=.4f;
     unsigned shapeTick=0; float contourNow=.4f,airGainNow=0;

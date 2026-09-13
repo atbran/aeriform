@@ -99,3 +99,141 @@ AERIFORM_TEST(advanced_spectral_live_session_preset_and_undo_restore){
  auto& tools=h.processor.getPatchTools();tools.perform("Release spectrum",[&]{tools.setParameter(ids::rack1SfFreeze,0);tools.setParameter(ids::rack1SfRelease,1);});h.render(.1);CHECK(!held());tools.undo.undo();h.render(.15);CHECK(held());CHECK(h.get(ids::rack1SfRelease)==1);
  h.set(ids::rack1SfFreeze,0);h.set(ids::rack1SfRelease,0);h.render(.1);CHECK(!held());CHECK(h.processor.getPresetManager().loadFromFile(preset));h.render(.15);CHECK(held());CHECK(h.get(ids::rack1SfRelease)==0);
 }
+
+AERIFORM_TEST(advanced_repair_demonstrations_and_audio_render){
+    std::ofstream metrics(artifacts().getChildFile("repair-verification-metrics.csv").getFullPathName().toStdString());
+    metrics<<"name,peak,rms,dc,description\n";
+    auto saveDemo=[&](const juce::String& name,const std::vector<float>& samples,double sr,const juce::String& noteStr=""){
+        double sum=0,energy=0,peak=0;
+        for(float x:samples){CHECK(std::isfinite(x));sum+=x;energy+=x*x;peak=std::max(peak,(double)std::abs(x));}
+        double rms=std::sqrt(energy/std::max(1ULL,samples.size()));
+        metrics<<name<<","<<peak<<","<<rms<<","<<sum/std::max(1ULL,samples.size())<<",\""<<noteStr<<"\"\n";
+        wav(name,samples,sr);
+        auto matched=samples;
+        float gain=(float)std::min(0.1/std::max(1e-9,rms),0.95/std::max(1e-9,peak));
+        for(auto& x:matched) x*=gain;
+        wav(name+"-matched",matched,sr);
+    };
+
+    // 1. Resonant Delay Demonstrations
+    {
+        TestHost hDry;
+        hDry.set(ids::rack1Type,0);
+        hDry.noteOn(60,100);std::vector<float> audioDry;
+        hDry.render(0.15,&audioDry);hDry.noteOff(60);hDry.render(1.85,&audioDry);
+        saveDemo("demo-resdelay-dry",audioDry,48000,"Dry short note");
+
+        TestHost hOrd;
+        hOrd.set(ids::rack1Type,1);hOrd.set(ids::rack1RdTime,375);hOrd.set(ids::rack1RdFeedback,0.5f);hOrd.set(ids::rack1RdMix,0.5f);
+        hOrd.noteOn(60,100);std::vector<float> audioOrd;
+        hOrd.render(0.15,&audioOrd);hOrd.noteOff(60);hOrd.render(1.85,&audioOrd);
+        saveDemo("demo-resdelay-ordinary",audioOrd,48000,"375ms delay, 50% mix, 50% feedback");
+
+        TestHost hWet;
+        hWet.set(ids::rack1Type,1);hWet.set(ids::rack1RdTime,375);hWet.set(ids::rack1RdFeedback,0.85f);hWet.set(ids::rack1RdMix,1.0f);
+        hWet.noteOn(60,100);std::vector<float> audioWet;
+        hWet.render(0.15,&audioWet);hWet.noteOff(60);hWet.render(2.35,&audioWet);
+        saveDemo("demo-resdelay-wet-highfb",audioWet,48000,"375ms delay, 100% wet, 85% feedback");
+
+        double delayedEnergy=0;
+        for(size_t i=18000;i<audioWet.size();++i) delayedEnergy+=audioWet[i]*audioWet[i];
+        CHECK(delayedEnergy>0.01);
+    }
+
+    // 2. Shimmer Reverb Demonstrations
+    {
+        TestHost hDry;
+        hDry.set(ids::rack1Type,0);
+        hDry.noteOn(60,100);std::vector<float> audioDry;
+        hDry.render(0.4,&audioDry);hDry.noteOff(60);hDry.render(2.6,&audioDry);
+        saveDemo("demo-shimmer-dry",audioDry,48000,"Dry note 60");
+
+        TestHost hOrd;
+        hOrd.set(ids::rack1Type,2);hOrd.set(ids::rack1ShMix,0.5f);hOrd.set(ids::rack1ShFeedback,0.6f);hOrd.set(ids::rack1ShInterval,12.0f);
+        hOrd.noteOn(60,100);std::vector<float> audioOrd;
+        hOrd.render(0.4,&audioOrd);hOrd.noteOff(60);hOrd.render(2.6,&audioOrd);
+        saveDemo("demo-shimmer-ordinary",audioOrd,48000,"Shimmer 50% mix, 60% feedback, +12st");
+
+        TestHost hWet;
+        hWet.set(ids::rack1Type,2);hWet.set(ids::rack1ShMix,1.0f);hWet.set(ids::rack1ShFeedback,0.85f);hWet.set(ids::rack1ShInterval,12.0f);
+        hWet.noteOn(60,100);std::vector<float> audioWet;
+        hWet.render(0.4,&audioWet);hWet.noteOff(60);hWet.render(3.1,&audioWet);
+        saveDemo("demo-shimmer-wet-highfb",audioWet,48000,"Shimmer 100% wet, 85% feedback, +12st tail");
+
+        double tailEnergy=0;
+        for(size_t i=48000;i<audioWet.size();++i) tailEnergy+=audioWet[i]*audioWet[i];
+        CHECK(tailEnergy>0.05);
+    }
+
+    // 3. Two-Sine Interaction Demonstrations
+    {
+        auto renderTwoSine=[&](float mode, float interaction, float noteA, float noteB, const juce::String& name, const juce::String& desc){
+            TestHost h;
+            h.set(ids::exaModel,(float)ExciterModel::Wave);h.set(ids::exaWaveShape,0.0f);
+            h.set(ids::exbModel,(float)ExciterModel::Wave);h.set(ids::exbWaveShape,0.0f);
+            h.set(ids::exaCoarse,noteA-60.0f);
+            h.set(ids::exbCoarse,noteB-60.0f);
+            h.set(ids::mixMode,mode);
+            h.set(ids::mixInteraction,interaction);
+            h.noteOn(60,100);
+            std::vector<float> audio;
+            h.render(1.0,&audio);
+            h.noteOff(60);
+            h.render(0.5,&audio);
+            saveDemo(name,audio,48000,desc);
+            return audio;
+        };
+
+        auto mixUnison=renderTwoSine((float)InteractionMode::Crossfade, 0.5f, 60, 60, "demo-twosine-unison-mix", "Unison Crossfade (plain sum)");
+        auto fmUnison=renderTwoSine((float)InteractionMode::FM, 0.7f, 60, 60, "demo-twosine-unison-fm-07", "Unison FM (interaction 0.7)");
+        auto syncUnison4=renderTwoSine((float)InteractionMode::Sync, 0.4f, 60, 60, "demo-twosine-unison-sync-04", "Unison Hard Sync (interaction 0.4)");
+        auto syncUnison8=renderTwoSine((float)InteractionMode::Sync, 0.8f, 60, 60, "demo-twosine-unison-sync-08", "Unison Hard Sync (interaction 0.8)");
+        auto minmaxUnison=renderTwoSine((float)InteractionMode::MinMax, 0.5f, 60, 60, "demo-twosine-unison-minmax-05", "Unison Min/Max (interaction 0.5)");
+
+        auto mixFifth=renderTwoSine((float)InteractionMode::Crossfade, 0.5f, 60, 67, "demo-twosine-fifth-mix", "Fifth (C4+G4) Crossfade");
+        auto fmFifth=renderTwoSine((float)InteractionMode::FM, 0.7f, 60, 67, "demo-twosine-fifth-fm-07", "Fifth (C4+G4) FM (interaction 0.7)");
+        auto syncFifth=renderTwoSine((float)InteractionMode::Sync, 0.5f, 60, 67, "demo-twosine-fifth-sync-05", "Fifth (C4+G4) Sync (interaction 0.5)");
+        auto minmaxFifth=renderTwoSine((float)InteractionMode::MinMax, 0.5f, 60, 67, "demo-twosine-fifth-minmax-05", "Fifth (C4+G4) Min/Max (interaction 0.5)");
+
+        double diffFm=0, diffSync=0, diffMinMax=0;
+        for(size_t i=0;i<mixFifth.size();++i){
+            diffFm+=std::abs(mixFifth[i]-fmFifth[i]);
+            diffSync+=std::abs(mixFifth[i]-syncFifth[i]);
+            diffMinMax+=std::abs(mixFifth[i]-minmaxFifth[i]);
+        }
+        CHECK(diffFm>5.0);
+        CHECK(diffSync>5.0);
+        CHECK(diffMinMax>5.0);
+    }
+
+    // 4. Exposed Breath Demonstrations
+    {
+        auto renderExposed=[&](int charIdx, const juce::String& name, const juce::String& desc){
+            Exciter source;source.prepare(48000,12345);ExciterParams p;
+            p.noise=breathCharacters[charIdx][0];p.noiseColor=breathCharacters[charIdx][1];p.turbulence=breathCharacters[charIdx][2];
+            p.mouth=breathCharacters[charIdx][3];p.swellMs=breathCharacters[charIdx][4];p.settleMs=breathCharacters[charIdx][5];
+            p.contour=breathCharacters[charIdx][6];p.edge=breathCharacters[charIdx][7];p.attackClick=breathCharacters[charIdx][8];
+            p.releaseNoise=breathCharacters[charIdx][9];p.breathRandom=breathCharacters[charIdx][10];
+            source.update(p,261.63f,0.5f,0);source.noteOn(0.7f,261.63f);source.update(p,261.63f,0.5f,0);
+            std::vector<float> audio(96000);
+            for(int i=0;i<96000;++i){if(i==72000)source.noteOff();audio[(size_t)i]=source.next(0,i<72000?0.5f:0);}
+            saveDemo(name,audio,48000,desc);
+        };
+        renderExposed(0,"demo-breath-soft-exhale-exposed","Soft Exhale exposed noise (vowel formants)");
+        renderExposed(4,"demo-breath-flute-air-exposed","Flute Air exposed noise (vocal body + edge)");
+
+        auto renderSynth=[&](int charIdx, const juce::String& name, const juce::String& desc){
+            TestHost h;
+            for(size_t f=0;f<std::size(breathCharacterFields);++f) h.set(ids::id(breathCharacterFields[f]),breathCharacters[charIdx][f]);
+            h.noteOn(60,90);
+            std::vector<float> audio;
+            h.render(1.5,&audio);
+            h.noteOff(60);
+            h.render(0.5,&audio);
+            saveDemo(name,audio,48000,desc);
+        };
+        renderSynth(0,"demo-breath-soft-exhale-synth","Soft Exhale initialized synth");
+        renderSynth(4,"demo-breath-flute-air-synth","Flute Air initialized synth");
+    }
+}
+

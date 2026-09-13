@@ -623,9 +623,24 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                 bool syncA = false;
                 if (exB.isActive())
                 {
-                    if (interactionMode == InteractionMode::FM)        fm = b * b2a * interactionAmount * 3.0f;
-                    else if (interactionMode == InteractionMode::PM)   pm = b * b2a * interactionAmount * 0.5f;
-                    else if (interactionMode == InteractionMode::Sync) syncA = exB.wrapped() && interactionAmount > 0.01f;
+                    if (interactionMode == InteractionMode::FM)
+                    {
+                        // Textbook FM between two waves (carrier phase modulated by modulator b: phi = phi + I/(2*pi) * b)
+                        // Interaction sweeps modulation index from 0 to ~8.5 radians (~1.35 cycles).
+                        // B > A (b2a) provides extra boost up to ~25.5 radians.
+                        const float fmIndex = interactionAmount * (1.0f + 2.0f * b2a) * 1.35f;
+                        pm = b * fmIndex;
+                    }
+                    else if (interactionMode == InteractionMode::PM)
+                    {
+                        const float pmIndex = interactionAmount * (1.0f + 2.0f * b2a) * 0.65f;
+                        pm = b * pmIndex;
+                    }
+                    else if (interactionMode == InteractionMode::Sync)
+                    {
+                        syncA = exB.wrapped() && interactionAmount > 0.005f;
+                        fm = interactionAmount * 3.0f;
+                    }
                 }
                 const float a = filters.at(FilterPosition::ExciterA,exA.next (osExt[k], shared[k], breath, fm, pm, syncA));
                 // Neither room audio nor the energy-loop return has entered here.

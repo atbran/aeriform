@@ -62,7 +62,15 @@ public:
                 combined = lerp (plain, (float) x / 127.0f, i);
                 break;
             }
-            case InteractionMode::MinMax:      combined = lerp (std::min (a, b), std::max (a, b), i); break;
+            case InteractionMode::MinMax:
+            {
+                const float peakEnv = (a + b >= 0.0f) ? std::max (a, b) : std::min (a, b);
+                if (i < 0.5f)
+                    combined = lerp (std::min (a, b), peakEnv, i * 2.0f);
+                else
+                    combined = lerp (peakEnv, std::max (a, b), (i - 0.5f) * 2.0f);
+                break;
+            }
             case InteractionMode::RectDiff:    combined = std::fabs (a - b) * (1.0f + i) - 0.5f; break;
             case InteractionMode::SampleHold:
                 if (b >= 0.0f && lastB < 0.0f) hold = a;

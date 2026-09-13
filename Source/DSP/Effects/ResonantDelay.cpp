@@ -21,8 +21,8 @@ void ResonantDelay::coefficients() noexcept {
     for(int i=0;i<6;++i){weights[i]=std::exp(-current.damping*i*.7f);total+=weights[i];}
     for(int i=0;i<6;++i){float ratio=ratios[target.type][i];ratio*=std::sqrt(1+.012f*current.dispersion*current.dispersion*ratio*ratio);
         const float f=std::clamp(target.tuningHz*ratio,20.0f,sr*.43f);auto& hz=frequencies[(size_t)i];hz=std::exp(lerp(std::log(std::max(20.0f,hz)),std::log(f),controlSmooth));
-        const float radius=std::exp(-1/(sr*(.008f+.22f*(1-current.damping))/(1+.1f*i))),theta=kTwoPi*hz/sr;
-        for(auto& channel:modes){auto& m=channel[(size_t)i];m.a=radius*std::cos(theta);m.b=radius*std::sin(theta);m.input=1-radius;m.weight=weights[i]/total;}
+        const float radius=std::exp(-1/(sr*(.015f+.25f*(1-current.damping))/(1+.1f*i))),theta=kTwoPi*hz/sr;
+        for(auto& channel:modes){auto& m=channel[(size_t)i];m.a=radius*std::cos(theta);m.b=radius*std::sin(theta);m.input=(1-radius)*1.2f;m.weight=weights[i]/total;}
     }
 }
 float ResonantDelay::colour(float input,int channel) noexcept {
@@ -37,10 +37,12 @@ void ResonantDelay::process(float* left,float* right,int samples) noexcept {
         if(counter++%16==0)coefficients();if(counter>=16)counter=0;
         time+=((float)(sr*.001*target.timeMs)-time)*smooth;
         for(int ch=0;ch<2;++ch){float& sample=ch?right[i]:left[i];const float delayed=delays[(size_t)ch].readLinear(time+(ch?1:-1)*.0005f*sr*current.stereoOffsetMs);
-            const float coloured=colour(delayed,ch),feedback=lerp(delayed,coloured,current.amount);
-            float value=(1-current.feedback)*sanitize(sample)+current.feedback*feedback;
-            if(!std::isfinite(value)||std::abs(value)>4){++clips;value=std::isfinite(value)?std::clamp(value,-4.0f,4.0f):0;}
-            const float drive=1+8*current.saturation;value=lerp(value,std::tanh(value*drive)/drive,current.saturation);
+            const float coloured=colour(delayed,ch);
+            const float feedback=lerp(delayed,delayed*0.35f+coloured*0.95f,current.amount);
+            float value=sanitize(sample)+current.feedback*feedback;
+            if(!std::isfinite(value)||std::abs(value)>3.5f){++clips;value=std::isfinite(value)?std::clamp(value,-3.5f,3.5f):0;}
+            if(std::abs(value)>1.2f)value=1.2f*fastTanh(value/1.2f);
+            if(current.saturation>0.001f){const float drive=1+8*current.saturation;value=lerp(value,std::tanh(value*drive)/drive,current.saturation);}
             delays[(size_t)ch].push(value);sample=lerp(sample,delayed,wet);
         }
     }

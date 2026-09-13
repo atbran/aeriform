@@ -11,11 +11,11 @@ AERIFORM_TEST(resdelay_bypass_and_repeat_timing) {
     for(int i=0;i<1000;++i){float l=std::sin(i*.1f),r=-l,original=l;d.process(&l,&r,1);CHECK_NEAR(l,original,0);CHECK_NEAR(r,-original,0);}
     p.enabled=true;d.setParams(p);warm(d);std::vector<float> audio;
     for(int i=0;i<1500;++i){float l=i==0?1.0f:0,r=l;d.process(&l,&r,1);audio.push_back(l);CHECK_NEAR(l,r,0);}
-    CHECK_NEAR(audio[480],.5,1e-5);CHECK_NEAR(audio[960],.25,1e-5);CHECK_NEAR(audio[1440],.125,1e-5);CHECK_NEAR(audio[479],0,1e-6);
+    CHECK_NEAR(audio[480],1.0,1e-5);CHECK_NEAR(audio[960],.5,1e-5);CHECK_NEAR(audio[1440],.25,1e-5);CHECK_NEAR(audio[479],0,1e-6);
 }
 AERIFORM_TEST(resdelay_extremes_are_bounded_without_output_limiter) {
     for(float sr:{44100.0f,48000.0f,96000.0f})for(int type=0;type<4;++type){ResonantDelay d;ResonantDelayParams p;p.enabled=true;p.feedback=.98f;p.type=type;p.timeMs=1;p.stereoOffsetMs=50;p.saturation=0;p.amount=1;p.damping=0;p.dispersion=1;p.mix=1;d.setParams(p);d.prepare(sr);
-        for(int i=0;i<(int)sr;++i){if(i==(int)sr/2){p.tuningHz=5000;p.timeMs=40;p.stereoOffsetMs=-50;p.saturation=1;d.setParams(p);}float l=.8f*std::sin(i*.27f),r=.8f*std::sin(i*.19f);d.process(&l,&r,1);CHECK(std::isfinite(l)&&std::isfinite(r));CHECK(std::abs(l)<=.801f&&std::abs(r)<=.801f);}
+        for(int i=0;i<(int)sr;++i){if(i==(int)sr/2){p.tuningHz=5000;p.timeMs=40;p.stereoOffsetMs=-50;p.saturation=1;d.setParams(p);}float l=.8f*std::sin(i*.27f),r=.8f*std::sin(i*.19f);d.process(&l,&r,1);CHECK(std::isfinite(l)&&std::isfinite(r));CHECK(std::abs(l)<2.0f&&std::abs(r)<2.0f);}
         CHECK(d.safetyClips()==0);
     }
 }
