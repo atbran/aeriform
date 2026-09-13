@@ -25,6 +25,8 @@ private:
     LfoRow lfos[ids::numLFOs];
     juce::Label* envCaption;
     Knob *menvA, *menvD, *menvS, *menvR;
+    juce::Label* vibCaption;
+    Knob *vibSpeed, *vibDepth;
     juce::Label* matrixCaption = nullptr;
     ModMatrixPanel* matrix = nullptr;
 };

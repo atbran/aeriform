@@ -371,3 +371,45 @@ AERIFORM_TEST (polyphonic_and_channel_aftertouch_and_controller_reset)
     h.render (0.05);
     CHECK (! h.processor.getPatchTools().undo.canUndo());
 }
+
+AERIFORM_TEST (voice_vibrato_controls_modulate_speed_and_depth)
+{
+    TestHost h;
+    quietPatch (h);
+    h.set (ids::artFlowPitch, 0.0f);
+    h.set (ids::artInstability, 0.0f);
+    h.set (ids::artVariation, 0.0f);
+    h.set (ids::glideTime, 0.0f);
+    h.set (ids::vibratoDepth, 0.0f);
+    h.set (ids::vibratoRate, 5.0f);
+
+    h.noteOn (60);
+    h.render (0.05);
+    const float staticPitch = h.processor.getVisualizerModel().voices[0].pitchHz.load();
+    CHECK_NEAR (staticPitch, dsp::midiNoteToHz (60.0f), 0.5f);
+
+    // Turn vibrato on with full depth (50 cents = 1/2 semitone up/down)
+    h.set (ids::vibratoDepth, 1.0f);
+    h.set (ids::vibratoRate, 5.0f); // 5 Hz cycle = 200 ms period
+
+    float minHz = 10000.0f, maxHz = 0.0f;
+    for (int step = 0; step < 25; ++step)
+    {
+        h.render (0.01); // 10 ms steps across 250 ms
+        const float f = h.processor.getVisualizerModel().voices[0].pitchHz.load();
+        if (f > 0.0f)
+        {
+            minHz = std::min (minHz, f);
+            maxHz = std::max (maxHz, f);
+        }
+    }
+
+    const float expectedCenter = dsp::midiNoteToHz (60.0f);
+    // At 261.63 Hz, 50 cents down is ~254.2 Hz (-7.4 Hz), 50 cents up is ~269.3 Hz (+7.6 Hz)
+    CHECK (minHz < expectedCenter - 3.0f);
+    CHECK (maxHz > expectedCenter + 3.0f);
+    CHECK (maxHz - minHz >= 10.0f);
+
+    h.noteOff (60);
+    h.render (0.1);
+}

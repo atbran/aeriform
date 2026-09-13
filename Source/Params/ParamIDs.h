@@ -771,6 +771,8 @@ enum class P : int
     breathEdge,
     chorusType,
     reverbType,
+    vibratoRate,
+    vibratoDepth,
     Count
 };
 
@@ -1543,6 +1545,8 @@ inline constexpr const char* breathContour = "breath_contour";
 inline constexpr const char* breathEdge = "breath_edge";
 inline constexpr const char* chorusType = "chorus_type";
 inline constexpr const char* reverbType = "rev_type";
+inline constexpr const char* vibratoRate = "vib_rate";
+inline constexpr const char* vibratoDepth = "vib_depth";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -2309,6 +2313,8 @@ inline constexpr const char* const all[kNumParams] = {
     "breath_edge",
     "chorus_type",
     "rev_type",
+    "vib_rate",
+    "vib_depth",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

@@ -146,6 +146,7 @@ void Voice::startNote (int midiNote, float vel, float glideFromNote, bool legato
         glideStepPerSample = 0.0f;
     }
     snapNextLength = ! legato;
+    if (! legato) vibratoPhase = 0.0f;
 
     for (int i = 0; i < ids::numLFOs; ++i)
     {
@@ -484,8 +485,22 @@ void Voice::updateControl (int n, const VoiceParams& p, const ModSources& global
     const float variationCents = p.get (P::artVariation) * 8.0f * varTune;
     const float* uni = unisonOffsets (unisonCount);
     const float unisonCents = unisonCount > 1 ? p.get (P::unisonDetune) * uni[std::clamp (unisonIndex, 0, unisonCount - 1)] : 0.0f;
+    const float vibDepth = clamp01 (p.get (P::vibratoDepth));
+    const float vibSpeedHz = std::clamp (p.get (P::vibratoRate), 0.1f, 30.0f);
+    float vibratoCents = 0.0f;
+    if (vibDepth > 0.0f)
+    {
+        vibratoPhase += (vibSpeedHz * (float) n) / (float) sampleRate;
+        if (vibratoPhase >= 1.0f)
+            vibratoPhase -= std::floor (vibratoPhase);
+        vibratoCents = vibDepth * 50.0f * std::sin (vibratoPhase * 2.0f * kPi);
+    }
+    else
+    {
+        vibratoPhase = 0.0f;
+    }
     const float baseNote = glideNote + bendSemitones + mod (ModDest::Pitch) * 24.0f
-                           + (flowCents + instabCents + variationCents + unisonCents) / 100.0f;
+                           + (flowCents + instabCents + variationCents + unisonCents + vibratoCents) / 100.0f;
     lastFreq = midiNoteToHz (std::clamp (baseNote, -12.0f, 140.0f));
 
     // ---- exciters -----------------------------------------------------------------------

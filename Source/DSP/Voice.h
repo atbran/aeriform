@@ -138,6 +138,7 @@ private:
 
     float glideNote = 60.0f, glideTarget = 60.0f, glideStepPerSample = 0.0f;
     float varTune = 0.0f, varDamp = 0.0f, varBright = 0.0f, varShape = 0.0f;
+    float vibratoPhase = 0.0f;
 
     // control-rate state
     float lastFreq = 440.0f, lastPressure = 0.0f, lastMono = 0.0f, lastFolded = 0.0f;

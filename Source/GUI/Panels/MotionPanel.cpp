@@ -25,6 +25,9 @@ MotionPanel::MotionPanel (AeriformProcessor& p, bool f) : ParamPanel (p, "MOTION
     menvD = knob (menvDecay, "Decay", {}, d);
     menvS = knob (menvSustain, "Sustain", {}, d);
     menvR = knob (menvRelease, "Release", {}, d);
+    vibCaption = caption ("VIBRATO");
+    vibSpeed   = knob (vibratoRate, "Speed", {}, d);
+    vibDepth   = knob (vibratoDepth, "Depth", {}, d);
     for (auto& k : knobs) k->setAccentColour (theme::teal);
 
     if (full)
@@ -66,6 +69,12 @@ void MotionPanel::resized()
         auto envRow1 = envArea.removeFromTop (84);
         knobRow (envRow1, { menvA, menvD });
         knobRow (envArea.removeFromTop (84), { menvS, menvR });
+        bottom.removeFromLeft (12);
+        auto vibArea = bottom.removeFromLeft (80);
+        vibCaption->setBounds (vibArea.removeFromTop (capH));
+        auto vibRow1 = vibArea.removeFromTop (84);
+        knobRow (vibRow1, { vibSpeed });
+        knobRow (vibArea.removeFromTop (84), { vibDepth });
         bottom.removeFromLeft (16);
         matrixCaption->setBounds (bottom.removeFromTop (capH));
         matrix->setBounds (bottom);
@@ -92,9 +101,14 @@ void MotionPanel::resized()
         r.removeFromTop (2);
     }
 
-    envCaption->setBounds (r.removeFromTop (capH));
+    auto capRow = r.removeFromTop (capH);
+    envCaption->setBounds (capRow.removeFromLeft (52 * 4));
+    capRow.removeFromLeft (16);
+    vibCaption->setBounds (capRow.removeFromLeft (52 * 2));
+
     auto envRow = r.removeFromTop (60);
     knobRow (envRow.removeFromLeft (52 * 4), { menvA, menvD, menvS, menvR });
-
+    envRow.removeFromLeft (16);
+    knobRow (envRow.removeFromLeft (52 * 2), { vibSpeed, vibDepth });
 }
 } // namespace aeriform

@@ -379,6 +379,8 @@ F('breathContour','breath_contour','Contour Amount','Breath',0,1,.4,'%','Percent
 F('breathEdge','breath_edge','Air Edge','Breath',0,1,0,'%','Percent','Broad upper air band for flute-mouthpiece and jet characters.')
 C('chorusType','chorus_type','Chorus Type','Space','ChorusTypes',0,'Chorus algorithm: Ensemble, Juno I, Juno II, Juno I+II, Dimension.')
 C('reverbType','rev_type','Reverb Type','Space','ReverbTypes',0,'Reverb space algorithm: Hall (FDN), Room / Chamber, Plate (Dattorro).')
+F('vibratoRate', 'vib_rate', 'Vibrato Speed', 'Motion', 0.5, 15.0, 5.0, 'Hz', 'LfoHz', 'Vibrato frequency in Hz.', centre=5.0)
+F('vibratoDepth', 'vib_depth', 'Vibrato Depth', 'Motion', 0.0, 1.0, 0.0, '%', 'Percent', 'Vibrato pitch modulation depth.')
 
 for r in rows:
  if r['enum']=='excAttackClick': r['default']=.02

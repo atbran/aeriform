@@ -765,4 +765,6 @@ static const ParamDef kParamDefs[kNumParams] = {
     { P::breathEdge, "breath_edge", "Air Edge", ParamSection::Breath, ParamKind::Float, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Broad upper air band for flute-mouthpiece and jet characters." },
     { P::chorusType, "chorus_type", "Chorus Type", ParamSection::Space, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ChorusTypes, "Chorus algorithm: Ensemble, Juno I, Juno II, Juno I+II, Dimension." },
     { P::reverbType, "rev_type", "Reverb Type", ParamSection::Space, ParamKind::Choice, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, "", Fmt::Plain, ChoiceList::ReverbTypes, "Reverb space algorithm: Hall (FDN), Room / Chamber, Plate (Dattorro)." },
+    { P::vibratoRate, "vib_rate", "Vibrato Speed", ParamSection::Motion, ParamKind::Float, 0.5f, 15.0f, 5.0f, 5.0f, 0.0f, "Hz", Fmt::LfoHz, ChoiceList::None, "Vibrato frequency in Hz." },
+    { P::vibratoDepth, "vib_depth", "Vibrato Depth", ParamSection::Motion, ParamKind::Float, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, "%", Fmt::Percent, ChoiceList::None, "Vibrato pitch modulation depth." },
 };
