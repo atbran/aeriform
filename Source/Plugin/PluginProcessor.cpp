@@ -1,3 +1,4 @@
+#include "../Params/RackCommands.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -215,8 +216,15 @@ void AeriformProcessor::applyStateXml (const juce::XmlElement& xml)
         // value; reset to defaults first so older states restore deterministically.
         for (auto* p : getParameters())
             if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p))
-                rp->setValueNotifyingHost (rp->getDefaultValue());
-        apvts.replaceState (juce::ValueTree::fromXml (*params));
+                if(!aeriform::isRackCommand(rp->paramID.toRawUTF8()))
+                    rp->setValueNotifyingHost (rp->getDefaultValue());
+        auto restored=juce::ValueTree::fromXml(*params);
+        for(auto child:restored) {
+            const auto id=child.getProperty("id").toString();
+            if(aeriform::isRackCommand(id.toRawUTF8()))
+                if(auto* value=apvts.getRawParameterValue(id))child.setProperty("value",value->load(),nullptr);
+        }
+        apvts.replaceState(restored);
     }
 
     midiLearn.fromXml (xml.getChildByName ("MidiLearn"));

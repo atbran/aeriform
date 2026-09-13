@@ -204,6 +204,7 @@ if(AERIFORM_BUILD_TESTS)
         Tests/TestMain.cpp
         Tests/TestFramework.h
         Tests/DspTests.cpp
+        Tests/AdvancedDspTests.cpp
         Tests/ParameterTests.cpp
         Tests/StateTests.cpp
         Tests/VoiceTests.cpp
@@ -295,3 +296,4 @@ if(AERIFORM_BUILD_HOST_CHECK)
         endif()
     endif()
 endif()
+

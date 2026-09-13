@@ -5,6 +5,8 @@ namespace aeriform::dsp
 void Exciter::prepare (float sr, uint32_t seed)
 {
     sampleRate = sr;
+    smooth=1-std::exp(-1/(.02f*sr));
+    mouthFilter.setSampleRate(sr);edgeFilter.setSampleRate(sr);
     rng.seed (seed);
     slowTurb.seed (seed * 7u + 1u);
     fastTurb.seed (seed * 13u + 5u);
@@ -22,6 +24,7 @@ void Exciter::prepare (float sr, uint32_t seed)
 void Exciter::reset()
 {
     pinkFilter.reset();
+    mouthFilter.reset();edgeFilter.reset();onset=0;emphasis=1;shapeTick=0;mouthNow=mouthTarget;edgeNow=edgeTarget;airGainNow=0;contourNow=contourAmount;
     lpFilter.reset();
     hpFilter.reset();
     pluckRemaining = clickRemaining = puffRemaining = 0;
@@ -31,6 +34,7 @@ void Exciter::reset()
 void Exciter::noteOn (float vel, float noteHz)
 {
     velocity = clamp01 (vel);
+    onset=0;emphasis=1;
     noteRandom = 1.0f + cached.breathRandom * 0.3f * rng.next();
 
     const float velScale = lerp (1.0f, velocity * velocity, cached.velocityAmount);
@@ -68,7 +72,13 @@ void Exciter::update (const ExciterParams& p, float noteHz, float pressureNow, f
 {
     cached = p;
     color = clamp01 (p.noiseColor);
-    turbAmount = clamp01 (p.turbulence + turbulenceMod);
+    const float pressure=clamp01(pressureNow)*clamp01(p.texturePressure);
+    mouthTarget=clamp01(p.mouth+.15f*pressure);
+    edgeTarget=clamp01(p.edge);
+    onsetRate=1-std::exp(-3/(std::clamp(p.swellMs,5.0f,500.0f)*.001f*sampleRate));
+    settleRate=std::exp(-3/(std::clamp(p.settleMs,20.0f,2000.0f)*.001f*sampleRate));
+    contourAmount=clamp01(p.contour);
+    turbAmount = clamp01 (p.turbulence + turbulenceMod + .15f*pressure);
     breathRandomAmount = p.breathRandom;
 
     const float velScale = lerp (1.0f, 0.25f + 0.75f * velocity, p.velocityAmount);
@@ -84,3 +94,4 @@ void Exciter::update (const ExciterParams& p, float noteHz, float pressureNow, f
     hpFilter.set (hp, 0.6f);
 }
 } // namespace aeriform::dsp
+

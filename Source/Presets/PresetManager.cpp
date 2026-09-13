@@ -1,3 +1,4 @@
+#include "../Params/RackCommands.h"
 #include "PresetManager.h"
 #include "../Params/ParameterLayout.h"
 
@@ -90,6 +91,7 @@ void PresetManager::notify()
 
 void PresetManager::setParamValue (const juce::String& id, float dspValue)
 {
+    if(isRackCommand(id.toRawUTF8()))return;
     if (auto* p = apvts.getParameter (id))
     {
         const float norm = p->convertTo0to1 (juce::jlimit (p->getNormalisableRange().start, p->getNormalisableRange().end, dspValue));
@@ -101,7 +103,7 @@ void PresetManager::resetAllToDefaults()
 {
     for (auto* p : apvts.processor.getParameters())
         if (auto* rp = dynamic_cast<juce::RangedAudioParameter*> (p))
-            rp->setValueNotifyingHost (rp->getDefaultValue());
+            if(!isRackCommand(rp->paramID.toRawUTF8()))rp->setValueNotifyingHost (rp->getDefaultValue());
 }
 
 void PresetManager::applyFactoryPreset (const FactoryPreset& preset)

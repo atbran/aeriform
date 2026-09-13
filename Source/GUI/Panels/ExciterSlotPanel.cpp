@@ -30,6 +30,7 @@ ExciterSlotPanel::ExciterSlotPanel (AeriformProcessor& p, int s, bool c)
     }
     else
     {
+        character=control<BreathCharacterBox>(p);
         retrig = control<ChoiceBox> (processor, id ("_retrig"), "Phase");
         if (slot == 1) sync = control<Toggle> (processor, ids::exbSync, "Sync to A");
         freeze = control<Toggle> (processor, id ("_sc_freeze"), "Freeze");
@@ -61,7 +62,7 @@ ExciterSlotPanel::ExciterSlotPanel (AeriformProcessor& p, int s, bool c)
     // ---- model specific (all created, shown by model) ----------------------------------
     const int md = compact ? theme::knobSize : 52;
     // breath (the v0.1 exciter: global ids)
-    make (ids::excNoise, "Noise", additive (ModDest::Noise), md);
+    make (ids::excNoise, "Air", additive (ModDest::Noise), md);
     make (ids::excNoiseColor, "Color", additive (ModDest::NoiseColor), md);
     make (ids::excPressure, "Pressure", additive (ModDest::Pressure), md);
     make (ids::excReed, "Reed", {}, md);
@@ -73,6 +74,11 @@ ExciterSlotPanel::ExciterSlotPanel (AeriformProcessor& p, int s, bool c)
     make (ids::excAttackClick, "Transient", {}, md);
     make (ids::excReleaseNoise, "Rel. Noise", {}, md);
     make (ids::excBreathRandom, "Breath Rnd", {}, md);
+    make(ids::breathMouth,"Mouth",additive(ModDest::breathMouth),md);
+    make(ids::breathSwell,"Air Swell",{ModDest::breathSwell,Kind::Additive,495},md);
+    make(ids::breathSettle,"Air Settle",{ModDest::breathSettle,Kind::Additive,1980},md);
+    make(ids::breathContour,"Contour",additive(ModDest::breathContour),md);
+    make(ids::breathEdge,"Air Edge",additive(ModDest::breathEdge),md);
     // wave
     make (id ("_wave_shape"), "Shape", additive (dShape), md);
     make (id ("_wave_pw"), "Pulse W", {}, md);
@@ -148,7 +154,7 @@ std::vector<juce::String> ExciterSlotPanel::idsForModel (ExciterModel m, bool co
 
     if (compactSet)
     {
-        if (m == M::Breath) addGlobal ({ ids::excNoise, ids::excPressure, ids::excReed });
+        if (m == M::Breath) addGlobal ({ ids::excNoise, ids::breathMouth, ids::excTurbulence });
         else if (m == M::Wave) add ({ "_wave_shape", "_wave_pw", "_wave_sub" });
         else if (m == M::Complex) add ({ "_cx_complexity", "_cx_feedback", "_cx_chaos" });
         else if (m == M::NoiseBand || m == M::NoiseMetallic) add ({ "_nz_center", "_nz_bandwidth", "_nz_color" });
@@ -164,7 +170,7 @@ std::vector<juce::String> ExciterSlotPanel::idsForModel (ExciterModel m, bool co
 
     if (m == M::Breath)
         addGlobal ({ ids::excNoise, ids::excNoiseColor, ids::excPressure, ids::excReed, ids::excPluck, ids::excExternalIn,
-                     ids::excPluckLength, ids::excTurbulence, ids::excVelocity, ids::excAttackClick, ids::excReleaseNoise, ids::excBreathRandom });
+                     ids::excPluckLength, ids::excTurbulence, ids::excVelocity, ids::excAttackClick, ids::excReleaseNoise, ids::excBreathRandom, ids::breathMouth, ids::breathSwell, ids::breathSettle, ids::breathContour, ids::breathEdge });
     else if (m == M::Wave) add ({ "_wave_shape", "_wave_pw", "_wave_sub", "_wave_pd" });
     else if (m == M::Complex) add ({ "_cx_complexity", "_cx_symmetry", "_cx_bend", "_cx_instab", "_cx_spread", "_cx_warp", "_cx_feedback", "_cx_chaos", "_cx_ratio" });
     else if (m == M::NoiseBand || m == M::NoiseMetallic) add ({ "_nz_center", "_nz_bandwidth", "_nz_color", "_nz_turb", "_nz_correlation", "_nz_seed", "_nz_width" });
@@ -191,6 +197,7 @@ void ExciterSlotPanel::updateVisibility()
         k->setVisible (show);
     }
     for (const auto& pid : wanted) modelKnobs.push_back (byId[pid]);
+    if(character)character->setVisible(m==ExciterModel::Breath);
     if (freeze != nullptr) freeze->setVisible (m == ExciterModel::Sidechain);
     if (modelCaption != nullptr) modelCaption->setText (m == ExciterModel::Off ? "OFF" : choices::exciterModels()[(int) m].toUpperCase(), juce::dontSendNotification);
     scope->setActiveLook (m != ExciterModel::Off);
@@ -245,6 +252,7 @@ void ExciterSlotPanel::resized()
     r.removeFromTop (4);
     modelCaption->setBounds (r.removeFromTop (14));
 
+    if(character && character->isVisible()){character->setBounds(r.removeFromTop(28).reduced(0,2));}
     const int perRow = 7;
     const int rowH = 66;
     const int count = (int) modelKnobs.size();

@@ -3,6 +3,7 @@
 #include "SympatheticBank.h"
 #include "CoupledRoom.h"
 #include "Effects/Chorus.h"
+#include "Effects/ModularRack.h"
 #include "Effects/Delay.h"
 #include "Effects/ResonantDelay.h"
 #include "Effects/ShimmerReverb.h"
@@ -47,10 +48,7 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
     LFO globalLfo[ids::numLFOs];
     Chorus chorus;
     StereoDelay delay;
-    ResonantDelay resonantDelay;
-    ShimmerReverb shimmer;
-    SpectralFreeze spectral;
-    MultibandSaturation saturation;
+    ModularRack rack;
     FdnReverb reverb;
     OutputStage output;
     CoupledRoom room;
@@ -135,8 +133,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
             globalLfo[i].resetFade();
         }
         chorus.prepare (sr);
-        delay.prepare (sr);resonantDelay.prepare((float)sr);
-        reverb.prepare (sr);shimmer.prepare((float)sr);spectral.prepare((float)sr);saturation.prepare((float)sr);
+        delay.prepare (sr);rack.prepare((float)sr);
+        reverb.prepare (sr);
         output.prepare (sr);sympathetic.prepare((float)sr);room.prepare((float)sr);globalFilters.prepare((float)sr);filterFrames.resize((size_t)maxBlock);
         sidechainFollower.setCutoff (20.0f, (float) sr);
         for (auto& p : pending) p.active = false;
@@ -155,8 +153,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         noteStackSize = 0;
         monoNoteId = -1;
         chorus.reset();
-        delay.reset();resonantDelay.reset();
-        reverb.reset();shimmer.reset();spectral.reset();saturation.reset();
+        delay.reset();rack.reset();
+        reverb.reset();
         output.reset();sympathetic.reset();room.reset();globalFilters.reset();
         couplingIn = 0.0f;auditionWeights.fill(0);
     }
@@ -712,12 +710,6 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
                          dTone, params.getb (P::delayPingPong));
         delay.process (L, R, numSamples);
 
-        ResonantDelayParams rd;rd.enabled=params.getb(P::rdOn);rd.timeMs=params.get(P::rdTime);
-        if(params.getb(P::rdSync))rd.timeMs=(float)(60000.0/(bpm>1?bpm:120)*choices::syncDivisionBeats(params.geti(P::rdDiv)));
-        rd.feedback=params.get(P::rdFeedback);rd.type=params.geti(P::rdType);rd.tuningHz=params.get(P::rdTuning)*std::exp2((filterNote-57)*params.get(P::rdTrack)/12);
-        rd.damping=params.get(P::rdDamping);rd.dispersion=params.get(P::rdDispersion);rd.amount=params.get(P::rdAmount);rd.saturation=params.get(P::rdSaturation);rd.stereoOffsetMs=params.get(P::rdOffset);rd.mix=params.get(P::rdMix);
-        resonantDelay.setParams(rd);resonantDelay.process(L,R,numSamples);
-
         const float rMix = clamp01 (params.get (P::reverbMix) + globalMod[(size_t) ModDest::ReverbMix]);
         const float rSize = clamp01 (params.get (P::reverbSize) + globalMod[(size_t) ModDest::ReverbSize]);
         const float rDecay = std::clamp (params.get (P::reverbDecay) * std::exp2 (globalMod[(size_t) ModDest::ReverbDecay] * 2.0f), 0.1f, 30.0f);
@@ -726,13 +718,8 @@ struct SynthEngine::Impl : private juce::MPEInstrument::Listener
         reverb.setParams (rMix, rSize, rDecay, rDamp, rPre,
                           params.get (P::reverbWidth), params.get (P::reverbModulation));
         reverb.process (L, R, numSamples);
-        ShimmerParams sh;sh.enabled=params.getb(P::shOn);sh.semitones=params.get(P::shInterval);sh.feedback=params.get(P::shFeedback);sh.diffusion=params.get(P::shDiffusion);sh.damping=params.get(P::shDamping);sh.size=params.get(P::shSize);sh.spread=params.get(P::shSpread);sh.lowCutHz=params.get(P::shLowCut);sh.highCutHz=params.get(P::shHighCut);sh.mix=params.get(P::shMix);
-        shimmer.setParams(sh,numSamples);shimmer.process(L,R,numSamples);
-        SpectralParams sf;sf.enabled=params.getb(P::sfOn);sf.freeze=params.getb(P::sfFreeze);sf.capture=params.getb(P::sfCapture);sf.release=params.getb(P::sfRelease);sf.blur=params.get(P::sfBlur);sf.semitones=params.get(P::sfShift);sf.randomPhase=params.get(P::sfRandom);sf.decayMs=params.get(P::sfDecay);sf.mix=params.get(P::sfMix);spectral.setParams(sf);spectral.process(L,R,numSamples);
-        SaturationParams sat;sat.enabled=params.getb(P::satOn);sat.lowHz=params.get(P::satLow);sat.highHz=params.get(P::satHigh);sat.mix=params.get(P::satMix);sat.quality=params.geti(P::satQuality);
-        for(int b=0;b<3;++b){const int base=(int)P::satLowDrive+b*4;auto& band=sat.bands[(size_t)b];band.drive=params.get((P)base);band.model=params.geti((P)(base+1));band.mix=params.get((P)(base+2));band.output=params.get((P)(base+3));}
-        saturation.setParams(sat);saturation.process(L,R,numSamples);
-        vis.spectralFrozen.store(spectral.isFrozen(),std::memory_order_relaxed);for(int band=0;band<64;++band)vis.spectralEnergy[(size_t)band].store(spectral.bandEnergy(band),std::memory_order_relaxed);
+        rack.process(L,R,numSamples,params,globalMod,bpm,filterNote);
+        for(int slot=0;slot<4;++slot)vis.rackFrozen[(size_t)slot].store(rack.isFrozen(slot),std::memory_order_relaxed);
 
         for(int i=0;i<numSamples;++i){L[i]=globalFilters.atWeighted(FilterPosition::PostEffects,L[i],0,filterFrames[(size_t)i]);R[i]=globalFilters.atWeighted(FilterPosition::PostEffects,R[i],3,filterFrames[(size_t)i]);}
         // Monitor only after the complete graph has run: audition never starves a send

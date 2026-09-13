@@ -571,6 +571,204 @@ enum class P : int
     resWet,
     rbWet,
     rcWet,
+    rackOrder,
+    rack1Type,
+    rack1Enabled,
+    rack1RdTime,
+    rack1RdSync,
+    rack1RdDiv,
+    rack1RdFeedback,
+    rack1RdType,
+    rack1RdTuning,
+    rack1RdTrack,
+    rack1RdDamping,
+    rack1RdDispersion,
+    rack1RdAmount,
+    rack1RdSaturation,
+    rack1RdOffset,
+    rack1RdMix,
+    rack1ShInterval,
+    rack1ShFeedback,
+    rack1ShDiffusion,
+    rack1ShDamping,
+    rack1ShSize,
+    rack1ShSpread,
+    rack1ShLowCut,
+    rack1ShHighCut,
+    rack1ShMix,
+    rack1SfFreeze,
+    rack1SfCapture,
+    rack1SfRelease,
+    rack1SfBlur,
+    rack1SfShift,
+    rack1SfRandom,
+    rack1SfDecay,
+    rack1SfMix,
+    rack1SatLow,
+    rack1SatHigh,
+    rack1SatMix,
+    rack1SatQuality,
+    rack1SatLowDrive,
+    rack1SatLowModel,
+    rack1SatLowMix,
+    rack1SatLowOutput,
+    rack1SatMidDrive,
+    rack1SatMidModel,
+    rack1SatMidMix,
+    rack1SatMidOutput,
+    rack1SatHighDrive,
+    rack1SatHighModel,
+    rack1SatHighMix,
+    rack1SatHighOutput,
+    rack2Type,
+    rack2Enabled,
+    rack2RdTime,
+    rack2RdSync,
+    rack2RdDiv,
+    rack2RdFeedback,
+    rack2RdType,
+    rack2RdTuning,
+    rack2RdTrack,
+    rack2RdDamping,
+    rack2RdDispersion,
+    rack2RdAmount,
+    rack2RdSaturation,
+    rack2RdOffset,
+    rack2RdMix,
+    rack2ShInterval,
+    rack2ShFeedback,
+    rack2ShDiffusion,
+    rack2ShDamping,
+    rack2ShSize,
+    rack2ShSpread,
+    rack2ShLowCut,
+    rack2ShHighCut,
+    rack2ShMix,
+    rack2SfFreeze,
+    rack2SfCapture,
+    rack2SfRelease,
+    rack2SfBlur,
+    rack2SfShift,
+    rack2SfRandom,
+    rack2SfDecay,
+    rack2SfMix,
+    rack2SatLow,
+    rack2SatHigh,
+    rack2SatMix,
+    rack2SatQuality,
+    rack2SatLowDrive,
+    rack2SatLowModel,
+    rack2SatLowMix,
+    rack2SatLowOutput,
+    rack2SatMidDrive,
+    rack2SatMidModel,
+    rack2SatMidMix,
+    rack2SatMidOutput,
+    rack2SatHighDrive,
+    rack2SatHighModel,
+    rack2SatHighMix,
+    rack2SatHighOutput,
+    rack3Type,
+    rack3Enabled,
+    rack3RdTime,
+    rack3RdSync,
+    rack3RdDiv,
+    rack3RdFeedback,
+    rack3RdType,
+    rack3RdTuning,
+    rack3RdTrack,
+    rack3RdDamping,
+    rack3RdDispersion,
+    rack3RdAmount,
+    rack3RdSaturation,
+    rack3RdOffset,
+    rack3RdMix,
+    rack3ShInterval,
+    rack3ShFeedback,
+    rack3ShDiffusion,
+    rack3ShDamping,
+    rack3ShSize,
+    rack3ShSpread,
+    rack3ShLowCut,
+    rack3ShHighCut,
+    rack3ShMix,
+    rack3SfFreeze,
+    rack3SfCapture,
+    rack3SfRelease,
+    rack3SfBlur,
+    rack3SfShift,
+    rack3SfRandom,
+    rack3SfDecay,
+    rack3SfMix,
+    rack3SatLow,
+    rack3SatHigh,
+    rack3SatMix,
+    rack3SatQuality,
+    rack3SatLowDrive,
+    rack3SatLowModel,
+    rack3SatLowMix,
+    rack3SatLowOutput,
+    rack3SatMidDrive,
+    rack3SatMidModel,
+    rack3SatMidMix,
+    rack3SatMidOutput,
+    rack3SatHighDrive,
+    rack3SatHighModel,
+    rack3SatHighMix,
+    rack3SatHighOutput,
+    rack4Type,
+    rack4Enabled,
+    rack4RdTime,
+    rack4RdSync,
+    rack4RdDiv,
+    rack4RdFeedback,
+    rack4RdType,
+    rack4RdTuning,
+    rack4RdTrack,
+    rack4RdDamping,
+    rack4RdDispersion,
+    rack4RdAmount,
+    rack4RdSaturation,
+    rack4RdOffset,
+    rack4RdMix,
+    rack4ShInterval,
+    rack4ShFeedback,
+    rack4ShDiffusion,
+    rack4ShDamping,
+    rack4ShSize,
+    rack4ShSpread,
+    rack4ShLowCut,
+    rack4ShHighCut,
+    rack4ShMix,
+    rack4SfFreeze,
+    rack4SfCapture,
+    rack4SfRelease,
+    rack4SfBlur,
+    rack4SfShift,
+    rack4SfRandom,
+    rack4SfDecay,
+    rack4SfMix,
+    rack4SatLow,
+    rack4SatHigh,
+    rack4SatMix,
+    rack4SatQuality,
+    rack4SatLowDrive,
+    rack4SatLowModel,
+    rack4SatLowMix,
+    rack4SatLowOutput,
+    rack4SatMidDrive,
+    rack4SatMidModel,
+    rack4SatMidMix,
+    rack4SatMidOutput,
+    rack4SatHighDrive,
+    rack4SatHighModel,
+    rack4SatHighMix,
+    rack4SatHighOutput,
+    breathMouth,
+    breathSwell,
+    breathSettle,
+    breathContour,
+    breathEdge,
     Count
 };
 
@@ -1143,6 +1341,204 @@ inline constexpr const char* mod32Depth = "mod32_depth";
 inline constexpr const char* resWet = "res_wet";
 inline constexpr const char* rbWet = "rb_wet";
 inline constexpr const char* rcWet = "rc_wet";
+inline constexpr const char* rackOrder = "rack_order";
+inline constexpr const char* rack1Type = "rack1_type";
+inline constexpr const char* rack1Enabled = "rack1_enabled";
+inline constexpr const char* rack1RdTime = "rack1_rd_time";
+inline constexpr const char* rack1RdSync = "rack1_rd_sync";
+inline constexpr const char* rack1RdDiv = "rack1_rd_div";
+inline constexpr const char* rack1RdFeedback = "rack1_rd_feedback";
+inline constexpr const char* rack1RdType = "rack1_rd_type";
+inline constexpr const char* rack1RdTuning = "rack1_rd_tuning";
+inline constexpr const char* rack1RdTrack = "rack1_rd_track";
+inline constexpr const char* rack1RdDamping = "rack1_rd_damping";
+inline constexpr const char* rack1RdDispersion = "rack1_rd_dispersion";
+inline constexpr const char* rack1RdAmount = "rack1_rd_amount";
+inline constexpr const char* rack1RdSaturation = "rack1_rd_saturation";
+inline constexpr const char* rack1RdOffset = "rack1_rd_offset";
+inline constexpr const char* rack1RdMix = "rack1_rd_mix";
+inline constexpr const char* rack1ShInterval = "rack1_sh_interval";
+inline constexpr const char* rack1ShFeedback = "rack1_sh_feedback";
+inline constexpr const char* rack1ShDiffusion = "rack1_sh_diffusion";
+inline constexpr const char* rack1ShDamping = "rack1_sh_damping";
+inline constexpr const char* rack1ShSize = "rack1_sh_size";
+inline constexpr const char* rack1ShSpread = "rack1_sh_spread";
+inline constexpr const char* rack1ShLowCut = "rack1_sh_low_cut";
+inline constexpr const char* rack1ShHighCut = "rack1_sh_high_cut";
+inline constexpr const char* rack1ShMix = "rack1_sh_mix";
+inline constexpr const char* rack1SfFreeze = "rack1_sf_freeze";
+inline constexpr const char* rack1SfCapture = "rack1_sf_capture";
+inline constexpr const char* rack1SfRelease = "rack1_sf_release";
+inline constexpr const char* rack1SfBlur = "rack1_sf_blur";
+inline constexpr const char* rack1SfShift = "rack1_sf_shift";
+inline constexpr const char* rack1SfRandom = "rack1_sf_random";
+inline constexpr const char* rack1SfDecay = "rack1_sf_decay";
+inline constexpr const char* rack1SfMix = "rack1_sf_mix";
+inline constexpr const char* rack1SatLow = "rack1_sat_low";
+inline constexpr const char* rack1SatHigh = "rack1_sat_high";
+inline constexpr const char* rack1SatMix = "rack1_sat_mix";
+inline constexpr const char* rack1SatQuality = "rack1_sat_quality";
+inline constexpr const char* rack1SatLowDrive = "rack1_sat_low_drive";
+inline constexpr const char* rack1SatLowModel = "rack1_sat_low_model";
+inline constexpr const char* rack1SatLowMix = "rack1_sat_low_mix";
+inline constexpr const char* rack1SatLowOutput = "rack1_sat_low_output";
+inline constexpr const char* rack1SatMidDrive = "rack1_sat_mid_drive";
+inline constexpr const char* rack1SatMidModel = "rack1_sat_mid_model";
+inline constexpr const char* rack1SatMidMix = "rack1_sat_mid_mix";
+inline constexpr const char* rack1SatMidOutput = "rack1_sat_mid_output";
+inline constexpr const char* rack1SatHighDrive = "rack1_sat_high_drive";
+inline constexpr const char* rack1SatHighModel = "rack1_sat_high_model";
+inline constexpr const char* rack1SatHighMix = "rack1_sat_high_mix";
+inline constexpr const char* rack1SatHighOutput = "rack1_sat_high_output";
+inline constexpr const char* rack2Type = "rack2_type";
+inline constexpr const char* rack2Enabled = "rack2_enabled";
+inline constexpr const char* rack2RdTime = "rack2_rd_time";
+inline constexpr const char* rack2RdSync = "rack2_rd_sync";
+inline constexpr const char* rack2RdDiv = "rack2_rd_div";
+inline constexpr const char* rack2RdFeedback = "rack2_rd_feedback";
+inline constexpr const char* rack2RdType = "rack2_rd_type";
+inline constexpr const char* rack2RdTuning = "rack2_rd_tuning";
+inline constexpr const char* rack2RdTrack = "rack2_rd_track";
+inline constexpr const char* rack2RdDamping = "rack2_rd_damping";
+inline constexpr const char* rack2RdDispersion = "rack2_rd_dispersion";
+inline constexpr const char* rack2RdAmount = "rack2_rd_amount";
+inline constexpr const char* rack2RdSaturation = "rack2_rd_saturation";
+inline constexpr const char* rack2RdOffset = "rack2_rd_offset";
+inline constexpr const char* rack2RdMix = "rack2_rd_mix";
+inline constexpr const char* rack2ShInterval = "rack2_sh_interval";
+inline constexpr const char* rack2ShFeedback = "rack2_sh_feedback";
+inline constexpr const char* rack2ShDiffusion = "rack2_sh_diffusion";
+inline constexpr const char* rack2ShDamping = "rack2_sh_damping";
+inline constexpr const char* rack2ShSize = "rack2_sh_size";
+inline constexpr const char* rack2ShSpread = "rack2_sh_spread";
+inline constexpr const char* rack2ShLowCut = "rack2_sh_low_cut";
+inline constexpr const char* rack2ShHighCut = "rack2_sh_high_cut";
+inline constexpr const char* rack2ShMix = "rack2_sh_mix";
+inline constexpr const char* rack2SfFreeze = "rack2_sf_freeze";
+inline constexpr const char* rack2SfCapture = "rack2_sf_capture";
+inline constexpr const char* rack2SfRelease = "rack2_sf_release";
+inline constexpr const char* rack2SfBlur = "rack2_sf_blur";
+inline constexpr const char* rack2SfShift = "rack2_sf_shift";
+inline constexpr const char* rack2SfRandom = "rack2_sf_random";
+inline constexpr const char* rack2SfDecay = "rack2_sf_decay";
+inline constexpr const char* rack2SfMix = "rack2_sf_mix";
+inline constexpr const char* rack2SatLow = "rack2_sat_low";
+inline constexpr const char* rack2SatHigh = "rack2_sat_high";
+inline constexpr const char* rack2SatMix = "rack2_sat_mix";
+inline constexpr const char* rack2SatQuality = "rack2_sat_quality";
+inline constexpr const char* rack2SatLowDrive = "rack2_sat_low_drive";
+inline constexpr const char* rack2SatLowModel = "rack2_sat_low_model";
+inline constexpr const char* rack2SatLowMix = "rack2_sat_low_mix";
+inline constexpr const char* rack2SatLowOutput = "rack2_sat_low_output";
+inline constexpr const char* rack2SatMidDrive = "rack2_sat_mid_drive";
+inline constexpr const char* rack2SatMidModel = "rack2_sat_mid_model";
+inline constexpr const char* rack2SatMidMix = "rack2_sat_mid_mix";
+inline constexpr const char* rack2SatMidOutput = "rack2_sat_mid_output";
+inline constexpr const char* rack2SatHighDrive = "rack2_sat_high_drive";
+inline constexpr const char* rack2SatHighModel = "rack2_sat_high_model";
+inline constexpr const char* rack2SatHighMix = "rack2_sat_high_mix";
+inline constexpr const char* rack2SatHighOutput = "rack2_sat_high_output";
+inline constexpr const char* rack3Type = "rack3_type";
+inline constexpr const char* rack3Enabled = "rack3_enabled";
+inline constexpr const char* rack3RdTime = "rack3_rd_time";
+inline constexpr const char* rack3RdSync = "rack3_rd_sync";
+inline constexpr const char* rack3RdDiv = "rack3_rd_div";
+inline constexpr const char* rack3RdFeedback = "rack3_rd_feedback";
+inline constexpr const char* rack3RdType = "rack3_rd_type";
+inline constexpr const char* rack3RdTuning = "rack3_rd_tuning";
+inline constexpr const char* rack3RdTrack = "rack3_rd_track";
+inline constexpr const char* rack3RdDamping = "rack3_rd_damping";
+inline constexpr const char* rack3RdDispersion = "rack3_rd_dispersion";
+inline constexpr const char* rack3RdAmount = "rack3_rd_amount";
+inline constexpr const char* rack3RdSaturation = "rack3_rd_saturation";
+inline constexpr const char* rack3RdOffset = "rack3_rd_offset";
+inline constexpr const char* rack3RdMix = "rack3_rd_mix";
+inline constexpr const char* rack3ShInterval = "rack3_sh_interval";
+inline constexpr const char* rack3ShFeedback = "rack3_sh_feedback";
+inline constexpr const char* rack3ShDiffusion = "rack3_sh_diffusion";
+inline constexpr const char* rack3ShDamping = "rack3_sh_damping";
+inline constexpr const char* rack3ShSize = "rack3_sh_size";
+inline constexpr const char* rack3ShSpread = "rack3_sh_spread";
+inline constexpr const char* rack3ShLowCut = "rack3_sh_low_cut";
+inline constexpr const char* rack3ShHighCut = "rack3_sh_high_cut";
+inline constexpr const char* rack3ShMix = "rack3_sh_mix";
+inline constexpr const char* rack3SfFreeze = "rack3_sf_freeze";
+inline constexpr const char* rack3SfCapture = "rack3_sf_capture";
+inline constexpr const char* rack3SfRelease = "rack3_sf_release";
+inline constexpr const char* rack3SfBlur = "rack3_sf_blur";
+inline constexpr const char* rack3SfShift = "rack3_sf_shift";
+inline constexpr const char* rack3SfRandom = "rack3_sf_random";
+inline constexpr const char* rack3SfDecay = "rack3_sf_decay";
+inline constexpr const char* rack3SfMix = "rack3_sf_mix";
+inline constexpr const char* rack3SatLow = "rack3_sat_low";
+inline constexpr const char* rack3SatHigh = "rack3_sat_high";
+inline constexpr const char* rack3SatMix = "rack3_sat_mix";
+inline constexpr const char* rack3SatQuality = "rack3_sat_quality";
+inline constexpr const char* rack3SatLowDrive = "rack3_sat_low_drive";
+inline constexpr const char* rack3SatLowModel = "rack3_sat_low_model";
+inline constexpr const char* rack3SatLowMix = "rack3_sat_low_mix";
+inline constexpr const char* rack3SatLowOutput = "rack3_sat_low_output";
+inline constexpr const char* rack3SatMidDrive = "rack3_sat_mid_drive";
+inline constexpr const char* rack3SatMidModel = "rack3_sat_mid_model";
+inline constexpr const char* rack3SatMidMix = "rack3_sat_mid_mix";
+inline constexpr const char* rack3SatMidOutput = "rack3_sat_mid_output";
+inline constexpr const char* rack3SatHighDrive = "rack3_sat_high_drive";
+inline constexpr const char* rack3SatHighModel = "rack3_sat_high_model";
+inline constexpr const char* rack3SatHighMix = "rack3_sat_high_mix";
+inline constexpr const char* rack3SatHighOutput = "rack3_sat_high_output";
+inline constexpr const char* rack4Type = "rack4_type";
+inline constexpr const char* rack4Enabled = "rack4_enabled";
+inline constexpr const char* rack4RdTime = "rack4_rd_time";
+inline constexpr const char* rack4RdSync = "rack4_rd_sync";
+inline constexpr const char* rack4RdDiv = "rack4_rd_div";
+inline constexpr const char* rack4RdFeedback = "rack4_rd_feedback";
+inline constexpr const char* rack4RdType = "rack4_rd_type";
+inline constexpr const char* rack4RdTuning = "rack4_rd_tuning";
+inline constexpr const char* rack4RdTrack = "rack4_rd_track";
+inline constexpr const char* rack4RdDamping = "rack4_rd_damping";
+inline constexpr const char* rack4RdDispersion = "rack4_rd_dispersion";
+inline constexpr const char* rack4RdAmount = "rack4_rd_amount";
+inline constexpr const char* rack4RdSaturation = "rack4_rd_saturation";
+inline constexpr const char* rack4RdOffset = "rack4_rd_offset";
+inline constexpr const char* rack4RdMix = "rack4_rd_mix";
+inline constexpr const char* rack4ShInterval = "rack4_sh_interval";
+inline constexpr const char* rack4ShFeedback = "rack4_sh_feedback";
+inline constexpr const char* rack4ShDiffusion = "rack4_sh_diffusion";
+inline constexpr const char* rack4ShDamping = "rack4_sh_damping";
+inline constexpr const char* rack4ShSize = "rack4_sh_size";
+inline constexpr const char* rack4ShSpread = "rack4_sh_spread";
+inline constexpr const char* rack4ShLowCut = "rack4_sh_low_cut";
+inline constexpr const char* rack4ShHighCut = "rack4_sh_high_cut";
+inline constexpr const char* rack4ShMix = "rack4_sh_mix";
+inline constexpr const char* rack4SfFreeze = "rack4_sf_freeze";
+inline constexpr const char* rack4SfCapture = "rack4_sf_capture";
+inline constexpr const char* rack4SfRelease = "rack4_sf_release";
+inline constexpr const char* rack4SfBlur = "rack4_sf_blur";
+inline constexpr const char* rack4SfShift = "rack4_sf_shift";
+inline constexpr const char* rack4SfRandom = "rack4_sf_random";
+inline constexpr const char* rack4SfDecay = "rack4_sf_decay";
+inline constexpr const char* rack4SfMix = "rack4_sf_mix";
+inline constexpr const char* rack4SatLow = "rack4_sat_low";
+inline constexpr const char* rack4SatHigh = "rack4_sat_high";
+inline constexpr const char* rack4SatMix = "rack4_sat_mix";
+inline constexpr const char* rack4SatQuality = "rack4_sat_quality";
+inline constexpr const char* rack4SatLowDrive = "rack4_sat_low_drive";
+inline constexpr const char* rack4SatLowModel = "rack4_sat_low_model";
+inline constexpr const char* rack4SatLowMix = "rack4_sat_low_mix";
+inline constexpr const char* rack4SatLowOutput = "rack4_sat_low_output";
+inline constexpr const char* rack4SatMidDrive = "rack4_sat_mid_drive";
+inline constexpr const char* rack4SatMidModel = "rack4_sat_mid_model";
+inline constexpr const char* rack4SatMidMix = "rack4_sat_mid_mix";
+inline constexpr const char* rack4SatMidOutput = "rack4_sat_mid_output";
+inline constexpr const char* rack4SatHighDrive = "rack4_sat_high_drive";
+inline constexpr const char* rack4SatHighModel = "rack4_sat_high_model";
+inline constexpr const char* rack4SatHighMix = "rack4_sat_high_mix";
+inline constexpr const char* rack4SatHighOutput = "rack4_sat_high_output";
+inline constexpr const char* breathMouth = "breath_mouth";
+inline constexpr const char* breathSwell = "breath_swell";
+inline constexpr const char* breathSettle = "breath_settle";
+inline constexpr const char* breathContour = "breath_contour";
+inline constexpr const char* breathEdge = "breath_edge";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -1709,6 +2105,204 @@ inline constexpr const char* const all[kNumParams] = {
     "res_wet",
     "rb_wet",
     "rc_wet",
+    "rack_order",
+    "rack1_type",
+    "rack1_enabled",
+    "rack1_rd_time",
+    "rack1_rd_sync",
+    "rack1_rd_div",
+    "rack1_rd_feedback",
+    "rack1_rd_type",
+    "rack1_rd_tuning",
+    "rack1_rd_track",
+    "rack1_rd_damping",
+    "rack1_rd_dispersion",
+    "rack1_rd_amount",
+    "rack1_rd_saturation",
+    "rack1_rd_offset",
+    "rack1_rd_mix",
+    "rack1_sh_interval",
+    "rack1_sh_feedback",
+    "rack1_sh_diffusion",
+    "rack1_sh_damping",
+    "rack1_sh_size",
+    "rack1_sh_spread",
+    "rack1_sh_low_cut",
+    "rack1_sh_high_cut",
+    "rack1_sh_mix",
+    "rack1_sf_freeze",
+    "rack1_sf_capture",
+    "rack1_sf_release",
+    "rack1_sf_blur",
+    "rack1_sf_shift",
+    "rack1_sf_random",
+    "rack1_sf_decay",
+    "rack1_sf_mix",
+    "rack1_sat_low",
+    "rack1_sat_high",
+    "rack1_sat_mix",
+    "rack1_sat_quality",
+    "rack1_sat_low_drive",
+    "rack1_sat_low_model",
+    "rack1_sat_low_mix",
+    "rack1_sat_low_output",
+    "rack1_sat_mid_drive",
+    "rack1_sat_mid_model",
+    "rack1_sat_mid_mix",
+    "rack1_sat_mid_output",
+    "rack1_sat_high_drive",
+    "rack1_sat_high_model",
+    "rack1_sat_high_mix",
+    "rack1_sat_high_output",
+    "rack2_type",
+    "rack2_enabled",
+    "rack2_rd_time",
+    "rack2_rd_sync",
+    "rack2_rd_div",
+    "rack2_rd_feedback",
+    "rack2_rd_type",
+    "rack2_rd_tuning",
+    "rack2_rd_track",
+    "rack2_rd_damping",
+    "rack2_rd_dispersion",
+    "rack2_rd_amount",
+    "rack2_rd_saturation",
+    "rack2_rd_offset",
+    "rack2_rd_mix",
+    "rack2_sh_interval",
+    "rack2_sh_feedback",
+    "rack2_sh_diffusion",
+    "rack2_sh_damping",
+    "rack2_sh_size",
+    "rack2_sh_spread",
+    "rack2_sh_low_cut",
+    "rack2_sh_high_cut",
+    "rack2_sh_mix",
+    "rack2_sf_freeze",
+    "rack2_sf_capture",
+    "rack2_sf_release",
+    "rack2_sf_blur",
+    "rack2_sf_shift",
+    "rack2_sf_random",
+    "rack2_sf_decay",
+    "rack2_sf_mix",
+    "rack2_sat_low",
+    "rack2_sat_high",
+    "rack2_sat_mix",
+    "rack2_sat_quality",
+    "rack2_sat_low_drive",
+    "rack2_sat_low_model",
+    "rack2_sat_low_mix",
+    "rack2_sat_low_output",
+    "rack2_sat_mid_drive",
+    "rack2_sat_mid_model",
+    "rack2_sat_mid_mix",
+    "rack2_sat_mid_output",
+    "rack2_sat_high_drive",
+    "rack2_sat_high_model",
+    "rack2_sat_high_mix",
+    "rack2_sat_high_output",
+    "rack3_type",
+    "rack3_enabled",
+    "rack3_rd_time",
+    "rack3_rd_sync",
+    "rack3_rd_div",
+    "rack3_rd_feedback",
+    "rack3_rd_type",
+    "rack3_rd_tuning",
+    "rack3_rd_track",
+    "rack3_rd_damping",
+    "rack3_rd_dispersion",
+    "rack3_rd_amount",
+    "rack3_rd_saturation",
+    "rack3_rd_offset",
+    "rack3_rd_mix",
+    "rack3_sh_interval",
+    "rack3_sh_feedback",
+    "rack3_sh_diffusion",
+    "rack3_sh_damping",
+    "rack3_sh_size",
+    "rack3_sh_spread",
+    "rack3_sh_low_cut",
+    "rack3_sh_high_cut",
+    "rack3_sh_mix",
+    "rack3_sf_freeze",
+    "rack3_sf_capture",
+    "rack3_sf_release",
+    "rack3_sf_blur",
+    "rack3_sf_shift",
+    "rack3_sf_random",
+    "rack3_sf_decay",
+    "rack3_sf_mix",
+    "rack3_sat_low",
+    "rack3_sat_high",
+    "rack3_sat_mix",
+    "rack3_sat_quality",
+    "rack3_sat_low_drive",
+    "rack3_sat_low_model",
+    "rack3_sat_low_mix",
+    "rack3_sat_low_output",
+    "rack3_sat_mid_drive",
+    "rack3_sat_mid_model",
+    "rack3_sat_mid_mix",
+    "rack3_sat_mid_output",
+    "rack3_sat_high_drive",
+    "rack3_sat_high_model",
+    "rack3_sat_high_mix",
+    "rack3_sat_high_output",
+    "rack4_type",
+    "rack4_enabled",
+    "rack4_rd_time",
+    "rack4_rd_sync",
+    "rack4_rd_div",
+    "rack4_rd_feedback",
+    "rack4_rd_type",
+    "rack4_rd_tuning",
+    "rack4_rd_track",
+    "rack4_rd_damping",
+    "rack4_rd_dispersion",
+    "rack4_rd_amount",
+    "rack4_rd_saturation",
+    "rack4_rd_offset",
+    "rack4_rd_mix",
+    "rack4_sh_interval",
+    "rack4_sh_feedback",
+    "rack4_sh_diffusion",
+    "rack4_sh_damping",
+    "rack4_sh_size",
+    "rack4_sh_spread",
+    "rack4_sh_low_cut",
+    "rack4_sh_high_cut",
+    "rack4_sh_mix",
+    "rack4_sf_freeze",
+    "rack4_sf_capture",
+    "rack4_sf_release",
+    "rack4_sf_blur",
+    "rack4_sf_shift",
+    "rack4_sf_random",
+    "rack4_sf_decay",
+    "rack4_sf_mix",
+    "rack4_sat_low",
+    "rack4_sat_high",
+    "rack4_sat_mix",
+    "rack4_sat_quality",
+    "rack4_sat_low_drive",
+    "rack4_sat_low_model",
+    "rack4_sat_low_mix",
+    "rack4_sat_low_output",
+    "rack4_sat_mid_drive",
+    "rack4_sat_mid_model",
+    "rack4_sat_mid_mix",
+    "rack4_sat_mid_output",
+    "rack4_sat_high_drive",
+    "rack4_sat_high_model",
+    "rack4_sat_high_mix",
+    "rack4_sat_high_output",
+    "breath_mouth",
+    "breath_swell",
+    "breath_settle",
+    "breath_contour",
+    "breath_edge",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

@@ -43,8 +43,8 @@ inline const juce::Colour nodeC        { 0xffb0a1d6 };
 inline const juce::Colour folder       { 0xffb6a2df };
 
 // Logical layout constants (the editor scales everything uniformly)
-inline constexpr int editorWidth  = 1180;
-inline constexpr int editorHeight = 820;
+inline constexpr int editorWidth  = 1280;
+inline constexpr int editorHeight = 900;
 inline constexpr int knobSize     = 58;
 inline constexpr int knobSizeLarge= 72;
 inline constexpr int knobSizeSmall= 46;

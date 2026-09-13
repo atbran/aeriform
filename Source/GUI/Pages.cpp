@@ -153,7 +153,7 @@ ExcitersPage::ExcitersPage (AeriformProcessor& p)
 void ExcitersPage::resized()
 {
     auto r = getLocalBounds();
-    auto slots = r.removeFromTop (300);
+    auto slots = r.removeFromTop (400);
     slotA->setBounds (slots.removeFromLeft ((slots.getWidth() - 8) / 2));
     slots.removeFromLeft (8);
     slotB->setBounds (slots);

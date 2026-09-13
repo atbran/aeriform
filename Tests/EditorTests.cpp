@@ -237,7 +237,7 @@ AERIFORM_TEST (editor_overhaul_controls_tabs_and_layout)
         }
         checkControlBounds (*editor);
     }
-    for (auto* collection : descendants<EffectsCollection> (*editor))
+    for (auto* collection : descendants<EffectsPage> (*editor))
         captureUi (*collection, "effects-all");
     editor->showPage (3); captureUi (*editor, "mod-matrix");
     editor->showPage (1); captureUi (*editor, "exciters");

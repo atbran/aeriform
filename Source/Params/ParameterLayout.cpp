@@ -69,7 +69,9 @@ namespace choices
                                            "Fold Mix", "Fold Shape",
                                            "Chorus Rate", "Chorus Depth",
                                            "Delay Time L", "Delay Time R", "Delay Feedback", "Delay Filter",
-                                           "Reverb Decay", "Reverb Size", "Reverb Damp", "Reverb Pre-Delay" };
+                                           "Reverb Decay", "Reverb Size", "Reverb Damp", "Reverb Pre-Delay",
+#include "AdvancedModNames.inc"
+        };
         return s;
     }
     const juce::StringArray& exciterModels()
@@ -177,6 +179,7 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::FilterModels: { static const juce::StringArray v { "Low-pass", "High-pass", "Band-pass", "Notch", "SVF morph", "Driven SVF", "Ladder low-pass", "Formant / vowel", "Comb", "Modal bank", "Tilt EQ" }; return v; }
         case ChoiceList::FilterSlopes: { static const juce::StringArray v { "12 dB / octave", "24 dB / octave" }; return v; }
         case ChoiceList::FilterVowels: { static const juce::StringArray v { "A", "E", "I", "O", "U" }; return v; }
+        case ChoiceList::RackTypes: { static const juce::StringArray v { "Empty", "Resonant Delay", "Shimmer", "Spectral Freeze", "Multiband Saturation" }; return v; }
         case ChoiceList::None:
         default:
         {

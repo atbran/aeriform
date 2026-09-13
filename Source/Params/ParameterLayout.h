@@ -116,6 +116,7 @@ enum class ModDest
     ChorusRate, ChorusDepth,
     DelayTimeL, DelayTimeR, DelayFeedback, DelayFilter,
     ReverbDecay, ReverbSize, ReverbDamp, ReverbPredelay,
+#include "AdvancedModEnums.inc"
     Count
 };
 
@@ -153,7 +154,7 @@ enum class ChoiceList
 {
     None, LfoShapes, LfoModes, SyncDivs, ResTypes, VoiceModes, ModSources, ModDests, ExciterModels, RetrigModes,
     InteractionModes, PreFilterTypes, ShaperOrders, FoldModes, Polarities, InjectPoints, OutputTaps, LoopSources,
-    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels
+    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels, RackTypes
 };
 
 /** One row of the generated parameter table. */

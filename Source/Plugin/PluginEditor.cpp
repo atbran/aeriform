@@ -48,7 +48,8 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     auto effects = std::make_unique<WorkspacePage> (p, 4);
     effects->addSection ("EFFECTS", std::make_unique<EffectsPage> (p));
     effects->addSection ("ACOUSTIC", std::make_unique<AcousticPage> (p));
-    effects->showSection (p.getEditorSection (4) == 1 ? 1 : 0);
+    effects->addSection ("FILTERS", std::make_unique<FiltersPage> (p));
+    effects->showSection (juce::jlimit(0,2,p.getEditorSection (4)));
     pages[4] = std::move (effects);
     pages[5] = std::make_unique<PerformancePage>(p);
     undoButton.onClick=[this]{processor.getPatchTools().undo.undo();};
@@ -82,7 +83,7 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     const float storedScale = processor.getEditorScale();
     setResizable (true, true);
     getConstrainer()->setFixedAspectRatio ((double) editorWidth / (double) editorHeight);
-    setResizeLimits ((int) (editorWidth * 0.6f), (int) (editorHeight * 0.6f), editorWidth * 2, editorHeight * 2);
+    setResizeLimits (editorWidth, editorHeight, editorWidth * 2, editorHeight * 2);
 
     applyScale (storedScale);
     startTimerHz (30);
@@ -113,7 +114,7 @@ void AeriformEditor::showPage (int index)
 
 void AeriformEditor::applyScale (float newScale)
 {
-    scale = juce::jlimit (0.5f, 2.0f, newScale);
+    scale = juce::jlimit (1.0f, 2.0f, newScale);
     processor.setEditorScale (scale);
     scaleButton.setButtonText (juce::String (juce::roundToInt (scale * 100.0f)) + " %");
     setSize (juce::roundToInt (editorWidth * scale), juce::roundToInt (editorHeight * scale));
@@ -122,7 +123,7 @@ void AeriformEditor::applyScale (float newScale)
 void AeriformEditor::showScaleMenu()
 {
     juce::PopupMenu menu;
-    for (int pct : { 75, 100, 125, 150, 200 })
+    for (int pct : { 100, 125, 150, 200 })
         menu.addItem (pct, juce::String (pct) + " %", true, juce::roundToInt (scale * 100.0f) == pct);
     juce::Component::SafePointer<AeriformEditor> safe (this);
     menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&scaleButton), [safe] (int r)

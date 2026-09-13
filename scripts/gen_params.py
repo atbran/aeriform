@@ -40,7 +40,7 @@ F('excPluck', 'exc_pluck', 'Pluck', S, 0, 1, 0.0, '%', 'Percent', 'Level of the 
 F('excPluckLength', 'exc_pluck_len', 'Pluck Length', S, 0.3, 80, 5.0, 'ms', 'Ms', 'Duration of the pluck impulse burst.', centre=6.0)
 F('excLowpass', 'exc_lp', 'Exciter LP', S, 200, 20000, 7000, 'Hz', 'Hz', 'Low-pass filter applied to the excitation before it enters the tube.', centre=3000)
 F('excHighpass', 'exc_hp', 'Exciter HP', S, 10, 5000, 40, 'Hz', 'Hz', 'High-pass filter applied to the excitation. Removes rumble and shapes the breath character.', centre=250)
-F('excTurbulence', 'exc_turb', 'Turbulence', S, 0, 1, 0.25, '%', 'Percent', 'Slow, chaotic fluctuation of the air stream. Adds breathy instability and life.')
+F('excTurbulence', 'exc_turb', 'Turbulence', S, 0, 1, 0.12, '%', 'Percent', 'Slow, chaotic fluctuation of the air stream. Adds breathy instability and life.')
 F('excVelocity', 'exc_vel', 'Velocity', S, 0, 1, 0.5, '%', 'Percent', 'How strongly key velocity scales the excitation level and pluck strength.')
 F('excExternalIn', 'exc_ext_in', 'External In', S, 0, 1, 0.0, '%', 'Percent', 'Amount of the plug-in audio input (sidechain / standalone input) injected as excitation.')
 F('excKeyTrack', 'exc_keytrack', 'Exciter Key Track', S, 0, 1, 0.5, '%', 'Percent', 'How far the exciter filters follow the played pitch.')
@@ -363,6 +363,25 @@ F('resWet', 'res_wet', 'A Wet', 'Resonator', 0, 1, 1.0, '%', 'Percent', 'Wet / d
 F('rbWet', 'rb_wet', 'Res B Wet', 'Network', 0, 1, 1.0, '%', 'Percent', 'Wet / dry mix of Resonator B.')
 F('rcWet', 'rc_wet', 'Res C Wet', 'Network', 0, 1, 1.0, '%', 'Percent', 'Wet / dry mix of Resonator C.')
 
+# Four persistent rack identities. Algorithm-specific IDs never change meaning.
+effect_rows=[r.copy() for r in rows if r['enum'].startswith(('rd','sh','sf','sat')) and r['sec']=='Space']
+I('rackOrder','rack_order','Rack Order','Space',0,23,0,'','Permutation of persistent slots A-D, lexicographic order.')
+for slot in range(1,5):
+ C(f'rack{slot}Type',f'rack{slot}_type',f'Slot {slot} Effect','Space','RackTypes',0,'Effect instance type. All combinations and duplicates are allowed.')
+ B(f'rack{slot}Enabled',f'rack{slot}_enabled',f'Slot {slot} Enabled','Space',True,'Enable this instance; bypass uses a controlled fade.')
+ for original in effect_rows:
+  if original['enum'] in ('rdOn','shOn','sfOn','satOn'): continue
+  r=original.copy(); r['enum']=f'rack{slot}'+original['enum'][0].upper()+original['enum'][1:]; r['id']=f'rack{slot}_'+original['id']; r['name']=f'Slot {slot} '+original['name']; rows.append(r)
+F('breathMouth','breath_mouth','Mouth','Breath',0,1,.35,'%','Percent','Broad mouth opening: rounded to bright open air.')
+F('breathSwell','breath_swell','Air Swell','Breath',5,500,65,'ms','Ms','Soft onset of breath source only.',centre=70)
+F('breathSettle','breath_settle','Air Settle','Breath',20,2000,280,'ms','Ms','Time for initial exhalation emphasis to settle.',centre=300)
+F('breathContour','breath_contour','Contour Amount','Breath',0,1,.4,'%','Percent','Initial exhalation emphasis, independent of the amplitude envelope.')
+F('breathEdge','breath_edge','Air Edge','Breath',0,1,0,'%','Percent','Broad upper air band for flute-mouthpiece and jet characters.')
+
+for r in rows:
+ if r['enum']=='excAttackClick': r['default']=.02
+ if r['enum']=='excReleaseNoise': r['default']=.025
+
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]
 assert len(set(ids)) == len(ids), 'duplicate id'
@@ -430,3 +449,6 @@ t.append('};\n')
 open(os.path.join(ROOT, 'Source/Params/ParamTable.inc'), 'w', encoding='utf-8', newline='\n').write(''.join(t))
 
 print('generated %d parameters (%d from v0.1, %d new)' % (len(rows), NUM_V01, len(rows) - NUM_V01))
+
+from advanced_bindings import emit as emit_advanced
+emit_advanced(rows,effect_rows,ROOT)

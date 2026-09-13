@@ -299,6 +299,12 @@ void Voice::buildExciterParams (ExciterSlot::Params& out, const VoiceParams& p, 
     b.releaseNoise = p.get (P::excReleaseNoise);
     b.breathRandom = p.get (P::excBreathRandom);
     b.pressureBright = p.get (P::artPressBright);
+    b.texturePressure=b.pressureBright;
+    b.mouth=clamp01(p.get(P::breathMouth)+mod(ModDest::breathMouth));
+    b.edge=clamp01(p.get(P::breathEdge)+mod(ModDest::breathEdge));
+    b.swellMs=std::clamp(p.get(P::breathSwell)+495*mod(ModDest::breathSwell),5.0f,500.0f);
+    b.settleMs=std::clamp(p.get(P::breathSettle)+1980*mod(ModDest::breathSettle),20.0f,2000.0f);
+    b.contour=clamp01(p.get(P::breathContour)+mod(ModDest::breathContour));
 }
 
 void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)

@@ -79,6 +79,7 @@ public:
     std::atomic<float> governorGain  { 1.0f };
     std::atomic<float> exciterAEnv   { 0.0f };
     std::atomic<float> exciterBEnv   { 0.0f };
+    std::array<std::atomic<bool>,4> rackFrozen{};
     std::atomic<bool> spectralFrozen{false};
     std::array<std::atomic<float>,64> spectralEnergy{};
     std::atomic<float> bankInputRms{0},bankOutputRms{0},roomInputRms{0},roomOutputRms{0};

@@ -1,24 +1,23 @@
 #pragma once
 
-#include "DspUtils.h"
+#include "DSP/DspUtils.h"
 
-namespace aeriform::dsp
+namespace aeriform::dsp::baseline
 {
 struct ExciterParams
 {
-    float mouth=.35f, swellMs=65, settleMs=280, contour=.4f, edge=0, texturePressure=.4f;
     float noise = 0.6f;          // 0..1 continuous noise level
     float noiseColor = 0.35f;    // 0 white .. 1 pink
     float pluck = 0.0f;          // 0..1 impulse burst level
     float pluckLengthMs = 5.0f;
     float lowpassHz = 7000.0f;
     float highpassHz = 40.0f;
-    float turbulence = 0.12f;
+    float turbulence = 0.25f;
     float velocityAmount = 0.5f;
     float externalIn = 0.0f;
     float keyTrack = 0.5f;
-    float attackClick = 0.02f;
-    float releaseNoise = 0.025f;
+    float attackClick = 0.15f;
+    float releaseNoise = 0.1f;
     float breathRandom = 0.15f;
     float pressureBright = 0.4f; // pressure-dependent brightness
 };
@@ -49,28 +48,14 @@ public:
         const float pink = pinkFilter.process (white);
         float breathNoise = lerp (white, pink * 2.2f, color);
 
-        mouthNow += smooth * (mouthTarget-mouthNow);
-        edgeNow += smooth * (edgeTarget-edgeNow);
-        if ((shapeTick++ & 15u)==0) {
-            mouthFilter.set(650.0f*std::exp2(2.4f*mouthNow),.65f);
-            edgeFilter.set(2400.0f+3500.0f*mouthNow,.6f);
-        }
-        // Broad low-Q air bands, not ringing speech formants.
-        breathNoise = 1.8f*mouthFilter.bandpass(breathNoise) + edgeNow*1.1f*edgeFilter.bandpass(white);
-        onset += onsetRate*(1-onset);
-        emphasis *= settleRate;
-        contourNow += smooth*(contourAmount-contourNow);
-        airGainNow += smooth*(noiseGain-airGainNow);
-        const float airContour=onset*(1+contourNow*emphasis);
-
         // turbulence: slow chaotic amplitude / pressure fluctuation
         const float turb = slowTurb.next();
-        const float turbGain = std::clamp(1.0f + turbAmount * (0.9f * turb + 0.35f * fastTurb.next()),.1f,2.0f);
+        const float turbGain = 1.0f + turbAmount * (0.9f * turb + 0.35f * fastTurb.next());
         breathNoise *= turbGain;
 
         // slow breath drift (human unsteadiness)
         const float drift = 1.0f + breathRandomAmount * 0.25f * slowDrift.next();
-        float out = breathNoise * airGainNow * drift * breath * airContour;
+        float out = breathNoise * noiseGain * drift * breath;
 
         // --- one-shot components -------------------------------------------
         if (pluckRemaining > 0)
@@ -107,10 +92,7 @@ private:
     Noise rng;
     PinkFilter pinkFilter;
     SlowRandom slowTurb, fastTurb, slowDrift;
-    SVF lpFilter, hpFilter, mouthFilter, edgeFilter;
-    float smooth=.001f,mouthNow=.35f,mouthTarget=.35f,edgeNow=0,edgeTarget=0;
-    float onset=0,emphasis=1,onsetRate=.001f,settleRate=.999f,contourAmount=.4f;
-    unsigned shapeTick=0; float contourNow=.4f,airGainNow=0;
+    SVF lpFilter, hpFilter;
 
     float color = 0.0f, noiseGain = 0.0f, turbAmount = 0.0f, breathRandomAmount = 0.0f, externalGain = 0.0f;
     float velocity = 1.0f;
@@ -122,5 +104,91 @@ private:
 
     ExciterParams cached;
 };
-} // namespace aeriform::dsp
+} // namespace aeriform::dsp::baseline
 
+
+
+namespace aeriform::dsp::baseline
+{
+void Exciter::prepare (float sr, uint32_t seed)
+{
+    sampleRate = sr;
+    rng.seed (seed);
+    slowTurb.seed (seed * 7u + 1u);
+    fastTurb.seed (seed * 13u + 5u);
+    slowDrift.seed (seed * 31u + 9u);
+    slowTurb.setRate (6.0f, sr);
+    fastTurb.setRate (45.0f, sr);
+    slowDrift.setRate (0.35f, sr);
+    lpFilter.setSampleRate (sr);
+    hpFilter.setSampleRate (sr);
+    lpFilter.set (7000.0f, 0.707f);
+    hpFilter.set (40.0f, 0.707f);
+    reset();
+}
+
+void Exciter::reset()
+{
+    pinkFilter.reset();
+    lpFilter.reset();
+    hpFilter.reset();
+    pluckRemaining = clickRemaining = puffRemaining = 0;
+    noiseGain = 0.0f;
+}
+
+void Exciter::noteOn (float vel, float noteHz)
+{
+    velocity = clamp01 (vel);
+    noteRandom = 1.0f + cached.breathRandom * 0.3f * rng.next();
+
+    const float velScale = lerp (1.0f, velocity * velocity, cached.velocityAmount);
+
+    // pluck burst: noise with exponential decay over the burst length
+    const int len = std::max (4, (int) (cached.pluckLengthMs * 0.001f * sampleRate));
+    pluckRemaining = cached.pluck > 0.001f ? len : 0;
+    pluckLevel = cached.pluck * 1.6f * velScale;
+    pluckEnv = 1.0f;
+    pluckDecay = std::exp (-4.0f / (float) len);
+
+    // tongue / chiff transient: short bright click scaled by attack transient amount
+    clickLength = std::max (8, (int) (0.0025f * sampleRate + 0.004f * sampleRate * (1.0f - clamp01 (noteHz / 2000.0f))));
+    clickRemaining = cached.attackClick > 0.001f ? clickLength : 0;
+    clickLevel = cached.attackClick * 0.9f * velScale;
+    clickEnv = 1.0f;
+    clickDecay = std::exp (-5.0f / (float) clickLength);
+
+    puffRemaining = 0;
+}
+
+void Exciter::noteOff()
+{
+    if (cached.releaseNoise > 0.001f)
+    {
+        const int len = (int) (0.09f * sampleRate);
+        puffRemaining = len;
+        puffLevel = cached.releaseNoise * 0.35f * lerp (1.0f, velocity, cached.velocityAmount);
+        puffEnv = 1.0f;
+        puffDecay = std::exp (-4.5f / (float) len);
+    }
+}
+
+void Exciter::update (const ExciterParams& p, float noteHz, float pressureNow, float turbulenceMod)
+{
+    cached = p;
+    color = clamp01 (p.noiseColor);
+    turbAmount = clamp01 (p.turbulence + turbulenceMod);
+    breathRandomAmount = p.breathRandom;
+
+    const float velScale = lerp (1.0f, 0.25f + 0.75f * velocity, p.velocityAmount);
+    noiseGain = p.noise * 0.5f * velScale * noteRandom;
+    externalGain = p.externalIn * 2.0f;
+
+    // key tracking of both filters around middle C, plus pressure-dependent brightness
+    const float track = std::pow (std::max (noteHz, 20.0f) / 261.63f, 0.6f * p.keyTrack);
+    const float pressBright = std::exp2 (p.pressureBright * 2.5f * (pressureNow - 0.5f));
+    const float lp = std::clamp (p.lowpassHz * track * pressBright, 60.0f, sampleRate * 0.45f);
+    const float hp = std::clamp (p.highpassHz * track, 5.0f, sampleRate * 0.3f);
+    lpFilter.set (lp, 0.65f);
+    hpFilter.set (hp, 0.6f);
+}
+} // namespace aeriform::dsp::baseline

@@ -12,6 +12,8 @@ public:
     void prepare(float sampleRate);
     void reset() noexcept;
     void setParams(SpectralParams) noexcept;
+    // A restored command parity is not a new event. Hold still initiates a new capture.
+    void primeCommandEdges(bool capture,bool release) noexcept {p.capture=capture;p.release=release;}
     void process(float* left,float* right,int samples) noexcept;
     bool isFrozen() const noexcept {return holding&&captured;}
     float bandEnergy(int band) const noexcept;

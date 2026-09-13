@@ -3,6 +3,7 @@
 #include "../PanelBase.h"
 #include "../Displays.h"
 #include <map>
+#include "../BreathCharacterBox.h"
 
 namespace aeriform
 {
@@ -36,6 +37,7 @@ private:
     juce::String modelId;
     ChoiceBox* model = nullptr;
     ChoiceBox* retrig = nullptr;
+    BreathCharacterBox* character=nullptr;
     Toggle* sync = nullptr;
     Toggle* freeze = nullptr;
     std::unique_ptr<ScopeDisplay> scope;

@@ -31,12 +31,12 @@ AERIFORM_TEST(resdelay_chunk_and_bypass_transitions_are_consistent) {
     ResonantDelay d;ResonantDelayParams p;p.enabled=true;d.setParams(p);d.prepare(48000);warm(d);p.enabled=false;d.setParams(p);warm(d,2000);float l=.3f,r=-.3f;d.process(&l,&r,1);CHECK_NEAR(l,.3f,0);CHECK_NEAR(r,-.3f,0);
 }
 AERIFORM_TEST(resdelay_host_audio_and_state) {
-    auto render=[](bool enabled){TestHost h;h.set(ids::rdOn,enabled?1:0);h.set(ids::rdTime,80);h.set(ids::rdMix,.6f);h.noteOn(60);std::vector<float>x;CHECK(h.render(.5,&x).finite);return x;};auto a=render(false),b=render(true);double diff=0;for(size_t i=0;i<a.size();++i)diff+=std::pow(a[i]-b[i],2);CHECK(diff>1e-4);
-    TestHost h;h.set(ids::rdType,2);h.set(ids::rdTrack,1);juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost bhost;bhost.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK_NEAR(bhost.get(ids::rdType),2,0);CHECK_NEAR(bhost.get(ids::rdTrack),1,0);
+    auto render=[](bool enabled){TestHost h;h.set(ids::rack1Type,enabled?1:0);h.set(ids::rack1RdTime,80);h.set(ids::rack1RdMix,.6f);h.noteOn(60);std::vector<float>x;CHECK(h.render(.5,&x).finite);return x;};auto a=render(false),b=render(true);double diff=0;for(size_t i=0;i<a.size();++i)diff+=std::pow(a[i]-b[i],2);CHECK(diff>1e-4);
+    TestHost h;h.set(ids::rack1RdType,2);h.set(ids::rack1RdTrack,1);juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost bhost;bhost.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK_NEAR(bhost.get(ids::rack1RdType),2,0);CHECK_NEAR(bhost.get(ids::rack1RdTrack),1,0);
 }
 
 AERIFORM_TEST(resdelay_page_renders_and_restores) {
-    TestHost h;h.processor.setEditorPage(4);h.processor.setEditorSection(4,0);h.set(ids::rdOn,1);
+    TestHost h;h.processor.setEditorPage(4);h.processor.setEditorSection(4,0);h.set(ids::rack1Type,1);
     std::unique_ptr<juce::AudioProcessorEditor> e(h.processor.createEditor());juce::Image image(juce::Image::ARGB,e->getWidth(),e->getHeight(),true);juce::Graphics g(image);e->paintEntireComponent(g,true);
     auto stream=juce::File::getCurrentWorkingDirectory().getChildFile("docs/experimental/resonant-delay.png").createOutputStream();CHECK(stream!=nullptr);if(stream){stream->setPosition(0);stream->truncate();CHECK(juce::PNGImageFormat().writeImageToStream(image,*stream));}
     juce::MemoryBlock state;h.processor.getStateInformation(state);TestHost restored;restored.processor.setStateInformation(state.getData(),(int)state.getSize());CHECK(restored.processor.getEditorSection(4)==0);
