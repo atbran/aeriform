@@ -105,7 +105,7 @@ public:
         energy += 0.002f * (std::fabs (x) - energy);
 
         tap2 = delay.readLinear (pickupDelay) * outputComp;
-        const float tap = stringMode ? d : x;
+        const float tap = d;
         lastOut = tap * outputComp;
         return lastOut;
     }
