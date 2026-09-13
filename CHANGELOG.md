@@ -1,5 +1,46 @@
 # Changelog
 
+## v3.2.0
+
+A major audio processing and sound design release introducing authentic Roland Juno BBD chorus emulation, expanded algorithmic reverbs, dedicated Motion vibrato controls, pure waveguide bore radiation without dry exciter bleed, and critical DSP repairs across resonant delays, shimmer reverb, FM/sync interaction, and vocal breath formants.
+
+### Authentic Roland Juno BBD Chorus Emulation
+- **5 Chorus Algorithms**:
+  - `Ensemble`: Classic multi-voice rich stereo ensemble chorus.
+  - `Juno I`: Slow, deep lush swirl (0.513 Hz LFO, 1.66 ms to 4.21 ms hyperbolic delay sweep).
+  - `Juno II`: Faster, shimmering vibrato chorus (0.863 Hz LFO, 1.66 ms to 3.51 ms hyperbolic delay sweep).
+  - `Juno I+II`: Dual-LFO non-linear interaction mode (0.513 Hz + 1.00 Hz compound modulation).
+  - `Dimension`: Static spatial widening delay with subtle anti-phase pitch movement.
+- **Circuit-Accurate BBD Modeling**: Dual bucket-brigade delay lines with exact anti-phase right-channel modulation, hyperbolic clock sweeping ($\tau(t) = 1 / f_{\text{clock}}(t)$), pre-de-emphasis (7.2 kHz 2-pole lowpass, 2.3 kHz pre-emphasis shelf), post-BBD reconstruction filtering, and soft analog overdrive saturation.
+- **SpacePanel UI Strip**: Integrated 5-button segmented algorithm selector with immediate visual feedback and automatable parameter attachment.
+
+### Expanded Algorithmic Reverbs
+- **3 Spatial Engines**:
+  - `Hall`: 8-delay-line Feedback Delay Network (FDN) with orthogonal Householder feedback matrix, prime delay lengths, Schroeder allpass diffusers, and per-line high-frequency absorption.
+  - `Room`: Densely coupled dual-room chamber with distinct early reflection taps and lively diffuse decay.
+  - `Plate`: Classic continuous Dattorro plate tank with input diffusers, cross-coupled delay loops, inner allpasses, and damping decay.
+- **Click-Free Transitions**: Equal-power 20 ms crossfader during algorithm switches.
+
+### Dedicated Vibrato Controls (Motion Panel)
+- **Vibrato Speed (`vib_rate`)**: Continuous rate from 0.5 Hz to 15.0 Hz (default 5.0 Hz).
+- **Vibrato Depth (`vib_depth`)**: 0.0% to 100.0% depth (up to $\pm 50$ cents peak excursion).
+- **Per-Voice Sinusoidal Phase**: Smooth per-voice accumulator starting at zero on note attack and flowing seamlessly through legato phrasing. Modulates note pitch across both exciter models and physical resonator waveguide lengths simultaneously.
+- **UI Integration**: Positioned directly beside the Modulation Envelope in the Motion panel with teal accents.
+
+### Pure Waveguide Resonators (Zero Dry Bleed)
+- **Acoustic Bore Radiation Output**: Fixed waveguide pipe and tube modes (`OpenPipe`, `ClosedPipe`, `DispersiveTube`, and `Comb`) to tap the radiated acoustic delay wave ($d$) rather than the mouthpiece pressure junction ($x = \text{reflected} + \text{in}$).
+- At 100% wetness, raw dry exciter impulses and waveforms are completely removed at $t=0$, leaving only the pure resonant acoustic response.
+
+### DSP Defect Repairs & Calibrations
+- **Resonant Delay**: Removed input starvation factor `(1.0 - feedback)`, added `1.2 * fastTanh` feedback saturation, and widened modal filter bandwidths for audibly sustained, rich repeats.
+- **Shimmer Reverb**: Calibrated feedback reinjection loop gain compensating for room attenuation, fixed feedback highpass filtering, and eliminated wet volume drop. Pitch-shifted octave-up tails cascade continuously.
+- **Interaction Modes**: Replaced exponential FM with textbook Phase Modulation FM ($I = 0$ to $8.5$ radians) keeping the fundamental in-tune with full Bessel harmonic sidebands; added unison pitch sweep to Hard Sync; implemented peak/trough full-wave envelope selection for Min/Max.
+- **Breath Articulation**: Implemented 3-formant resonant filter bank tracking natural vowel formant spaces ("oo" -> "ah" -> "ee") plus adjustable high-frequency embouchure air edge.
+
+### Verification & Compatibility
+- Preserves all existing factory presets and parameter layouts (all new parameters default off or neutral).
+- Full automated test suite: 162 test suites, 30,802,472 assertions, 0 failures.
+
 ## v3.1.0
 
 This release introduces an overhauled, streamlined user interface, four dedicated macro controls with full modulation routing, right-click macro mapping, and visual polish across the synth.
