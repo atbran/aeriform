@@ -1,5 +1,36 @@
 # Changelog
 
+## v3.3.0
+
+This release introduces an expanded Table Preset Browser overlay with instant search, category filtering, and one-click favorite starring, alongside an editable category selector for user preset creation.
+
+### Interactive Preset Browser Overlay
+- **Full Table View**: Left-clicking the preset title in the top bar opens a responsive browser overlay directly over the synth canvas while keeping the top bar and transport controls accessible.
+- **Three Core Columns**:
+  - `★` (Favorites): One-click toggle to star or unstar presets directly from the table.
+  - `NAME`: Preset title with bright copper highlighting on the currently loaded preset.
+  - `CATEGORY`: Patch classification tag.
+- **Instant Search & Filter Bar**:
+  - Live query text editor searching across preset names and categories.
+  - Category dropdown filter displaying "All Categories" alongside all discovered preset categories.
+  - `★ Starred` toggle button to instantly isolate favorite patches.
+  - Dynamic preset counter showing matching versus total presets (e.g. `24 / 64 presets`).
+- **Seamless Navigation & Audition**:
+  - Single-click row selection immediately loads and auditions the patch.
+  - Keyboard `Up` / `Down` arrow keys navigate and audition presets sequentially without leaving the keyboard.
+  - Fast keyboard dismissal via `Escape` key or header close button (`✕`).
+- **Context Menu Actions**:
+  - Right-clicking any preset row provides quick actions: *Toggle Favorite*, *Show in File Explorer*, and *Delete Preset* (enabled for user presets).
+  - Right-clicking the preset title in the top bar retains the classic instant pop-up menu.
+
+### Editable Preset Category Dropdown
+- Replaced the plain text category entry in the "Save As..." preset dialog with an editable dropdown (`juce::ComboBox` with `setEditableText(true)`).
+- Users can choose from any existing category across factory and user presets, or type a custom category name directly into the field.
+
+### Verification & Automated Testing
+- Added comprehensive unit tests covering category extraction, preset lookup, browser overlay visibility, search query filtering, category dropdown filtering, favorite toggling, row selection loading, and keyboard escape handling.
+- Full test suite: 164 test suites, 30,802,580 assertions, 0 failures.
+
 ## v3.2.0
 
 A major audio processing and sound design release introducing authentic Roland Juno BBD chorus emulation, expanded algorithmic reverbs, dedicated Motion vibrato controls, pure waveguide bore radiation without dry exciter bleed, and critical DSP repairs across resonant delays, shimmer reverb, FM/sync interaction, and vocal breath formants.

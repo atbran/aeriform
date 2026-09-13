@@ -18,9 +18,30 @@ public:
     /** Called by the editor when the preset manager reports a change. */
     void refresh();
 
+    std::function<void()> onOpenBrowser;
+
+    class PresetNameButton : public juce::TextButton
+    {
+    public:
+        using juce::TextButton::TextButton;
+        using juce::TextButton::clicked;
+        std::function<void()> onLeftClick;
+        std::function<void()> onRightClick;
+
+        void clicked (const juce::ModifierKeys& modifiers) override
+        {
+            if (modifiers.isPopupMenu() && onRightClick)
+                onRightClick();
+            else if (onLeftClick)
+                onLeftClick();
+        }
+    };
+
 private:
     AeriformProcessor& processor;
-    juce::TextButton prevButton { "<" }, nextButton { ">" }, nameButton, saveButton { "SAVE" }, saveAsButton { "SAVE AS" }, initButton { "INIT" };
+    juce::TextButton prevButton { "<" }, nextButton { ">" };
+    PresetNameButton nameButton;
+    juce::TextButton saveButton { "SAVE" }, saveAsButton { "SAVE AS" }, initButton { "INIT" };
     juce::TextButton favoriteButton{"STAR"};
     juce::ToggleButton favoritesOnly{"Favorites"};
     juce::TextEditor search;

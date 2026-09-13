@@ -5,6 +5,7 @@
 #include "PluginProcessor.h"
 #include "../GUI/LookAndFeel.h"
 #include "../GUI/PresetBar.h"
+#include "../GUI/PresetBrowser.h"
 #include "../GUI/Pages.h"
 
 /**
@@ -27,6 +28,9 @@ public:
     void showPage (int index);
     int getCurrentPage() const noexcept { return currentPage; }
 
+    aeriform::PresetBrowserComponent& getPresetBrowser() noexcept { return presetBrowser; }
+    aeriform::PresetBar& getPresetBar() noexcept { return presetBar; }
+
 private:
     class Content : public juce::Component
     {
@@ -46,6 +50,7 @@ private:
     // top bar
     juce::Label titleLabel, subtitleLabel, statusLabel;
     aeriform::PresetBar presetBar;
+    aeriform::PresetBrowserComponent presetBrowser;
     juce::TextButton scaleButton { "100 %" };
     aeriform::PageTabs tabs;
     juce::TextButton undoButton{"UNDO"},redoButton{"REDO"};

@@ -7,19 +7,20 @@ using namespace theme;
 
 PresetBar::PresetBar (AeriformProcessor& p) : processor (p)
 {
-    for (auto* b : { &prevButton, &nextButton, &nameButton, &saveButton, &saveAsButton, &initButton })
+    for (juce::Component* b : std::initializer_list<juce::Component*> { &prevButton, &nextButton, &nameButton, &saveButton, &saveAsButton, &initButton })
         addAndMakeVisible (b);
 
     prevButton.setTooltip ("Previous preset");
     nextButton.setTooltip ("Next preset");
-    nameButton.setTooltip ("Click to browse presets");
+    nameButton.setTooltip ("Click to open Preset Browser, right-click for quick menu");
     saveButton.setTooltip ("Overwrite the current user preset (or save as new if it is a factory preset)");
     saveAsButton.setTooltip ("Save the current sound as a new user preset");
     initButton.setTooltip ("Reset every parameter to the neutral initialisation patch");
 
     prevButton.onClick = [this] { processor.getPatchTools().perform("Previous preset",[&]{processor.getPresetManager().loadPrevious();}); };
     nextButton.onClick = [this] { processor.getPatchTools().perform("Next preset",[&]{processor.getPresetManager().loadNext();}); };
-    nameButton.onClick = [this] { showPresetMenu(); };
+    nameButton.onLeftClick = [this] { if (onOpenBrowser) onOpenBrowser(); else showPresetMenu(); };
+    nameButton.onRightClick = [this] { showPresetMenu(); };
     saveButton.onClick = [this] { processor.getPresetManager().saveCurrent(); refresh(); };
     saveAsButton.onClick = [this] { showSaveAsDialog(); };
     initButton.onClick = [this] { processor.getPatchTools().perform("Initialize patch",[&]{processor.getPresetManager().loadInit();}); };
@@ -80,6 +81,9 @@ void PresetBar::showPresetMenu()
     const auto& entries = pm.getEntries();
 
     juce::PopupMenu menu;
+    menu.addItem (10, "Open Preset Browser...");
+    menu.addSeparator();
+
     juce::StringArray categories;
     for (const auto& e : entries)
         if (! categories.contains (e.category)) categories.add (e.category);
@@ -104,6 +108,11 @@ void PresetBar::showPresetMenu()
     menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&nameButton).withMinimumWidth (240), [safe] (int result)
     {
         if (safe == nullptr || result == 0) return;
+        if (result == 10)
+        {
+            if (safe->onOpenBrowser) safe->onOpenBrowser();
+            return;
+        }
         auto& manager = safe->processor.getPresetManager();
         if (result >= 1000) { safe->processor.getPatchTools().perform("Load preset",[&]{manager.loadPreset (result - 1000);}); return; }
         switch (result)
@@ -125,7 +134,17 @@ void PresetBar::showSaveAsDialog()
     auto& pm = processor.getPresetManager();
     saveDialog = std::make_unique<juce::AlertWindow> ("Save preset", "Name and category for the new user preset:", juce::MessageBoxIconType::NoIcon);
     saveDialog->addTextEditor ("name", pm.getCurrentName(), "Name");
-    saveDialog->addTextEditor ("category", pm.getCurrentCategory() == "Init" ? juce::String ("User") : pm.getCurrentCategory(), "Category");
+
+    auto categories = pm.getCategories();
+    if (! categories.contains ("User")) categories.add ("User");
+    saveDialog->addComboBox ("category", categories, "Category");
+    if (auto* cb = saveDialog->getComboBoxComponent ("category"))
+    {
+        cb->setEditableText (true);
+        const auto currentCat = pm.getCurrentCategory() == "Init" ? juce::String ("User") : pm.getCurrentCategory();
+        cb->setText (currentCat, juce::dontSendNotification);
+    }
+
     saveDialog->addButton ("Save", 1, juce::KeyPress (juce::KeyPress::returnKey));
     saveDialog->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
     saveDialog->setLookAndFeel (&getLookAndFeel());
@@ -135,11 +154,21 @@ void PresetBar::showSaveAsDialog()
     {
         if (safe == nullptr || safe->saveDialog == nullptr) return;
         const auto name = safe->saveDialog->getTextEditorContents ("name").trim();
-        const auto category = safe->saveDialog->getTextEditorContents ("category").trim();
+        juce::String category;
+        if (auto* cb = safe->saveDialog->getComboBoxComponent ("category"))
+            category = cb->getText().trim();
+        if (category.isEmpty())
+            category = safe->saveDialog->getTextEditorContents ("category").trim();
+        if (category.isEmpty())
+            category = "User";
+
         auto dialog = std::move (safe->saveDialog);
         dialog->setLookAndFeel (nullptr);
         if (result == 1 && name.isNotEmpty())
-            safe->processor.getPresetManager().saveAs (name, category.isEmpty() ? "User" : category);
+        {
+            safe->processor.getPresetManager().saveAs (name, category);
+            safe->refresh();
+        }
     }), false);
 }
 

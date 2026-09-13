@@ -40,6 +40,8 @@ public:
     juce::String getCurrentCategory() const { return currentCategory; }
     bool isDirty() const noexcept { return dirty; }
     void rescan();
+    juce::StringArray getCategories() const;
+    int findEntryIndex (const juce::String& stableId) const;
     void pollChanges() { if (pendingNotify.exchange(false) && onPresetChanged) onPresetChanged(); }
 
     // ---- loading --------------------------------------------------------

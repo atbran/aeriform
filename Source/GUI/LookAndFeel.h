@@ -41,6 +41,12 @@ public:
     void fillTextEditorBackground (juce::Graphics&, int width, int height, juce::TextEditor&) override;
     void drawTextEditorOutline (juce::Graphics&, int width, int height, juce::TextEditor&) override;
 
+    void drawTableHeaderBackground (juce::Graphics&, juce::TableHeaderComponent&) override;
+    void drawTableHeaderColumn (juce::Graphics&, juce::TableHeaderComponent&,
+                                const juce::String& columnName, int columnId,
+                                int width, int height,
+                                bool isMouseOver, bool isMouseDown, int columnFlags) override;
+
     /** Draws a panel with a title strip (shared by all section panels). */
     static void drawSectionPanel (juce::Graphics&, juce::Rectangle<float> bounds, const juce::String& title, juce::Colour accent);
 };

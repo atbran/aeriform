@@ -359,3 +359,108 @@ AERIFORM_TEST (editor_analyzers_observe_deep_morph_and_bypass)
     for (float sample : samples) CHECK_NEAR (sample, 0.0f, 0.0f);
     CHECK_NEAR (model.masterPeak.load(), 0.0f, 0.0f);
 }
+
+AERIFORM_TEST (preset_manager_categories_and_lookup)
+{
+    TestHost h;
+    auto& pm = h.processor.getPresetManager();
+    auto cats = pm.getCategories();
+    CHECK (! cats.isEmpty());
+    CHECK (cats.contains ("Basses") || cats.contains ("Pads") || cats.contains ("Leads") || cats.contains ("User"));
+
+    // Check sorted and unique
+    for (int i = 0; i < cats.size() - 1; ++i)
+    {
+        CHECK (cats[i] != cats[i + 1]);
+        CHECK (cats[i].compareIgnoreCase (cats[i + 1]) <= 0);
+    }
+
+    const auto& entries = pm.getEntries();
+    CHECK (! entries.empty());
+    for (int i = 0; i < (int) entries.size(); ++i)
+    {
+        CHECK (pm.findEntryIndex (entries[(size_t) i].stableId) == i);
+    }
+}
+
+AERIFORM_TEST (preset_browser_overlay_and_interaction)
+{
+    TestHost h;
+    std::unique_ptr<juce::AudioProcessorEditor> ed (h.processor.createEditor());
+    auto* editor = dynamic_cast<AeriformEditor*> (ed.get());
+    CHECK (editor != nullptr);
+    if (editor == nullptr) return;
+
+    auto& browser = editor->getPresetBrowser();
+    auto& bar = editor->getPresetBar();
+    auto& pm = h.processor.getPresetManager();
+
+    // Initially browser is hidden
+    CHECK (! browser.isVisible());
+
+    // Trigger open via onOpenBrowser
+    CHECK (bar.onOpenBrowser != nullptr);
+    bar.onOpenBrowser();
+    CHECK (browser.isVisible());
+    captureUi (*editor, "preset-browser");
+
+    const int totalPresets = (int) pm.getEntries().size();
+    CHECK (browser.getFilteredCount() == totalPresets);
+
+    // Filter by Category
+    auto cats = pm.getCategories();
+    if (! cats.isEmpty())
+    {
+        const auto testCat = cats[0];
+        browser.setCategoryFilter (testCat);
+        CHECK (browser.getFilteredCount() <= totalPresets);
+        CHECK (browser.getFilteredCount() > 0);
+
+        // Reset to All Categories
+        browser.setCategoryFilter ("All Categories");
+        CHECK (browser.getFilteredCount() == totalPresets);
+    }
+
+    // Filter by Search Query
+    browser.setSearchQuery ("Init");
+    CHECK (browser.getFilteredCount() >= 1);
+    CHECK (browser.getFilteredCount() < totalPresets);
+    browser.setSearchQuery ("");
+    CHECK (browser.getFilteredCount() == totalPresets);
+
+    // Star / Favorite toggle in browser
+    if (totalPresets > 0)
+    {
+        const auto& firstEntry = pm.getEntries()[0];
+        const bool initialFav = pm.isFavorite (firstEntry.stableId);
+
+        // Toggle star on row 0
+        browser.toggleStarForRow (0);
+        CHECK (pm.isFavorite (firstEntry.stableId) == ! initialFav);
+
+        // Toggle favorites only filter
+        browser.getFavToggle().setToggleState (true, juce::sendNotificationSync);
+        if (pm.isFavorite (firstEntry.stableId))
+        {
+            CHECK (browser.getFilteredCount() >= 1);
+        }
+        browser.getFavToggle().setToggleState (false, juce::sendNotificationSync);
+        CHECK (browser.getFilteredCount() == totalPresets);
+
+        // Revert favorite
+        browser.toggleStarForRow (0);
+        CHECK (pm.isFavorite (firstEntry.stableId) == initialFav);
+    }
+
+    // Row selection loads preset
+    if (totalPresets > 1)
+    {
+        browser.selectedRowsChanged (1);
+        CHECK (pm.getCurrentIndex() == 1);
+    }
+
+    // Escape key closes browser
+    juce::KeyPress esc (juce::KeyPress::escapeKey);
+    CHECK (editor->keyPressed (esc));
+    CHECK (! browser.isVisible());
+}

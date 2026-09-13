@@ -322,6 +322,50 @@ void AeriformLookAndFeel::drawTextEditorOutline (juce::Graphics& g, int width, i
 }
 
 // ---------------------------------------------------------------------------
+void AeriformLookAndFeel::drawTableHeaderBackground (juce::Graphics& g, juce::TableHeaderComponent& header)
+{
+    g.fillAll (inset);
+    g.setColour (panelBorder);
+    g.drawHorizontalLine (header.getHeight() - 1, 0.0f, (float) header.getWidth());
+}
+
+void AeriformLookAndFeel::drawTableHeaderColumn (juce::Graphics& g, juce::TableHeaderComponent&,
+                                                const juce::String& columnName, int columnId,
+                                                int width, int height,
+                                                bool isMouseOver, bool isMouseDown, int columnFlags)
+{
+    juce::Rectangle<int> area (0, 0, width, height);
+    if (isMouseOver || isMouseDown)
+        g.fillAll (panel.withAlpha (0.6f));
+
+    g.setColour (panelBorder.withAlpha (0.5f));
+    g.drawVerticalLine (width - 1, 2.0f, (float) height - 2.0f);
+
+    g.setFont (font (10.5f, true));
+    g.setColour (isMouseOver ? textPrimary : textSecondary);
+    g.drawText (columnName, area.reduced (6, 0), columnId == 1 ? juce::Justification::centred : juce::Justification::centredLeft, true);
+
+    if ((columnFlags & juce::TableHeaderComponent::sortedForwards) != 0)
+    {
+        g.setColour (copperBright);
+        juce::Path p;
+        p.addTriangle ((float) width - 12.0f, (float) height * 0.5f + 2.0f,
+                       (float) width - 6.0f,  (float) height * 0.5f + 2.0f,
+                       (float) width - 9.0f,  (float) height * 0.5f - 3.0f);
+        g.fillPath (p);
+    }
+    else if ((columnFlags & juce::TableHeaderComponent::sortedBackwards) != 0)
+    {
+        g.setColour (copperBright);
+        juce::Path p;
+        p.addTriangle ((float) width - 12.0f, (float) height * 0.5f - 2.0f,
+                       (float) width - 6.0f,  (float) height * 0.5f - 2.0f,
+                       (float) width - 9.0f,  (float) height * 0.5f + 3.0f);
+        g.fillPath (p);
+    }
+}
+
+// ---------------------------------------------------------------------------
 void AeriformLookAndFeel::drawSectionPanel (juce::Graphics& g, juce::Rectangle<float> bounds, const juce::String& title, juce::Colour accent)
 {
     g.setColour (panel);

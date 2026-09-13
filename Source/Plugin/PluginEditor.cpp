@@ -18,7 +18,7 @@ using namespace aeriform::theme;
 
 AeriformEditor::AeriformEditor (AeriformProcessor& p)
     : AudioProcessorEditor (p), processor (p), tooltips (this, 650), content (*this),
-      presetBar (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOD MATRIX", "EFFECTS", "ADVANCED" })
+      presetBar (p), presetBrowser (p), tabs ({ "MAIN", "EXCITERS", "NETWORK", "MOD MATRIX", "EFFECTS", "ADVANCED" })
 {
     setLookAndFeel (&lookAndFeel);
 
@@ -69,6 +69,22 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
         content.addChildComponent (*page);
         page->setVisible (false);
     }
+    content.addChildComponent (presetBrowser);
+    presetBrowser.setVisible (false);
+
+    presetBar.onOpenBrowser = [this] {
+        const bool shouldShow = ! presetBrowser.isVisible();
+        presetBrowser.setVisible (shouldShow);
+        if (shouldShow)
+        {
+            presetBrowser.toFront (true);
+            presetBrowser.refresh();
+        }
+    };
+    presetBrowser.onClose = [this] { presetBar.refresh(); };
+    presetBrowser.onPresetLoaded = [this] { presetBar.refresh(); };
+    presetBrowser.onFavoriteToggled = [this] { presetBar.refresh(); };
+
     addAndMakeVisible (content);
 
     tabs.onChange = [this] (int index) { showPage (index); };
@@ -171,6 +187,7 @@ void AeriformEditor::layoutContent()
     r.removeFromTop (6);
 
     for (auto& page : pages) page->setBounds (r);
+    presetBrowser.setBounds (r);
 }
 
 void AeriformEditor::paint (juce::Graphics& g)
@@ -216,6 +233,8 @@ void AeriformEditor::timerCallback()
     {
         presetDirtyFlag = false;
         presetBar.refresh();
+        if (presetBrowser.isVisible())
+            presetBrowser.refresh();
     }
 
     // status line: voices, CPU, MIDI activity, limiter, governor
@@ -235,6 +254,11 @@ void AeriformEditor::timerCallback()
 }
 
 bool AeriformEditor::keyPressed(const juce::KeyPress& key) {
+    if (presetBrowser.isVisible() && key.isKeyCode (juce::KeyPress::escapeKey)) {
+        presetBrowser.setVisible (false);
+        presetBar.refresh();
+        return true;
+    }
     if(!key.getModifiers().isCtrlDown())return false;
     const int code=key.getKeyCode();if(code=='Z'||code=='z'){if(key.getModifiers().isShiftDown())processor.getPatchTools().undo.redo();else processor.getPatchTools().undo.undo();return true;}
     if(code=='Y'||code=='y'){processor.getPatchTools().undo.redo();return true;}return false;

@@ -76,6 +76,26 @@ void PresetManager::rescan()
     if (currentIndex < 0) currentIndex = 0;
 }
 
+juce::StringArray PresetManager::getCategories() const
+{
+    juce::StringArray cats;
+    for (const auto& e : entries)
+    {
+        if (e.category.isNotEmpty() && ! cats.contains (e.category))
+            cats.add (e.category);
+    }
+    cats.sort (true);
+    return cats;
+}
+
+int PresetManager::findEntryIndex (const juce::String& stableId) const
+{
+    for (int i = 0; i < (int) entries.size(); ++i)
+        if (entries[(size_t) i].stableId == stableId)
+            return i;
+    return -1;
+}
+
 // ---------------------------------------------------------------------------
 void PresetManager::parameterChanged (const juce::String&, float)
 {
