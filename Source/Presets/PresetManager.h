@@ -24,6 +24,7 @@ public:
     {
         juce::String name;
         juce::String category;
+        juce::String author;
         bool isFactory = true;
         int factoryIndex = -1;
         juce::File file;
@@ -38,6 +39,7 @@ public:
     int getCurrentIndex() const noexcept { return currentIndex; }
     juce::String getCurrentName() const { return currentName; }
     juce::String getCurrentCategory() const { return currentCategory; }
+    juce::String getCurrentAuthor() const { return currentAuthor; }
     bool isDirty() const noexcept { return dirty; }
     void rescan();
     juce::StringArray getCategories() const;
@@ -54,17 +56,21 @@ public:
     // ---- saving ---------------------------------------------------------
     /** Overwrites the current user preset, or falls back to saveAs when the current preset is a factory one. */
     bool saveCurrent();
-    bool saveAs (const juce::String& name, const juce::String& category);
-    bool saveToFile (const juce::File& file, const juce::String& name, const juce::String& category);
+    bool saveAs (const juce::String& name, const juce::String& category, const juce::String& author = {});
+    bool saveToFile (const juce::File& file, const juce::String& name, const juce::String& category, const juce::String& author = {});
     bool deleteUserPreset (int index);
 
     // ---- serialisation shared with the processor state ------------------
-    std::unique_ptr<juce::XmlElement> createPresetXml (const juce::String& name, const juce::String& category) const;
+    std::unique_ptr<juce::XmlElement> createPresetXml (const juce::String& name, const juce::String& category, const juce::String& author = {}) const;
     /** Applies a preset XML element. Returns false if the XML is not a recognised preset. */
     bool applyPresetXml (const juce::XmlElement& xml);
     void applyFactoryPreset (const FactoryPreset& preset);
 
-    void setCurrentName (const juce::String& name, const juce::String& category, bool markClean);
+    void setCurrentName (const juce::String& name, const juce::String& category, const juce::String& author, bool markClean);
+    void setCurrentName (const juce::String& name, const juce::String& category, bool markClean)
+    {
+        setCurrentName (name, category, {}, markClean);
+    }
 
     static juce::File getUserPresetDirectory();
     bool isFavorite(const juce::String& id) const {return favorites.count(id)>0;}
@@ -87,6 +93,7 @@ private:
     int currentIndex = 0;
     juce::String currentName { "Init" };
     juce::String currentCategory { "Init" };
+    juce::String currentAuthor { "AERIFORM" };
     std::atomic<bool> dirty {false}, applying {false}, pendingNotify {false};
 
     void parameterChanged (const juce::String& parameterID, float newValue) override;

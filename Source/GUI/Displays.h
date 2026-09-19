@@ -52,6 +52,27 @@ private:
     void timerCallback() override;
 };
 
+/** Live nonlinear input/output pairs from the newest voice's left slot. */
+class NonlinearCurveDisplay : public juce::Component, private juce::Timer
+{
+public:
+    NonlinearCurveDisplay (AeriformProcessor&, int slot, juce::Colour);
+    ~NonlinearCurveDisplay() override { stopTimer(); }
+    void setBiasControl (juce::Component* control)
+    { biasControl = control; if (biasControl) biasControl->setEnabled (model->load() < 0.5f); }
+    void setDriveControl (juce::Component* control)
+    { driveControl = control; if (driveControl) driveControl->setEnabled ((model->load() < 1.5f || model->load() > 2.5f)); }
+    void paint (juce::Graphics&) override;
+private:
+    AeriformProcessor& processor;
+    int slot, count = 0, idleFrames = 0;
+    juce::Colour colour;
+    std::array<NonlinearScopeBuffer::Point, 512> points {};
+    juce::Component::SafePointer<juce::Component> biasControl, driveControl;
+    std::atomic<float> *enabled, *model, *resonatorModel, *position;
+    void timerCallback() override;
+};
+
 /** Horizontal energy meter for one resonator slot (running state + loop energy). */
 class EnergyBar : public juce::Component,
                   private juce::Timer

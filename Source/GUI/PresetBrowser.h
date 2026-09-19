@@ -52,6 +52,7 @@ private:
         int originalIndex = 0;
         juce::String name;
         juce::String category;
+        juce::String author;
         bool isFavorite = false;
         bool isFactory = true;
         juce::String stableId;

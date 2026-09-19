@@ -43,6 +43,8 @@ void PresetBar::refresh()
     const bool starred=index>=0&&index<(int)pm.getEntries().size()&&pm.isFavorite(pm.getEntries()[(size_t)index].stableId);
     favoriteButton.setButtonText(starred?"STARRED":"STAR");
     nameButton.setButtonText ((pm.isDirty() ? "* " : "") + pm.getCurrentName());
+    const auto authorStr = pm.getCurrentAuthor().isNotEmpty() ? pm.getCurrentAuthor() : juce::String ("AERIFORM");
+    nameButton.setTooltip ("Preset: " + pm.getCurrentName() + " (" + pm.getCurrentCategory() + ") by " + authorStr + " - Click to open Preset Browser, right-click for quick menu");
     repaint();
 }
 
@@ -94,7 +96,7 @@ void PresetBar::showPresetMenu()
         for (int i = 0; i < (int) entries.size(); ++i)
             if (entries[(size_t) i].category == cat
                 && (!favoritesOnly.getToggleState() || pm.isFavorite(entries[(size_t)i].stableId))
-                && (search.getText().isEmpty() || entries[(size_t)i].name.containsIgnoreCase(search.getText()) || cat.containsIgnoreCase(search.getText())))
+                && (search.getText().isEmpty() || entries[(size_t)i].name.containsIgnoreCase(search.getText()) || cat.containsIgnoreCase(search.getText()) || entries[(size_t)i].author.containsIgnoreCase(search.getText())))
                 menu.addItem (1000 + i, entries[(size_t) i].name, true, i == pm.getCurrentIndex());
     }
     menu.addSeparator();
@@ -132,7 +134,7 @@ void PresetBar::showPresetMenu()
 void PresetBar::showSaveAsDialog()
 {
     auto& pm = processor.getPresetManager();
-    saveDialog = std::make_unique<juce::AlertWindow> ("Save preset", "Name and category for the new user preset:", juce::MessageBoxIconType::NoIcon);
+    saveDialog = std::make_unique<juce::AlertWindow> ("Save preset", "Name, category, and author for the new user preset:", juce::MessageBoxIconType::NoIcon);
     saveDialog->addTextEditor ("name", pm.getCurrentName(), "Name");
 
     auto categories = pm.getCategories();
@@ -144,6 +146,9 @@ void PresetBar::showSaveAsDialog()
         const auto currentCat = pm.getCurrentCategory() == "Init" ? juce::String ("User") : pm.getCurrentCategory();
         cb->setText (currentCat, juce::dontSendNotification);
     }
+
+    const auto currentAuthor = pm.getCurrentAuthor().isEmpty() || pm.getCurrentAuthor() == "AERIFORM" ? juce::String ("User") : pm.getCurrentAuthor();
+    saveDialog->addTextEditor ("author", currentAuthor, "Author");
 
     saveDialog->addButton ("Save", 1, juce::KeyPress (juce::KeyPress::returnKey));
     saveDialog->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
@@ -161,12 +166,13 @@ void PresetBar::showSaveAsDialog()
             category = safe->saveDialog->getTextEditorContents ("category").trim();
         if (category.isEmpty())
             category = "User";
+        const auto author = safe->saveDialog->getTextEditorContents ("author").trim();
 
         auto dialog = std::move (safe->saveDialog);
         dialog->setLookAndFeel (nullptr);
         if (result == 1 && name.isNotEmpty())
         {
-            safe->processor.getPresetManager().saveAs (name, category);
+            safe->processor.getPresetManager().saveAs (name, category, author.isEmpty() ? "User" : author);
             safe->refresh();
         }
     }), false);

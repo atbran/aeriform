@@ -52,9 +52,11 @@ PresetBrowserComponent::PresetBrowserComponent (AeriformProcessor& p)
     // Table List Box
     table.getHeader().addColumn (juce::CharPointer_UTF8 ("\xe2\x98\x85"), 1, 38, 32, 48,
                                  juce::TableHeaderComponent::visible | juce::TableHeaderComponent::sortable);
-    table.getHeader().addColumn ("NAME", 2, 340, 150, 700,
+    table.getHeader().addColumn ("NAME", 2, 280, 150, 600,
                                  juce::TableHeaderComponent::visible | juce::TableHeaderComponent::sortable | juce::TableHeaderComponent::resizable);
-    table.getHeader().addColumn ("CATEGORY", 3, 200, 100, 400,
+    table.getHeader().addColumn ("CATEGORY", 3, 160, 100, 300,
+                                 juce::TableHeaderComponent::visible | juce::TableHeaderComponent::sortable | juce::TableHeaderComponent::resizable);
+    table.getHeader().addColumn ("AUTHOR", 4, 140, 80, 300,
                                  juce::TableHeaderComponent::visible | juce::TableHeaderComponent::sortable | juce::TableHeaderComponent::resizable);
     table.setModel (this);
     table.setColour (juce::ListBox::backgroundColourId, inset.withAlpha (0.45f));
@@ -134,11 +136,11 @@ void PresetBrowserComponent::applyFilter()
 
         if (query.isNotEmpty())
         {
-            if (! e.name.containsIgnoreCase (query) && ! e.category.containsIgnoreCase (query))
+            if (! e.name.containsIgnoreCase (query) && ! e.category.containsIgnoreCase (query) && ! e.author.containsIgnoreCase (query))
                 continue;
         }
 
-        filteredItems.push_back ({ i, e.name, e.category, isFav, e.isFactory, e.stableId });
+        filteredItems.push_back ({ i, e.name, e.category, e.author, isFav, e.isFactory, e.stableId });
     }
 
     // Sort items according to active sort column
@@ -161,6 +163,15 @@ void PresetBrowserComponent::applyFilter()
     {
         std::stable_sort (filteredItems.begin(), filteredItems.end(), [this] (const RowItem& a, const RowItem& b) {
             int cmp = a.category.compareIgnoreCase (b.category);
+            if (cmp != 0)
+                return sortAscending ? (cmp < 0) : (cmp > 0);
+            return a.name.compareIgnoreCase (b.name) < 0;
+        });
+    }
+    else if (sortColumnId == 4) // Author
+    {
+        std::stable_sort (filteredItems.begin(), filteredItems.end(), [this] (const RowItem& a, const RowItem& b) {
+            int cmp = a.author.compareIgnoreCase (b.author);
             if (cmp != 0)
                 return sortAscending ? (cmp < 0) : (cmp > 0);
             return a.name.compareIgnoreCase (b.name) < 0;
@@ -263,6 +274,12 @@ void PresetBrowserComponent::paintCell (juce::Graphics& g, int rowNumber, int co
         g.setFont (font (11.0f, false));
         g.setColour (brass.withAlpha (0.85f));
         g.drawText (item.category, 6, 0, width - 10, height, juce::Justification::centredLeft, true);
+    }
+    else if (columnId == 4) // Author
+    {
+        g.setFont (font (11.0f, false));
+        g.setColour (textSecondary.withAlpha (0.85f));
+        g.drawText (item.author, 6, 0, width - 10, height, juce::Justification::centredLeft, true);
     }
 }
 

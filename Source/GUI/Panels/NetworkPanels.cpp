@@ -59,9 +59,43 @@ ResonatorSlotPanel::ResonatorSlotPanel (AeriformProcessor& p, int s)
         charRow = { knob (sid ("_shape"), "Shape", {}, d), knob (sid ("_reflect"), "Reflection", {}, d), knob (sid ("_reed"), "Reed", {}, d),
                     knob (sid ("_pickup"), "Pickup", {}, d), knob (sid ("_width"), "Width", additive (dWidth), d), knob (sid ("_wet"), "Wet", additive (dWet), d), nullptr };
     }
+    resonatorTab = control<juce::TextButton> ("Resonator");
+    nonlinearTab = control<juce::TextButton> ("Nonlinearity");
+    resonatorTab->onClick = [this] { selectNonlinear (false); };
+    nonlinearTab->onClick = [this] { selectNonlinear (true); };
+    const juce::String nlPrefix = slot == 0 ? "res" : px;
+    nlOn = control<Toggle> (processor, nlPrefix+"_nl_on", "On");
+    nlModel = control<ChoiceBox> (processor, nlPrefix+"_nl_model", "Model");
+    nlPosition = control<ChoiceBox> (processor, nlPrefix+"_nl_pos", "Position");
+    const auto driveDest = (ModDest) ((int) ModDest::ResANlDrive+slot*2);
+    nlDrive = knob (nlPrefix+"_nl_drive", "Drive", additive (driveDest), d);
+    nlAmount = knob (nlPrefix+"_nl_amount", "Amount", additive ((ModDest) ((int) driveDest+1)), d);
+    nlBias = knob (nlPrefix+"_nl_bias", "Bias", {}, d);
+    nlCurve = control<NonlinearCurveDisplay> (processor, slot, accent);
+    nlCurve->setBiasControl (nlBias);
+    nlCurve->setDriveControl (nlDrive);
+    nonlinearControls = { nlOn, nlModel, nlPosition, nlDrive, nlAmount, nlBias, nlCurve };
+    if (slot == 0)
+    {
+        nlAdaa = control<Toggle> (processor, ids::nlAdaa, "ADAA / all slots");
+        nonlinearControls.push_back (nlAdaa);
+    }
+    selectNonlinear (false);
     for (auto& k : knobs) k->setAccentColour (accent);
     energy = std::make_unique<EnergyBar> (processor.getVisualizerModel(), slot, accent);
     addAndMakeVisible (*energy);
+}
+
+void ResonatorSlotPanel::selectNonlinear (bool selected)
+{
+    nonlinearSelected = selected;
+    resonatorTab->setToggleState (!selected, juce::dontSendNotification);
+    nonlinearTab->setToggleState (selected, juce::dontSendNotification);
+    for (auto* item : {tuneCaption, loopCaption, charCaption, bodyCaption}) if (item) item->setVisible (!selected);
+    for (const auto* row : {&tuneRow, &loopRow, &charRow, &bodyRow})
+        for (auto* item : *row) if (item) item->setVisible (!selected);
+    for (auto* item : nonlinearControls) item->setVisible (selected);
+    if (energy) resized();
 }
 
 void ResonatorSlotPanel::resized()
@@ -73,6 +107,24 @@ void ResonatorSlotPanel::resized()
     type->setBounds (head.removeFromLeft (150));
     head.removeFromLeft (10);
     energy->setBounds (head.withTrimmedTop (16));
+    auto tabs = r.removeFromTop (26).reduced (0,2);
+    resonatorTab->setBounds (tabs.removeFromLeft (tabs.getWidth()/2));
+    nonlinearTab->setBounds (tabs);
+    if (nonlinearSelected)
+    {
+        r.removeFromTop (6);
+        auto controls = r.removeFromTop (40);
+        nlOn->setBounds (controls.removeFromLeft (50).withTrimmedTop (14));
+        const int half = controls.getWidth()/2;
+        nlModel->setBounds (controls.removeFromLeft (half).reduced (2,0));
+        nlPosition->setBounds (controls.reduced (2,0));
+        knobRow (r.removeFromTop (72), {nlDrive, nlAmount, nlBias});
+        auto options = r.removeFromTop (24);
+        if (nlAdaa) nlAdaa->setBounds (options);
+        r.removeFromTop (6);
+        nlCurve->setBounds (r);
+        return;
+    }
     const int rowH = 60;
     auto row = [&] (juce::Label* cap, const std::vector<juce::Component*>& items)
     {

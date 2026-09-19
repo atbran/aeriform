@@ -33,6 +33,8 @@ void Resonator::reset()
     tiltLP.reset();
     for (auto& ap : dispersion) ap.reset();
     dcBlock.reset();
+    tensionFraction = 0.0f;
+    loopMeanSquare = 0.0;
     ksPrev = 0.0f;
     energy = 0.0f;
     lastOut = 0.0f;
@@ -121,7 +123,10 @@ void Resonator::update (const ResonatorParams& p, bool snapLength)
 
     // ---- tuning: compensate the loop filters' phase delay ----------------------------
     const float omega = kTwoPi * f0 / sampleRate;
-    const float tau = loopPhaseDelay (omega)+p.additionalPhaseDelay;
+    // Section 8: full-wet ADAA subtracts 0.5 samples from nominal length.
+    // Partial wet uses the actual blend phase, including the 5 Hz blocker's lead.
+    const float nonlinearDelay = nonlinear ? nonlinear->loopPhaseDelay (omega) : 0.0f;
+    const float tau = loopPhaseDelay (omega)+p.additionalPhaseDelay+nonlinearDelay;
     targetLen = std::clamp (periodSamples - tau, 2.0f, (float) delay.getMaxDelay());
     if (snapLength) delayLen = targetLen;
 
@@ -132,6 +137,10 @@ void Resonator::update (const ResonatorParams& p, bool snapLength)
 // ---------------------------------------------------------------------------
 void ResonatorSlot::prepare (float sampleRate)
 {
+    nonlinear.prepare (sampleRate, 0);
+    loopEnergy.prepare (sampleRate);
+    waveguide.setNonlinearElement (&nonlinear);
+    bank.setNonlinearElement (&nonlinear);
     waveguide.prepare (sampleRate);
     bank.prepare (sampleRate);
     modal = false;
@@ -143,6 +152,8 @@ void ResonatorSlot::prepare (float sampleRate)
 
 void ResonatorSlot::reset()
 {
+    nonlinear.reset();
+    loopEnergy.reset();
     waveguide.reset();
     bank.reset();
     if (pending) applyPending();
@@ -151,6 +162,7 @@ void ResonatorSlot::reset()
 
 void ResonatorSlot::update (const ResonatorParams& p, bool snapLength)
 {
+    nonlinear.configure (p.nonlinear, snapLength);
     if (p.type != lastType || pending)
     {
         // the switch lands in next() once the output has faded out; a note start (snapLength) switches at once

@@ -76,11 +76,15 @@ AERIFORM_TEST (adsr_reaches_full_level_and_returns_to_silence)
 
 namespace
 {
-    double measureResonatorPitch (float sampleRate, int midiNote, ResMode mode, float dispersion, float damping)
+    bool expectsNominalPitch (const NonlinearParams& p)
+    { return !p.on || p.model != NonlinearModel::Tension || p.amount <= 0.0f || p.position == NonlinearPosition::Pickup; }
+    struct PitchMeasurement { double hz; bool nominal; };
+    PitchMeasurement measureResonatorPitch (float sampleRate, int midiNote, ResMode mode, float dispersion, float damping, NonlinearParams nonlinear = {})
     {
-        Resonator r;
+        ResonatorSlot r;
         r.prepare (sampleRate);
         ResonatorParams p;
+        p.nonlinear = nonlinear;
         p.freqHz = midiNoteToHz ((float) midiNote);
         p.feedback = 0.97f;
         p.damping = damping;
@@ -109,7 +113,7 @@ namespace
         std::printf ("      sr=%.0f note=%d mode=%d disp=%.2f expected=%.2f measured=%.2f (%+.1f cents)%s\n", sampleRate, midiNote, (int) mode,
                      dispersion, p.freqHz, measured, centsBetween (measured, p.freqHz), firstBad >= 0 ? "  NON-FINITE!" : "");
         CHECK_MSG (firstBad < 0, "non-finite resonator output at sample " + std::to_string (firstBad));
-        return measured;
+        return {measured, expectsNominalPitch (p.nonlinear)};
     }
 }
 
@@ -119,27 +123,29 @@ AERIFORM_TEST (resonator_tuning_is_accurate_across_range_and_sample_rates)
         for (int note : { 36, 48, 60, 72, 84, 96 })
         {
             const double expected = midiNoteToHz ((float) note);
-            const double measured = measureResonatorPitch (sr, note, ResMode::OpenPipe, 0.0f, 0.4f);
-            const double cents = centsBetween (measured, expected);
+            const auto measured = measureResonatorPitch (sr, note, ResMode::OpenPipe, 0.0f, 0.4f);
+            const double cents = centsBetween (measured.hz, expected);
             // The fundamental is compensated exactly; the autocorrelation estimate is biased slightly flat at
             // the bottom of the range by the residual partial stretch of the in-loop filters (< 6 cents at C2).
             const double tolerance = note <= 48 ? 6.0 : 4.0;
-            CHECK_MSG (std::fabs (cents) < tolerance, "open pipe sr=" + std::to_string ((int) sr) + " note=" + std::to_string (note)
+            CHECK_MSG (!measured.nominal || std::fabs (cents) < tolerance, "open pipe sr=" + std::to_string ((int) sr) + " note=" + std::to_string (note)
                                                   + " err=" + std::to_string (cents) + " cents");
         }
+    // Active Tension explicitly exempts nominal tuning above and below; no
+    // tolerances are widened. Its bounded pitch envelope has its own checks.
     // closed pipe (half-length, inverted feedback) must still land on the note
     for (int note : { 40, 60, 80 })
     {
         const double expected = midiNoteToHz ((float) note);
-        const double measured = measureResonatorPitch (48000.0f, note, ResMode::ClosedPipe, 0.0f, 0.4f);
-        CHECK_MSG (std::fabs (centsBetween (measured, expected)) < (note <= 48 ? 10.0 : 5.0), "closed pipe note=" + std::to_string (note));
+        const auto measured = measureResonatorPitch (48000.0f, note, ResMode::ClosedPipe, 0.0f, 0.4f);
+        CHECK_MSG (!measured.nominal || std::fabs (centsBetween (measured.hz, expected)) < (note <= 48 ? 10.0 : 5.0), "closed pipe note=" + std::to_string (note));
     }
     // with dispersion the fundamental is still tuned (partials spread, fundamental compensated)
     for (int note : { 48, 60 })
     {
         const double expected = midiNoteToHz ((float) note);
-        const double measured = measureResonatorPitch (48000.0f, note, ResMode::String, 0.3f, 0.5f);
-        CHECK_MSG (std::fabs (centsBetween (measured, expected)) < 12.0, "string+dispersion note=" + std::to_string (note));
+        const auto measured = measureResonatorPitch (48000.0f, note, ResMode::String, 0.3f, 0.5f);
+        CHECK_MSG (!measured.nominal || std::fabs (centsBetween (measured.hz, expected)) < 12.0, "string+dispersion note=" + std::to_string (note));
     }
 }
 
@@ -220,3 +226,289 @@ AERIFORM_TEST (effects_remain_finite_with_extreme_parameters)
     CHECK_MSG (peak <= 1.2f, "limited peak " + std::to_string (peak));
 }
 
+
+// Cursory scaffold check only; the separate acceptance agent owns golden audio.
+AERIFORM_TEST (nonlinear_bypass_identity_and_probe)
+{
+    for (int model = 0; model < (int) ResMode::Count; ++model)
+        for (int position = 0; position < (int) NonlinearPosition::Count; ++position)
+        {
+            ResonatorSlot off, on;
+            off.prepare (48000.0f); on.prepare (48000.0f);
+            ResonatorParams params;
+            params.type = (ResMode) model;
+            off.update (params, true);
+            params.nonlinear.on = true;
+            params.nonlinear.position = (NonlinearPosition) position;
+            params.nonlinear.model = (NonlinearModel) (model % (int) NonlinearModel::Count);
+            params.nonlinear.amount = 0.0f; // all models must bypass at zero amount
+            params.nonlinear.drive = 100.0f;
+            params.nonlinear.bias = -100.0f;
+            on.update (params, true);
+            for (int sample = 0; sample < 256; ++sample)
+            {
+                const float input = sample < 16 ? 0.5f : 0.0f;
+                float tapOff, tapOn;
+                const float a = off.next (input, 0.0f, tapOff);
+                const float b = on.next (input, 0.0f, tapOn);
+                CHECK (a == b && tapOff == tapOn);
+            }
+            CHECK (std::isfinite (on.getLoopEnergyRms()));
+            CHECK (on.getLoopEnergyRms() > 0.0f);
+            on.reset();
+            CHECK (on.getLoopEnergyRms() == 0.0f);
+        }
+}
+
+AERIFORM_TEST (nonlinear_phase1_saturation_and_transitions)
+{
+    NonlinearElement element;
+    element.prepare (48000.0, 64);
+    NonlinearParams p; p.on = true; p.adaa = false;
+    p.position = NonlinearPosition::Pickup; p.drive = 80.0f; p.amount = 100.0f;
+    element.configure (p, true);
+    CHECK (std::abs (element.processSample (0.5f, 0.0f)) < 0.1f);
+    // Static biased curve is 1-Lipschitz; offset removal preserves contraction.
+    double excess = 0.0;
+    for (int i = -400; i <= 400; ++i)
+    {
+        const double x = i * 0.01;
+        const double y = (NonlinearElement::curve (32.0*(x+0.02))-NonlinearElement::curve (32.0*0.02))/32.0;
+        excess = std::max (excess, std::abs (y)-std::abs (x));
+    }
+    CHECK (excess < 1.0e-12);
+    p.adaa = true; p.position = NonlinearPosition::Post;
+    element.configure (p, true);
+    CHECK (std::isfinite (element.processSample (0.125f, 0.0f)));
+    for (int i = 0; i < 1000; ++i) CHECK (std::isfinite (element.processSample (0.125f, 0.0f)));
+    const float omega = kTwoPi*440.0f/48000.0f;
+    const float withAdaa = element.loopPhaseDelay (omega);
+    p.adaa = false; element.configure (p, true);
+    CHECK_NEAR (withAdaa-element.loopPhaseDelay (omega), 0.5f, 1.0e-5);
+    // All engine families remain finite through live position/on/ADAA changes.
+    for (int type = 0; type < (int) ResMode::Count; ++type)
+    {
+        ResonatorSlot slot; slot.prepare (48000.0f);
+        ResonatorParams r; r.type = (ResMode) type; r.feedback = 0.99f;
+        r.nonlinear = p; r.nonlinear.bias = 100.0f;
+        slot.update (r, true);
+        for (int i = 0; i < 4096; ++i)
+        {
+            if (i % 128 == 0)
+            {
+                r.nonlinear.position = (NonlinearPosition) ((i/128)%3);
+                r.nonlinear.on = (i/128)%4 != 0;
+                r.nonlinear.adaa = (i/128)%2 != 0;
+                slot.update (r, false);
+            }
+            float tap;
+            const float y = slot.next (i < 512 ? 0.25f*std::sin (i*0.1f) : 0.0f, 0.0f, tap);
+            CHECK (std::isfinite (y) && std::isfinite (tap) && std::abs (y) < 8.0f);
+        }
+    }
+}
+
+AERIFORM_TEST (nonlinear_phase2_hysteresis_peak_memory_and_lanes)
+{
+    NonlinearElement element;
+    element.prepare (48000.0, 64);
+    NonlinearParams p; p.on = true; p.model = NonlinearModel::Hysteresis;
+    p.drive = 100.0f; p.amount = 100.0f; p.position = NonlinearPosition::Pickup;
+    element.configure (p, true);
+    const float first = element.processSample (1.0f, 0.0f);
+    const float retained = element.processSample (0.0f, 0.0f);
+    CHECK (first > 0.0f && first < 1.0f);
+    CHECK (retained > 0.0f && retained < first); // Memory, not pointwise contraction.
+    CHECK (element.processSample (0.0f, 0.0f, 1) == 0.0f); // Separate pickup history.
+    CHECK (element.loopPhaseDelay (0.1f) == 0.0f); // Never borrows Saturate's compensation.
+    element.reset();
+    CHECK (element.processSample (0.0f, 0.0f) == 0.0f);
+    float peak = 0.0f;
+    for (int i = 0; i < 4096; ++i)
+    {
+        if (i%64 == 0)
+        {
+            p.drive = (float) ((i/64*17)%101);
+            p.amount = 20.0f + (float) ((i/64*13)%81);
+            element.configure (p);
+        }
+        const float x = 0.6f*std::sin (i*0.07f) + 0.25f*std::sin (i*0.017f);
+        peak = std::max (peak, std::abs (x));
+        const float y = element.processSample (x, 0.0f);
+        CHECK (std::isfinite (y) && std::abs (y) <= peak+1.0e-6f);
+    }
+    // Hysteresis does not depend on the Saturate-only bias or ADAA controls.
+    NonlinearElement a, b; a.prepare (48000.0, 64); b.prepare (48000.0, 64);
+    p.amount = 100.0f; p.drive = 90.0f; p.bias = 0.0f; p.adaa = false;
+    a.configure (p, true); p.bias = 100.0f; p.adaa = true; b.configure (p, true);
+    for (int i = 0; i < 512; ++i)
+    {
+        const float x = 0.1f*std::sin (i*0.03f);
+        CHECK (a.processSample (x, 0.0f) == b.processSample (x, 0.0f));
+    }
+}
+
+AERIFORM_TEST (nonlinear_phase2_hysteresis_slot_smoke)
+{
+    for (int type = 0; type < (int) ResMode::Count; ++type)
+        for (int position = 0; position < (int) NonlinearPosition::Count; ++position)
+        {
+            ResonatorSlot slot; slot.prepare (48000.0f);
+            ResonatorParams p; p.type = (ResMode) type; p.feedback = 0.98f;
+            p.nonlinear.on = true; p.nonlinear.model = NonlinearModel::Hysteresis;
+            p.nonlinear.position = (NonlinearPosition) position;
+            p.nonlinear.drive = 90.0f; p.nonlinear.amount = 80.0f;
+            slot.update (p, true);
+            double energy = 0.0;
+            for (int i = 0; i < 2048; ++i)
+            {
+                if (i == 512) { p.nonlinear.model = NonlinearModel::Saturate; slot.update (p, false); }
+                if (i == 1024) { p.nonlinear.model = NonlinearModel::Hysteresis; slot.update (p, false); }
+                float tap;
+                const float y = slot.next (i < 256 ? 0.3f*std::sin (i*0.1f) : 0.0f, 0.0f, tap);
+                CHECK (std::isfinite (y) && std::isfinite (tap) && std::abs (y) < 8.0f);
+                energy += static_cast<double> (y)*y;
+            }
+            CHECK (energy > 0.0);
+        }
+}
+
+AERIFORM_TEST (nonlinear_phase3_tension_envelope_and_delay_slew)
+{
+    NonlinearElement element; element.prepare (48000.0, 64);
+    NonlinearParams p; p.on = true; p.model = NonlinearModel::Tension; p.amount = 100.0f;
+    element.configure (p, true);
+    CHECK (!expectsNominalPitch (p));
+    float previousRatio = 1.0f;
+    for (float energy : {0.0f, 0.25f, 0.5f, 1.0f, 4.0f})
+    {
+        element.setLoopEnergyRms (energy);
+        const float ratio = element.tensionRatio();
+        CHECK (ratio >= previousRatio && ratio <= 1.030001f);
+        previousRatio = ratio;
+    }
+    CHECK_NEAR (element.tensionRatio(), 1.03, 1.0e-6);
+    p.position = NonlinearPosition::Pickup; element.configure (p, true);
+    element.setLoopEnergyRms (1.0f);
+    CHECK (expectsNominalPitch (p)); CHECK (element.delayScale() == 1.0f);
+    p.position = NonlinearPosition::Post; element.configure (p, true);
+    element.setLoopEnergyRms (1.0f);
+    Resonator wave; wave.prepare (48000.0f); wave.setNonlinearElement (&element);
+    ResonatorParams r; r.freqHz = 110.0f; wave.update (r, true);
+    float previousLength = wave.getDelayLength();
+    for (int i = 0; i < 2048; ++i)
+    {
+        float tap; wave.next (0.0f, 0.0f, tap);
+        CHECK (std::abs (wave.getDelayLength()-previousLength) <= 0.0201f);
+        previousLength = wave.getDelayLength();
+    }
+    CHECK_NEAR (wave.getTensionRatio(), 1.03f, 1.0e-5);
+    element.setLoopEnergyRms (0.0f);
+    for (int i = 0; i < 2048; ++i) { float tap; wave.next (0.0f, 0.0f, tap); }
+    CHECK_NEAR (wave.getTensionRatio(), 1.0f, 1.0e-6);
+    // Nominal pitch changes cannot carry an oversized offset from the old delay.
+    element.setLoopEnergyRms (1.0f);
+    for (int i = 0; i < 512; ++i) { float tap; wave.next (0.0f, 0.0f, tap); }
+    r.freqHz = 4000.0f; wave.update (r, true);
+    float tap; wave.next (0.0f, 0.0f, tap);
+    CHECK (wave.getTensionRatio() <= 1.030001f);
+}
+
+AERIFORM_TEST (nonlinear_phase3_tension_modal_and_network_smoke)
+{
+    for (int type = 0; type < (int) ResMode::Count; ++type)
+    {
+        ResonatorSlot slot; slot.prepare (48000.0f);
+        ResonatorParams p; p.type = (ResMode) type; p.freqHz = 220.0f; p.feedback = 0.5f;
+        p.nonlinear.on = true; p.nonlinear.model = NonlinearModel::Tension; p.nonlinear.amount = 100.0f;
+        slot.update (p, true);
+        float peakRatio = 1.0f;
+        for (int i = 0; i < 4096; ++i)
+        {
+            if (i%32 == 0) slot.update (p, false); // real control-rate coefficient updates
+            float tap;
+            const float y = slot.next (i < 512 ? 0.6f*std::sin (i*0.029f) : 0.0f, 0.0f, tap);
+            CHECK (std::isfinite (y) && std::isfinite (tap));
+            const float ratio = slot.getTensionRatio();
+            CHECK (ratio >= 1.0f && ratio <= 1.030001f);
+            peakRatio = std::max (peakRatio, ratio);
+        }
+        CHECK (peakRatio > 1.00001f);
+        p.nonlinear.on = false;
+        for (int i = 0; i < 2048; ++i)
+        {
+            if (i%32 == 0) slot.update (p, false);
+            float tap; slot.next (0.0f, 0.0f, tap);
+        }
+        CHECK_NEAR (slot.getTensionRatio(), 1.0f, 1.0e-6);
+    }
+    ResonatorNetwork network; network.prepare (48000.0f);
+    NetworkParams p; p.repipe = 1.0f; p.loopOn = true;
+    for (auto& slot : p.res) { slot.nonlinear.on = true; slot.nonlinear.model = NonlinearModel::Tension; }
+    network.update (p, true);
+    for (int i = 0; i < 2048; ++i)
+    {
+        if (i%32 == 0) network.update (p, false);
+        float l,r; network.next (i < 64 ? 0.2f : 0.0f, 0.0f, 0.0f, l,r);
+        CHECK (network.isFinite() && std::isfinite (l) && std::isfinite (r));
+    }
+}
+
+
+AERIFORM_TEST (nonlinear_phase4_friction_budget_and_silence)
+{
+    NonlinearElement element; element.prepare (48000.0, 256);
+    NonlinearParams p; p.on = true; p.model = NonlinearModel::Friction;
+    p.drive = p.amount = 100.0f; element.configure (p, true);
+    bool injects = false, changes = false;
+    for (int i = 0; i < 4096; ++i)
+    {
+        const float x = 0.08f*std::sin (i*0.031f);
+        const float y = element.processSample (x, 0.08f);
+        CHECK (std::isfinite (y));
+        CHECK (double(y)*y <= 1.020001*double(x)*x);
+        injects = injects || std::abs (y) > std::abs (x)+1.0e-7f;
+        changes = changes || std::abs (y-x) > 1.0e-5f;
+        if (i%32 == 31)
+        {
+            const auto energy = element.getFrictionEnergy();
+            CHECK (energy.output <= 1.020001*energy.input);
+        }
+    }
+    CHECK (injects && changes);
+    for (int i = 0; i < 64; ++i) CHECK (element.processSample (0.0f, 1.0f) == 0.0f);
+    element.reset();
+    CHECK (element.getFrictionScale() == 1.0f);
+    element.blockBoundary (1.0, 4.0);
+    for (int i = 0; i < 32; ++i) element.beginSample();
+    CHECK_NEAR (element.getFrictionScale(), 0.49f, 1.0e-5);
+    const float reduced = element.getFrictionScale();
+    element.blockBoundary (1.0, 1.0);
+    for (int i = 0; i < 32; ++i) element.beginSample();
+    CHECK (element.getFrictionScale() > reduced && element.getFrictionScale() < reduced+0.01f);
+}
+
+AERIFORM_TEST (nonlinear_phase4_friction_slot_smoke)
+{
+    for (int type = 0; type < (int) ResMode::Count; ++type)
+        for (int position = 0; position < (int) NonlinearPosition::Count; ++position)
+        {
+            ResonatorSlot slot; slot.prepare (48000.0f);
+            ResonatorParams p; p.type = (ResMode) type; p.feedback = 0.98f;
+            p.nonlinear.on = true; p.nonlinear.model = NonlinearModel::Friction;
+            p.nonlinear.position = (NonlinearPosition) position;
+            p.nonlinear.drive = p.nonlinear.amount = 100.0f;
+            slot.update (p, true);
+            for (int i = 0; i < 2048; ++i)
+            {
+                float tap;
+                const float y = slot.next (i < 256 ? 0.3f*std::sin (i*0.1f) : 0.0f, 0.0f, tap);
+                CHECK (slot.isFinite() && std::isfinite (y) && std::isfinite (tap) && std::abs (y) < 8.0f);
+                if (i%32 == 31)
+                {
+                    const auto energy = slot.getNonlinearElement().getFrictionEnergy();
+                    CHECK (energy.output <= 1.020001*energy.input);
+                }
+            }
+        }
+}

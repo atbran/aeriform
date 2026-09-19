@@ -14,6 +14,7 @@ struct FactoryPreset
     juce::String name;
     juce::String category;
     std::vector<std::pair<juce::String, float>> values;
+    juce::String author = "AERIFORM";
 };
 
 const std::vector<FactoryPreset>& factoryPresets();

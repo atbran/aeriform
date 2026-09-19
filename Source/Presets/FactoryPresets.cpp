@@ -560,6 +560,36 @@ const std::vector<FactoryPreset>& factoryPresets()
             .p(rdTrack,1).p(rdAmount,.75f).p(rdSaturation,.1f).p(rdMix,.45f).p(rdOffset,12)
             .space(0,0,.12f).reverb(.5f,.4f,.45f).v });
 
+        // Append after ALL existing entries (including the two effects demos).
+        // Existing ordinals are persistent favourite IDs.
+        const auto nonlinearDemo = [] (NonlinearModel model)
+        {
+            return Build().p (outGain, -9.0f)
+                .p (exaModel, (float) ExciterModel::Wave).p (exaLevel, 0.8f)
+                .p (exaRetrig, (float) RetrigMode::Retrigger).p (exbModel, (float) ExciterModel::Off)
+                .p (wfOn, 0.0f).p (rbOn, 0.0f).p (rcOn, 0.0f)
+                .p (netMode, (float) NetMode::Single).p (netMix, 1.0f)
+                .p (resNlOn, 1.0f).p (resNlModel, (float) model)
+                .p (resNlPos, (float) NonlinearPosition::Post)
+                .p (resNlAmount, 100.0f).space (0.0f, 0.0f, 0.0f);
+        };
+        list.push_back ({ "Loop Saturate", "Nonlinear", nonlinearDemo (NonlinearModel::Saturate)
+            .p (exaWaveShape, 0.66f).p (resNlDrive, 85.0f)
+            .env (8.0f, 250.0f, 0.75f, 350.0f)
+            .tube (0.94f, 0.25f, 0.75f, ResMode::OpenPipe, 0.3f, 0.0f).v });
+        list.push_back ({ "Loop Hysteresis", "Nonlinear", nonlinearDemo (NonlinearModel::Hysteresis)
+            .p (exaWaveShape, 0.33f).p (resNlDrive, 100.0f)
+            .env (5.0f, 400.0f, 0.65f, 600.0f)
+            .tube (0.97f, 0.2f, 0.8f, ResMode::String, 0.3f, 0.0f).v });
+        list.push_back ({ "Loop Tension", "Nonlinear", nonlinearDemo (NonlinearModel::Tension)
+            .p (exaWaveShape, 0.5f)
+            .env (1.0f, 700.0f, 0.15f, 700.0f)
+            .tube (0.98f, 0.15f, 0.85f, ResMode::String, 0.3f, 0.0f).v });
+        list.push_back ({ "Loop Friction", "Nonlinear", nonlinearDemo (NonlinearModel::Friction)
+            .p (exaWaveShape, 0.0f).p (resNlDrive, 100.0f).p (resInput, 0.08f)
+            .env (30.0f, 300.0f, 0.8f, 450.0f)
+            .tube (0.97f, 0.2f, 0.8f, ResMode::OpenPipe, 0.3f, 0.0f).v });
+
         return list;
     }();
     return presets;

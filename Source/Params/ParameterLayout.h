@@ -14,7 +14,12 @@ enum class LfoMode   { Free, Retrigger, Count };
 enum class VoiceMode { Poly, Mono, Legato, Count };
 
 /** Resonator models. The first three are the v0.1 waveguide topologies. */
-enum class ResMode   { OpenPipe, ClosedPipe, String, Comb, DispersiveTube, ModalBank, MetallicBar, Membrane, FormantBody, Count };
+enum class NonlinearModel { Saturate, Hysteresis, Tension, Friction, Count };
+enum class NonlinearPosition { Pre, Post, Pickup, Count };
+
+enum class ResMode   { OpenPipe, ClosedPipe, String, Comb, DispersiveTube, ModalBank, MetallicBar, Membrane, FormantBody, Pipe, Count };
+enum class PipeBore  { Cone, Cylinder, Count };
+static_assert (static_cast<int> (ResMode::Pipe) == 9);
 
 enum class ExciterModel
 {
@@ -119,6 +124,7 @@ enum class ModDest
     DelayTimeL, DelayTimeR, DelayFeedback, DelayFilter,
     ReverbDecay, ReverbSize, ReverbDamp, ReverbPredelay,
 #include "AdvancedModEnums.inc"
+    ResANlDrive, ResANlAmount, ResBNlDrive, ResBNlAmount, ResCNlDrive, ResCNlAmount,
     Count
 };
 
@@ -153,13 +159,13 @@ namespace choices
 
 enum class ParamSection { Breath, Exciters, Shaping, Resonator, Network, Motion, Space, Master };
 enum class ParamKind { Float, Choice, Bool, Int };
-enum class Fmt { Percent, BipolarPercent, Hz, LfoHz, Ms, Db, Semi, Cents, Ratio, Degrees, Plain };
+enum class Fmt { Percent, BipolarPercent, Hz, LfoHz, Ms, Db, Semi, Cents, Ratio, Degrees, Plain, Seconds };
 enum class ChoiceList
 {
     None, LfoShapes, LfoModes, SyncDivs, ResTypes, VoiceModes, ModSources, ModDests, ExciterModels, RetrigModes,
     InteractionModes, PreFilterTypes, ShaperOrders, FoldModes, Polarities, InjectPoints, OutputTaps, LoopSources,
-    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels, RackTypes,
-    ChorusTypes, ReverbTypes
+    LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels, RackTypes, NonlinearModels, NonlinearPositions,
+    ChorusTypes, ReverbTypes, PipeBores
 };
 
 /** One row of the generated parameter table. */
@@ -211,5 +217,6 @@ const juce::StringArray& choiceStrings (ChoiceList list);
 
 /** Current state-format version written into saved state / preset files.
     1 = v0.1 (single exciter / single resonator), 2 = v2.1 (dual exciters, folder, network). */
-inline constexpr int kStateVersion = 3;
+// v4 appends the identity nonlinear-loop controls; absent IDs restore to defaults.
+inline constexpr int kStateVersion = 4;
 } // namespace aeriform

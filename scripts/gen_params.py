@@ -386,6 +386,39 @@ for r in rows:
  if r['enum']=='excAttackClick': r['default']=.02
  if r['enum']=='excReleaseNoise': r['default']=.025
 
+# Appended nonlinear-loop controls. Phase 3 implements Saturate, Hysteresis and Tension.
+for prefix, label in [('res', 'Res A'), ('rb', 'Res B'), ('rc', 'Res C')]:
+ B(prefix+'NlOn', prefix+'_nl_on', label+' Nonlinearity', 'Network', False, 'Enable Saturate, Hysteresis or Tension in this slot. Friction is reserved.')
+ C(prefix+'NlModel', prefix+'_nl_model', label+' Nonlinear Model', 'Network', 'NonlinearModels', 0, 'Saturate softens peaks; Hysteresis adds memory; Tension raises pitch with loop energy. Friction is reserved.')
+ F(prefix+'NlDrive', prefix+'_nl_drive', label+' Nonlinear Drive', 'Network', 0, 100, 0, '%', 'Plain', 'Drive controls saturation gain or hysteresis width; reduced by approximately 3 dB per octave above A3. No effect on Tension.')
+ F(prefix+'NlAmount', prefix+'_nl_amount', label+' Nonlinear Amount', 'Network', 0, 100, 50, '%', 'Plain', 'Blend Saturate/Hysteresis, or set Tension pitch response up to about 51 cents at full loop energy.')
+ F(prefix+'NlBias', prefix+'_nl_bias', label+' Nonlinear Bias', 'Network', -100, 100, 0, '%', 'Plain', 'Saturate only: asymmetry from -0.02 to +0.02 signal units, with static offset removed. No effect on Hysteresis.')
+ C(prefix+'NlPos', prefix+'_nl_pos', label+' Nonlinear Position', 'Network', 'NonlinearPositions', 1, 'Pre, post, or output pickup insertion. Tension changes loop tuning at pre/post; pickup leaves Tension inactive.')
+B('nlAdaa', 'nl_adaa', 'Nonlinear ADAA', 'Network', True, 'ADAA for Saturate in waveguide loops and pickup outputs. Modal state attenuation does not add delay.')
+
+# PIPE model controls: append-only, 16 per slot (48 total). Existing model
+# defaults remain unchanged; these controls apply only to ResMode::Pipe.
+# Percent controls use percentage points, matching the reviewed PIPE contract.
+for prefix, label in [('res', 'Res A'), ('rb', 'Res B'), ('rc', 'Res C')]:
+ def pipe_float(field, suffix, name, lo, hi, default, unit, fmt, tip, centre=None):
+  F(prefix+'Pipe'+field, prefix+'_'+suffix, label+' PIPE '+name, 'Network', lo, hi, default, unit, fmt, 'PIPE only. '+tip, centre=centre)
+ pipe_float('Pressure', 'pressure', 'Pressure', 0, 100, 50, '%', 'Plain', 'Exciter amplitude; timing uses the shared voice envelope. This is physical pressure, not a performance macro.')
+ pipe_float('DcNoise', 'dcnoise', 'DC/Noise', 0, 100, 50, '%', 'Plain', 'Excitation mix: 0 is DC, 100 is white noise.')
+ pipe_float('ExcCut', 'exc_cut', 'Exciter Cutoff', 20, 20000, 2000, 'Hz', 'Hz', 'Two-pole excitation lowpass cutoff before key and velocity tracking.', centre=2000)
+ pipe_float('ExcRes', 'exc_res', 'Exciter Resonance', 0.5, 8, 0.7, 'Q', 'Plain', 'Q of the two-pole excitation lowpass.', centre=1.2)
+ pipe_float('ExcKt', 'exc_kt', 'Exciter Key Track', 0, 150, 50, '%', 'Plain', 'Exciter cutoff tracking referenced to MIDI note 60; 100 means one octave per octave.')
+ pipe_float('ExcVt', 'exc_vt', 'Exciter Velocity Track', 0, 100, 50, '%', 'Plain', 'Velocity opens the exciter cutoff by up to two octaves at 100 percent.')
+ pipe_float('Rt', 'rt', 'Nominal Decay', 0.001, 30, 0.5, 's', 'Seconds', 'Nominal T60 before filter, interpolator and saturation losses. Actual decay can be shorter; shared release can truncate tails.')
+ pipe_float('RtKt', 'rt_kt', 'Decay Key Track', 0, 150, 50, '%', 'Plain', 'Shortens nominal decay on higher notes, referenced to MIDI note 60.')
+ pipe_float('Damp', 'damp', 'Decay Damping', 0, 100, 0, '%', 'Plain', 'Additional uniform reduction of nominal decay, floored internally at 1 ms. Separate from legacy Damping.')
+ pipe_float('Lp', 'lp', 'Loop Lowpass', 20, 20000, 4000, 'Hz', 'Hz', 'Loop lowpass pole frequency before key tracking.', centre=2000)
+ pipe_float('Hp', 'hp', 'Loop Highpass', 20, 2000, 40, 'Hz', 'Hz', 'Normalized loop highpass pole frequency before key tracking.', centre=200)
+ pipe_float('FiltKt', 'filt_kt', 'Loop Filter Key Track', 0, 150, 100, '%', 'Plain', 'Tracks both loop filter frequencies from MIDI note 60.')
+ pipe_float('SatDrive', 'sat_drive', 'Drive', 1, 32, 2, 'x', 'Ratio', 'In-loop saturation drive with inverse-drive output compensation.', centre=4)
+ pipe_float('SatKnee', 'sat_knee', 'Hardness', 0, 100, 40, '%', 'Plain', '0 is soft, 100 is hard; internal knee position is 0.9 times normalized hardness.')
+ pipe_float('SatSym', 'sat_sym', 'Asymmetry', -100, 100, 0, '%', 'Plain', 'Positive/negative knee asymmetry. Zero is symmetric; separate from legacy nonlinear bias.')
+ C(prefix+'PipeBore', prefix+'_bore', label+' PIPE Bore', 'Network', 'PipeBores', 0, 'PIPE only. Cone uses non-inverting feedback; cylinder uses inverting feedback with half-period nominal delay.')
+
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]
 assert len(set(ids)) == len(ids), 'duplicate id'

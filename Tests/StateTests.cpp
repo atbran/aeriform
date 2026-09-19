@@ -1,3 +1,5 @@
+#include <juce_audio_formats/juce_audio_formats.h>
+#include <cstdlib>
 #include "TestFramework.h"
 #include "TestHelpers.h"
 #include "Presets/FactoryPresets.h"
@@ -81,22 +83,25 @@ AERIFORM_TEST (preset_xml_round_trip_and_file_io)
     auto& pm = a.processor.getPresetManager();
     a.set (ids::resDispersion, 0.33f);
     a.set (ids::lfoParam (2, ids::lfoShapeSuffix), (float) LfoShape::Square);
-    auto xml = pm.createPresetXml ("Round Trip", "Test");
+    auto xml = pm.createPresetXml ("Round Trip", "Test", "SoundDesignLab");
     CHECK (xml != nullptr);
     CHECK (xml->getIntAttribute ("version") == PresetManager::kPresetFormatVersion);
+    CHECK (xml->getStringAttribute ("author") == "SoundDesignLab");
 
     a.set (ids::resDispersion, 0.9f);
     a.set (ids::lfoParam (2, ids::lfoShapeSuffix), 0.0f);
     CHECK (pm.applyPresetXml (*xml));
+    CHECK (pm.getCurrentAuthor() == "SoundDesignLab");
     CHECK_NEAR (a.get (ids::resDispersion), 0.33, 1.0e-4);
     CHECK_NEAR (a.get (ids::lfoParam (2, ids::lfoShapeSuffix)), (double) LfoShape::Square, 1.0e-6);
 
     const auto tmp = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("aeriform_test_preset.aerpreset");
-    CHECK (pm.saveToFile (tmp, "File Preset", "Test"));
+    CHECK (pm.saveToFile (tmp, "File Preset", "Test", "AuthorX"));
     a.set (ids::resDispersion, 0.1f);
     CHECK (pm.loadFromFile (tmp));
     CHECK_NEAR (a.get (ids::resDispersion), 0.33, 1.0e-4);
     CHECK (pm.getCurrentName() == "File Preset");
+    CHECK (pm.getCurrentAuthor() == "AuthorX");
     CHECK (! pm.isDirty());
     tmp.deleteFile();
 
@@ -146,4 +151,95 @@ AERIFORM_TEST (factory_presets_reference_valid_parameters_and_load)
     CHECK (pm.loadPrevious());
     pm.loadInit();
     CHECK (pm.getCurrentName() == "Init");
+}
+
+AERIFORM_TEST (nonlinear_phase0_state_defaults_and_round_trip)
+{
+    TestHost host;
+    host.set (ids::resNlOn, 1.0f);
+    host.set (ids::rbNlDrive, 73.0f);
+    host.set (ids::rcNlPos, 2.0f);
+    auto saved = host.processor.createStateXml();
+    CHECK (saved->getIntAttribute ("version") == 4);
+    host.set (ids::resNlOn, 0.0f);
+    host.processor.applyStateXml (*saved);
+    CHECK (host.get (ids::resNlOn) == 1.0f);
+    CHECK_NEAR (host.get (ids::rbNlDrive), 73.0, 1.0e-5);
+    CHECK (host.get (ids::rcNlPos) == 2.0f);
+    // Simulate the actual v3 format: it contains none of the appended IDs.
+    saved->setAttribute ("version", 3);
+    auto* params = saved->getChildByName (host.processor.getAPVTS().state.getType());
+    CHECK (params != nullptr);
+    if (params == nullptr) return;
+    for (int i = (int) P::resNlOn; i <= (int) P::nlAdaa; ++i)
+        for (auto* child : params->getChildIterator())
+            if (child->getStringAttribute ("id") == ids::all[i])
+            { params->removeChildElement (child, true); break; }
+    saved->deleteAllChildElementsWithTagName ("PatchTools");
+    host.processor.applyStateXml (*saved);
+    for (int i = (int) P::resNlOn; i <= (int) P::nlAdaa; ++i)
+        CHECK_NEAR (host.get (ids::all[i]), paramDef ((P) i).defaultValue, 1.0e-6);
+}
+
+
+AERIFORM_TEST (nonlinear_phase5_demonstrator_presets_smoke)
+{
+    int count = 0;
+    for (const auto& preset : factoryPresets())
+    {
+        if (preset.category != "Nonlinear") continue;
+        ++count;
+        std::vector<float> rendered[2];
+        for (int enabled = 0; enabled < 2; ++enabled)
+        {
+            TestHost host;
+            host.processor.getPresetManager().applyFactoryPreset (preset);
+            for (const auto& [id, value] : preset.values)
+            {
+                auto* parameter = host.processor.getAPVTS().getParameter (id);
+                CHECK (parameter != nullptr);
+                if (parameter)
+                {
+                    const auto& range = parameter->getNormalisableRange();
+                    CHECK (value >= range.start && value <= range.end);
+                }
+            }
+            host.set (ids::resNlOn, (float) enabled);
+            host.render (0.04);
+            host.noteOn (57, 110);
+            const auto held = host.render (0.8, &rendered[enabled]);
+            host.noteOff (57);
+            const auto tail = host.render (0.2, &rendered[enabled]);
+            CHECK (held.finite && tail.finite && held.peak < 1.5f && tail.peak < 1.5f);
+            CHECK (held.rms > 1.0e-5);
+            if (const char* folder = std::getenv ("AERIFORM_CAPTURE_DIR"))
+            {
+                auto dir = juce::File (juce::String::fromUTF8 (folder));
+                CHECK (dir.createDirectory().wasOk());
+                auto file = dir.getChildFile (preset.name + (enabled ? "-on.wav" : "-off.wav"));
+                auto stream = file.createOutputStream();
+                CHECK (stream != nullptr);
+                if (stream)
+                {
+                    stream->setPosition (0); stream->truncate();
+                    juce::WavAudioFormat format;
+                    std::unique_ptr<juce::AudioFormatWriter> writer (format.createWriterFor (stream.release(), host.sampleRate, 1, 24, {}, 0));
+                    CHECK (writer != nullptr);
+                    const float* data[] { rendered[enabled].data() };
+                    if (writer) CHECK (writer->writeFromFloatArrays (data, 1, (int) rendered[enabled].size()));
+                }
+            }
+        }
+        CHECK (rendered[0].size() == rendered[1].size());
+        double difference = 0.0, reference = 0.0;
+        for (size_t i = 0; i < rendered[0].size(); ++i)
+        {
+            const double delta = double(rendered[1][i])-rendered[0][i];
+            difference += delta*delta; reference += double(rendered[0][i])*rendered[0][i];
+        }
+        const double relative = std::sqrt (difference/std::max (reference, 1.0e-24));
+        std::printf ("  %s: relative RMS difference %.6f\n", preset.name.toRawUTF8(), relative);
+        CHECK (relative > 0.01); // signal difference, not subjective audibility acceptance
+    }
+    CHECK (count == 4);
 }

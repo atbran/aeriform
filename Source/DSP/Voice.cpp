@@ -402,6 +402,23 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
         r.variationDamping = p.get (P::artVariation) * 0.12f * varDamp;
         r.variationBright = p.get (P::artVariation) * 0.12f * varBright;
     }
+    // Appended controls use their own groups, not legacy slot offsets.
+    constexpr P nonlinearBases[] { P::resNlOn, P::rbNlOn, P::rcNlOn };
+    for (int slot = 0; slot < 3; ++slot)
+    {
+        const P base = nonlinearBases[slot];
+        auto& nl = n.res[slot].nonlinear;
+        nl.on = p.getb (base);
+        nl.model = p.getEnum (offsetP (base, 1), NonlinearModel::Count);
+        const auto driveDest = (ModDest) ((int) ModDest::ResANlDrive + slot*2);
+        const auto amountDest = (ModDest) ((int) driveDest + 1);
+        nl.drive = std::clamp (p.get (offsetP (base, 2)) + 100.0f*mod (driveDest), 0.0f, 100.0f);
+        nl.amount = std::clamp (p.get (offsetP (base, 3)) + 100.0f*mod (amountDest), 0.0f, 100.0f);
+        nl.frequencyHz = n.res[slot].freqHz;
+        nl.bias = p.get (offsetP (base, 4));
+        nl.position = p.getEnum (offsetP (base, 5), NonlinearPosition::Count);
+        nl.adaa = p.getb (P::nlAdaa);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -704,6 +721,13 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
             const float roomInput=roomReturn?roomCoupling.next(roomReturn[pos+i],freshSourcePower):0;
             network.next (x + couplingIn+roomInput, loopNet, pressureNow, l, r);
             loopRet = network.loopReturn();
+            if (scope != nullptr)
+                for (int slot = 0; slot < 3; ++slot)
+                {
+                    const auto pair = network.nonlinearSample (slot);
+                    scope->nonlinearScope[(size_t) slot].push (pair.x, pair.y);
+                    scope->nonlinearTensionRatio[(size_t) slot].store (network.tensionRatio (slot), std::memory_order_relaxed);
+                }
 
             // ---- body / formant filter ------------------------------------------------------
             if (bodyMix > 0.0005f)

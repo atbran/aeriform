@@ -99,6 +99,7 @@ set(AERIFORM_SOURCES
     Source/GUI/ContactPage.cpp
     Source/GUI/FiltersPage.cpp
     Source/GUI/PerformancePage.cpp
+    Source/GUI/PipePage.cpp
     Source/GUI/Pages.cpp
     Source/GUI/Panels/ExciterSlotPanel.cpp
     Source/GUI/Panels/ExcitersOverviewPanel.cpp

@@ -12,6 +12,7 @@
 #include "../GUI/SaturationPage.h"
 #include "../GUI/WorkspacePage.h"
 #include "../GUI/EffectsWorkspace.h"
+#include "../GUI/PipePage.h"
 
 using namespace aeriform;
 using namespace aeriform::theme;
@@ -42,7 +43,8 @@ AeriformEditor::AeriformEditor (AeriformProcessor& p)
     auto stereo = std::make_unique<ContactPage> (p);
     stereo->showStereo (true);
     network->addSection ("ADVANCED / PHYSICAL STEREO", std::move (stereo));
-    network->showSection (p.getEditorSection (2) == 1 ? 1 : 0);
+    network->addSection ("PIPE MODEL", std::make_unique<PipePage> (p));
+    network->showSection (std::clamp (p.getEditorSection (2), 0, 2));
     pages[2] = std::move (network);
     pages[3] = std::make_unique<MotionPage> (p);
     auto effects = std::make_unique<WorkspacePage> (p, 4);

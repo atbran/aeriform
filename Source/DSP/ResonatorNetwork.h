@@ -179,6 +179,9 @@ public:
 
     float contactActivity() const noexcept {return contact.getActivity();}
     float loopReturn() const noexcept { return loopReturnValue; }
+    NonlinearElement::Sample nonlinearSample (int i) const noexcept { return slots[(size_t) juce::jlimit (0, 2, i)].getNonlinearElement().lastSample(); }
+    float tensionRatio (int i) const noexcept { return slots[(size_t) juce::jlimit (0, 2, i)].getTensionRatio(); }
+    float loopEnergyRms (int i) const noexcept { return slots[(size_t) juce::jlimit (0, 2, i)].getLoopEnergyRms(); }
     float energy (int i) const noexcept { return slots[(size_t) juce::jlimit (0, 2, i)].getEnergy(); }
     float netEnergy() const noexcept { return netEnergyValue; }
     float governor() const noexcept { return governorGain; }

@@ -13,6 +13,14 @@ public:
     void resized() override;
 
 private:
+    void selectNonlinear (bool);
+    bool nonlinearSelected = false;
+    juce::TextButton *resonatorTab, *nonlinearTab;
+    std::vector<juce::Component*> nonlinearControls;
+    Toggle *nlOn, *nlAdaa = nullptr;
+    ChoiceBox *nlModel, *nlPosition;
+    Knob *nlDrive, *nlAmount, *nlBias;
+    NonlinearCurveDisplay* nlCurve;
     int slot;
     Toggle* on;
     ChoiceBox* type;

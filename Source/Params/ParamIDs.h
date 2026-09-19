@@ -773,6 +773,73 @@ enum class P : int
     reverbType,
     vibratoRate,
     vibratoDepth,
+    resNlOn,
+    resNlModel,
+    resNlDrive,
+    resNlAmount,
+    resNlBias,
+    resNlPos,
+    rbNlOn,
+    rbNlModel,
+    rbNlDrive,
+    rbNlAmount,
+    rbNlBias,
+    rbNlPos,
+    rcNlOn,
+    rcNlModel,
+    rcNlDrive,
+    rcNlAmount,
+    rcNlBias,
+    rcNlPos,
+    nlAdaa,
+    resPipePressure,
+    resPipeDcNoise,
+    resPipeExcCut,
+    resPipeExcRes,
+    resPipeExcKt,
+    resPipeExcVt,
+    resPipeRt,
+    resPipeRtKt,
+    resPipeDamp,
+    resPipeLp,
+    resPipeHp,
+    resPipeFiltKt,
+    resPipeSatDrive,
+    resPipeSatKnee,
+    resPipeSatSym,
+    resPipeBore,
+    rbPipePressure,
+    rbPipeDcNoise,
+    rbPipeExcCut,
+    rbPipeExcRes,
+    rbPipeExcKt,
+    rbPipeExcVt,
+    rbPipeRt,
+    rbPipeRtKt,
+    rbPipeDamp,
+    rbPipeLp,
+    rbPipeHp,
+    rbPipeFiltKt,
+    rbPipeSatDrive,
+    rbPipeSatKnee,
+    rbPipeSatSym,
+    rbPipeBore,
+    rcPipePressure,
+    rcPipeDcNoise,
+    rcPipeExcCut,
+    rcPipeExcRes,
+    rcPipeExcKt,
+    rcPipeExcVt,
+    rcPipeRt,
+    rcPipeRtKt,
+    rcPipeDamp,
+    rcPipeLp,
+    rcPipeHp,
+    rcPipeFiltKt,
+    rcPipeSatDrive,
+    rcPipeSatKnee,
+    rcPipeSatSym,
+    rcPipeBore,
     Count
 };
 
@@ -1547,6 +1614,73 @@ inline constexpr const char* chorusType = "chorus_type";
 inline constexpr const char* reverbType = "rev_type";
 inline constexpr const char* vibratoRate = "vib_rate";
 inline constexpr const char* vibratoDepth = "vib_depth";
+inline constexpr const char* resNlOn = "res_nl_on";
+inline constexpr const char* resNlModel = "res_nl_model";
+inline constexpr const char* resNlDrive = "res_nl_drive";
+inline constexpr const char* resNlAmount = "res_nl_amount";
+inline constexpr const char* resNlBias = "res_nl_bias";
+inline constexpr const char* resNlPos = "res_nl_pos";
+inline constexpr const char* rbNlOn = "rb_nl_on";
+inline constexpr const char* rbNlModel = "rb_nl_model";
+inline constexpr const char* rbNlDrive = "rb_nl_drive";
+inline constexpr const char* rbNlAmount = "rb_nl_amount";
+inline constexpr const char* rbNlBias = "rb_nl_bias";
+inline constexpr const char* rbNlPos = "rb_nl_pos";
+inline constexpr const char* rcNlOn = "rc_nl_on";
+inline constexpr const char* rcNlModel = "rc_nl_model";
+inline constexpr const char* rcNlDrive = "rc_nl_drive";
+inline constexpr const char* rcNlAmount = "rc_nl_amount";
+inline constexpr const char* rcNlBias = "rc_nl_bias";
+inline constexpr const char* rcNlPos = "rc_nl_pos";
+inline constexpr const char* nlAdaa = "nl_adaa";
+inline constexpr const char* resPipePressure = "res_pressure";
+inline constexpr const char* resPipeDcNoise = "res_dcnoise";
+inline constexpr const char* resPipeExcCut = "res_exc_cut";
+inline constexpr const char* resPipeExcRes = "res_exc_res";
+inline constexpr const char* resPipeExcKt = "res_exc_kt";
+inline constexpr const char* resPipeExcVt = "res_exc_vt";
+inline constexpr const char* resPipeRt = "res_rt";
+inline constexpr const char* resPipeRtKt = "res_rt_kt";
+inline constexpr const char* resPipeDamp = "res_damp";
+inline constexpr const char* resPipeLp = "res_lp";
+inline constexpr const char* resPipeHp = "res_hp";
+inline constexpr const char* resPipeFiltKt = "res_filt_kt";
+inline constexpr const char* resPipeSatDrive = "res_sat_drive";
+inline constexpr const char* resPipeSatKnee = "res_sat_knee";
+inline constexpr const char* resPipeSatSym = "res_sat_sym";
+inline constexpr const char* resPipeBore = "res_bore";
+inline constexpr const char* rbPipePressure = "rb_pressure";
+inline constexpr const char* rbPipeDcNoise = "rb_dcnoise";
+inline constexpr const char* rbPipeExcCut = "rb_exc_cut";
+inline constexpr const char* rbPipeExcRes = "rb_exc_res";
+inline constexpr const char* rbPipeExcKt = "rb_exc_kt";
+inline constexpr const char* rbPipeExcVt = "rb_exc_vt";
+inline constexpr const char* rbPipeRt = "rb_rt";
+inline constexpr const char* rbPipeRtKt = "rb_rt_kt";
+inline constexpr const char* rbPipeDamp = "rb_damp";
+inline constexpr const char* rbPipeLp = "rb_lp";
+inline constexpr const char* rbPipeHp = "rb_hp";
+inline constexpr const char* rbPipeFiltKt = "rb_filt_kt";
+inline constexpr const char* rbPipeSatDrive = "rb_sat_drive";
+inline constexpr const char* rbPipeSatKnee = "rb_sat_knee";
+inline constexpr const char* rbPipeSatSym = "rb_sat_sym";
+inline constexpr const char* rbPipeBore = "rb_bore";
+inline constexpr const char* rcPipePressure = "rc_pressure";
+inline constexpr const char* rcPipeDcNoise = "rc_dcnoise";
+inline constexpr const char* rcPipeExcCut = "rc_exc_cut";
+inline constexpr const char* rcPipeExcRes = "rc_exc_res";
+inline constexpr const char* rcPipeExcKt = "rc_exc_kt";
+inline constexpr const char* rcPipeExcVt = "rc_exc_vt";
+inline constexpr const char* rcPipeRt = "rc_rt";
+inline constexpr const char* rcPipeRtKt = "rc_rt_kt";
+inline constexpr const char* rcPipeDamp = "rc_damp";
+inline constexpr const char* rcPipeLp = "rc_lp";
+inline constexpr const char* rcPipeHp = "rc_hp";
+inline constexpr const char* rcPipeFiltKt = "rc_filt_kt";
+inline constexpr const char* rcPipeSatDrive = "rc_sat_drive";
+inline constexpr const char* rcPipeSatKnee = "rc_sat_knee";
+inline constexpr const char* rcPipeSatSym = "rc_sat_sym";
+inline constexpr const char* rcPipeBore = "rc_bore";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -2315,6 +2449,73 @@ inline constexpr const char* const all[kNumParams] = {
     "rev_type",
     "vib_rate",
     "vib_depth",
+    "res_nl_on",
+    "res_nl_model",
+    "res_nl_drive",
+    "res_nl_amount",
+    "res_nl_bias",
+    "res_nl_pos",
+    "rb_nl_on",
+    "rb_nl_model",
+    "rb_nl_drive",
+    "rb_nl_amount",
+    "rb_nl_bias",
+    "rb_nl_pos",
+    "rc_nl_on",
+    "rc_nl_model",
+    "rc_nl_drive",
+    "rc_nl_amount",
+    "rc_nl_bias",
+    "rc_nl_pos",
+    "nl_adaa",
+    "res_pressure",
+    "res_dcnoise",
+    "res_exc_cut",
+    "res_exc_res",
+    "res_exc_kt",
+    "res_exc_vt",
+    "res_rt",
+    "res_rt_kt",
+    "res_damp",
+    "res_lp",
+    "res_hp",
+    "res_filt_kt",
+    "res_sat_drive",
+    "res_sat_knee",
+    "res_sat_sym",
+    "res_bore",
+    "rb_pressure",
+    "rb_dcnoise",
+    "rb_exc_cut",
+    "rb_exc_res",
+    "rb_exc_kt",
+    "rb_exc_vt",
+    "rb_rt",
+    "rb_rt_kt",
+    "rb_damp",
+    "rb_lp",
+    "rb_hp",
+    "rb_filt_kt",
+    "rb_sat_drive",
+    "rb_sat_knee",
+    "rb_sat_sym",
+    "rb_bore",
+    "rc_pressure",
+    "rc_dcnoise",
+    "rc_exc_cut",
+    "rc_exc_res",
+    "rc_exc_kt",
+    "rc_exc_vt",
+    "rc_rt",
+    "rc_rt_kt",
+    "rc_damp",
+    "rc_lp",
+    "rc_hp",
+    "rc_filt_kt",
+    "rc_sat_drive",
+    "rc_sat_knee",
+    "rc_sat_sym",
+    "rc_bore",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

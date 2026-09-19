@@ -1,4 +1,5 @@
 #include "ParameterLayout.h"
+#include <cmath>
 
 namespace aeriform
 {
@@ -30,7 +31,7 @@ namespace choices
     const juce::StringArray& resModes()
     {
         static const juce::StringArray s { "Open Pipe", "Closed Pipe", "String", "Comb", "Dispersive Tube", "Modal Bank",
-                                           "Metallic Bar", "Membrane", "Formant Body" };
+                                           "Metallic Bar", "Membrane", "Formant Body", "PIPE" };
         return s;
     }
     const juce::StringArray& voiceModes()
@@ -71,6 +72,9 @@ namespace choices
                                            "Delay Time L", "Delay Time R", "Delay Feedback", "Delay Filter",
                                            "Reverb Decay", "Reverb Size", "Reverb Damp", "Reverb Pre-Delay",
 #include "AdvancedModNames.inc"
+            "Res A Nonlinear Drive", "Res A Nonlinear Amount",
+            "Res B Nonlinear Drive", "Res B Nonlinear Amount",
+            "Res C Nonlinear Drive", "Res C Nonlinear Amount",
         };
         return s;
     }
@@ -192,6 +196,9 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::FilterSlopes: { static const juce::StringArray v { "12 dB / octave", "24 dB / octave" }; return v; }
         case ChoiceList::FilterVowels: { static const juce::StringArray v { "A", "E", "I", "O", "U" }; return v; }
         case ChoiceList::RackTypes: { static const juce::StringArray v { "Empty", "Resonant Delay", "Shimmer", "Spectral Freeze", "Multiband Saturation" }; return v; }
+        case ChoiceList::NonlinearModels: { static const juce::StringArray v { "Saturate", "Hysteresis", "Tension", "Friction" }; return v; }
+        case ChoiceList::NonlinearPositions: { static const juce::StringArray v { "pre", "post", "pickup" }; return v; }
+        case ChoiceList::PipeBores: { static const juce::StringArray v { "Cone", "Cylinder" }; return v; }
         case ChoiceList::None:
         default:
         {
@@ -262,6 +269,7 @@ namespace
     juce::String fmtDegrees (float v, int) { return juce::String (juce::roundToInt (v)) + " deg"; }
     juce::String fmtLfoHz (float v, int) { return v < 1.0f ? juce::String (v, 3) + " Hz" : juce::String (v, 2) + " Hz"; }
     juce::String fmtPlain (float v, int) { return juce::String (v, 2); }
+    juce::String fmtSeconds (float v, int) { return juce::String (v, 3) + " s"; }
 
     std::function<juce::String (float, int)> formatter (Fmt f)
     {
@@ -277,6 +285,7 @@ namespace
             case Fmt::Cents:          return fmtCents;
             case Fmt::Ratio:          return fmtRatio;
             case Fmt::Degrees:        return fmtDegrees;
+            case Fmt::Seconds:        return fmtSeconds;
             case Fmt::Plain:
             default:                  return fmtPlain;
         }
@@ -289,6 +298,12 @@ namespace
 
     juce::NormalisableRange<float> makeRange (const ParamDef& d)
     {
+        // PIPE nominal decay is stored in seconds, with an exact logarithmic
+        // mapping. Existing parameter ranges retain their original mappings.
+        if (d.fmt == Fmt::Seconds && d.minValue > 0.0f)
+            return { d.minValue, d.maxValue,
+                     [] (float lo, float hi, float x) { return lo * std::pow (hi / lo, x); },
+                     [] (float lo, float hi, float value) { return std::log (value / lo) / std::log (hi / lo); } };
         juce::NormalisableRange<float> r (d.minValue, d.maxValue, d.step);
         if (d.centre > d.minValue && d.centre < d.maxValue)
             r.setSkewForCentre (d.centre);

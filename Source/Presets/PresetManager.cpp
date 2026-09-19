@@ -38,6 +38,7 @@ void PresetManager::rescan()
         Entry e;
         e.name = factory[(size_t) i].name;
         e.category = factory[(size_t) i].category;
+        e.author = factory[(size_t) i].author.isNotEmpty() ? factory[(size_t) i].author : juce::String ("AERIFORM");
         e.isFactory = true;
         e.factoryIndex = i;
         e.stableId="factory:"+juce::String(i).paddedLeft('0',4);
@@ -55,6 +56,7 @@ void PresetManager::rescan()
             Entry e;
             e.name = f.getFileNameWithoutExtension();
             e.category = "User";
+            e.author = "User";
             e.isFactory = false;
             e.file = f;
             if (auto xml = juce::XmlDocument::parse (f))
@@ -64,6 +66,7 @@ void PresetManager::rescan()
                     e.stableId=presetId(*xml);
                     if (xml->hasAttribute ("name")) e.name = xml->getStringAttribute ("name");
                     if (xml->hasAttribute ("category")) e.category = xml->getStringAttribute ("category");
+                    if (xml->hasAttribute ("author")) e.author = xml->getStringAttribute ("author");
                 }
             }
             entries.push_back (e);
@@ -137,13 +140,15 @@ void PresetManager::applyFactoryPreset (const FactoryPreset& preset)
 }
 
 // ---------------------------------------------------------------------------
-std::unique_ptr<juce::XmlElement> PresetManager::createPresetXml (const juce::String& name, const juce::String& category) const
+std::unique_ptr<juce::XmlElement> PresetManager::createPresetXml (const juce::String& name, const juce::String& category, const juce::String& author) const
 {
     auto xml = std::make_unique<juce::XmlElement> ("AeriformPreset");
     xml->setAttribute ("version", kPresetFormatVersion);
     xml->setAttribute("uuid",juce::Uuid().toString());
     xml->setAttribute ("name", name);
     xml->setAttribute ("category", category);
+    if (author.isNotEmpty())
+        xml->setAttribute ("author", author);
     xml->setAttribute ("plugin", "AERIFORM");
     xml->setAttribute ("pluginVersion", AERIFORM_VERSION_STRING);
 
@@ -167,6 +172,11 @@ bool PresetManager::applyPresetXml (const juce::XmlElement& xml)
     const int version = xml.getIntAttribute ("version", 1);
     juce::ignoreUnused (version); // future migrations switch on this value
 
+    if (xml.hasAttribute ("author"))
+        currentAuthor = xml.getStringAttribute ("author");
+    else
+        currentAuthor = "User";
+
     applying = true;
     resetAllToDefaults();
     if (auto* params = xml.getChildByName ("Parameters"))
@@ -183,10 +193,12 @@ bool PresetManager::applyPresetXml (const juce::XmlElement& xml)
     return true;
 }
 
-void PresetManager::setCurrentName (const juce::String& name, const juce::String& category, bool markClean)
+void PresetManager::setCurrentName (const juce::String& name, const juce::String& category, const juce::String& author, bool markClean)
 {
     currentName = name;
     currentCategory = category;
+    if (author.isNotEmpty())
+        currentAuthor = author;
     if (markClean) dirty = false;
     currentIndex = -1;
     for (int i = 0; i < (int) entries.size(); ++i)
@@ -214,6 +226,7 @@ bool PresetManager::loadPreset (int index)
     currentIndex = index;
     currentName = e.name;
     currentCategory = e.category;
+    currentAuthor = e.author;
     dirty = false;
     notify();
     return true;
@@ -237,7 +250,7 @@ void PresetManager::loadInit()
     resetAllToDefaults();
     applying = false;
     if(toolsFromXml)toolsFromXml(nullptr);
-    setCurrentName ("Init", "Init", true);
+    setCurrentName ("Init", "Init", "AERIFORM", true);
 }
 
 bool PresetManager::loadFromFile (const juce::File& file)
@@ -246,7 +259,8 @@ bool PresetManager::loadFromFile (const juce::File& file)
     if (xml == nullptr || ! applyPresetXml (*xml)) return false;
     rescan();
     setCurrentName (xml->getStringAttribute ("name", file.getFileNameWithoutExtension()),
-                    xml->getStringAttribute ("category", "User"), true);
+                    xml->getStringAttribute ("category", "User"),
+                    xml->getStringAttribute ("author", "User"), true);
     return true;
 }
 
@@ -257,20 +271,22 @@ juce::String PresetManager::makeSafeFileName (const juce::String& name)
     return s.isEmpty() ? juce::String ("Untitled") : s;
 }
 
-bool PresetManager::saveToFile (const juce::File& file, const juce::String& name, const juce::String& category)
+bool PresetManager::saveToFile (const juce::File& file, const juce::String& name, const juce::String& category, const juce::String& author)
 {
-    auto xml = createPresetXml (name, category);
+    auto xml = createPresetXml (name, category, author);
     if(auto existing=juce::XmlDocument::parse(file))xml->setAttribute("uuid",presetId(*existing));
     file.getParentDirectory().createDirectory();
     return xml->writeTo (file, {});
 }
 
-bool PresetManager::saveAs (const juce::String& name, const juce::String& category)
+bool PresetManager::saveAs (const juce::String& name, const juce::String& category, const juce::String& author)
 {
     const auto file = getUserPresetDirectory().getChildFile (makeSafeFileName (name) + kFileExtension);
-    if (! saveToFile (file, name, category.isEmpty() ? "User" : category)) return false;
+    const auto cat = category.isEmpty() ? "User" : category;
+    const auto aut = author.isEmpty() ? "User" : author;
+    if (! saveToFile (file, name, cat, aut)) return false;
     rescan();
-    setCurrentName (name, category.isEmpty() ? "User" : category, true);
+    setCurrentName (name, cat, aut, true);
     return true;
 }
 
@@ -279,12 +295,12 @@ bool PresetManager::saveCurrent()
     if (currentIndex >= 0 && currentIndex < (int) entries.size() && ! entries[(size_t) currentIndex].isFactory)
     {
         const auto& e = entries[(size_t) currentIndex];
-        if (! saveToFile (e.file, e.name, e.category)) return false;
+        if (! saveToFile (e.file, e.name, e.category, e.author)) return false;
         dirty = false;
         notify();
         return true;
     }
-    return saveAs (currentName, "User");
+    return saveAs (currentName, "User", currentAuthor.isNotEmpty() ? currentAuthor : "User");
 }
 
 bool PresetManager::deleteUserPreset (int index)

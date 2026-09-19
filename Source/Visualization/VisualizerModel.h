@@ -42,6 +42,39 @@ private:
 
 using ScopeBuffer = SampleBuffer<512>;
 
+/** SPSC queue publishes each X/Y pair together. A full queue drops new points;
+    it never overwrites data the message thread may be reading. */
+class NonlinearScopeBuffer
+{
+public:
+    struct Point { float x = 0.0f, y = 0.0f; };
+    static constexpr unsigned size = 512;
+    static_assert (std::atomic<unsigned>::is_always_lock_free);
+    void push (float x, float y) noexcept
+    {
+        if (++decimation < 8) return;
+        decimation = 0;
+        const unsigned w = write.load (std::memory_order_relaxed);
+        const unsigned next = (w+1)%size;
+        if (next == read.load (std::memory_order_acquire)) return;
+        points[w] = {x,y};
+        write.store (next, std::memory_order_release);
+    }
+    int drain (Point* output, int capacity) noexcept
+    {
+        unsigned r = read.load (std::memory_order_relaxed);
+        const unsigned w = write.load (std::memory_order_acquire);
+        int count = 0;
+        while (r != w && count < capacity) { output[count++] = points[r]; r = (r+1)%size; }
+        read.store (r, std::memory_order_release);
+        return count;
+    }
+private:
+    std::array<Point, size> points {};
+    std::atomic<unsigned> write {0}, read {0};
+    int decimation = 0;
+};
+
 /**
     Lock-free bridge between the audio engine and the GUI visualiser.
 
@@ -91,6 +124,11 @@ public:
     std::atomic<float> sidechainEnv  { 0.0f };
     std::array<std::atomic<int>, 3> resonatorRunning {};
 
+    // v2.2 PIPE model telemetry (audio thread writes, GUI reads, lock-free atomics; no allocation)
+    std::array<std::atomic<float>, 3> pipeLoopGainDb { 0.0f, 0.0f, 0.0f };
+    std::array<std::atomic<float>, 3> pipePhaseCompSamples { 0.0f, 0.0f, 0.0f };
+    std::array<std::atomic<float>, 3> pipeMeasuredDecaySec { 0.0f, 0.0f, 0.0f };
+
     /** Live modulation amounts (per destination) of the most recently started voice, for the GUI mod rings. */
     std::array<std::atomic<float>, (size_t) ModDest::Count> liveMod {};
 
@@ -105,6 +143,8 @@ public:
     std::atomic<float> sampleRate { 48000.0f };
     ScopeBuffer exciterAScope;   // newest voice, exciter A output
     ScopeBuffer exciterBScope;   // newest voice, exciter B output
+    std::array<std::atomic<float>, 3> nonlinearTensionRatio {1.0f, 1.0f, 1.0f};
+    std::array<NonlinearScopeBuffer, 3> nonlinearScope;
     ScopeBuffer foldScope;       // newest voice, after the wavefolder (network input)
 
     void pushScopeSample (float mono) noexcept

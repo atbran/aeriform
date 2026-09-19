@@ -57,3 +57,15 @@ a fuzz step re-prepares the processor (new sample rate / block size) in the same
 measured interval; steady-state blocks stay within budget for every profiled
 configuration on this machine. Use Eco or Normal with 16 voices of the
 "Everything" configuration on slower machines.
+
+
+## Nonlinear loop profiling status (2026-09-14)
+
+Phases 0–5 add per-slot nonlinear processing and decimated live visualization.
+The feature-specific target remains no more than 10% relative CPU increase for
+8 voices at Normal quality versus the same patch with the feature disabled.
+Measurements at Eco, Normal and High are pending with the testing agent; none
+of the historical figures above measures this feature. No CPU acceptance claim
+is made from the cursory implementation smoke tests. Compare matched on/off
+patches, including each model, modal/waveguide paths and visible scope activity;
+record hardware, build, block size and measurement duration with the results.

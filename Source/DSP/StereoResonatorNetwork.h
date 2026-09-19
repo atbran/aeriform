@@ -59,6 +59,8 @@ public:
         energyL+=.002f*(std::abs(l)-energyL);energyR+=.002f*(std::abs(r)-energyR);
     }
     float loopReturn() const noexcept {return rightRunning?lerp(left.loopReturn(),.5f*(left.loopReturn()+right.loopReturn()),blend):left.loopReturn();}
+    NonlinearElement::Sample nonlinearSample(int i) const noexcept {return left.nonlinearSample(i);}
+    float tensionRatio(int i) const noexcept {return left.tensionRatio(i);}
     float energy(int i) const noexcept {return rightRunning?.5f*(left.energy(i)+right.energy(i)):left.energy(i);}
     float netEnergy() const noexcept {return rightRunning?.5f*(left.netEnergy()+right.netEnergy()):left.netEnergy();}
     float governor() const noexcept {return rightRunning?std::min(left.governor(),right.governor()):left.governor();}

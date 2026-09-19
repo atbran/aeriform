@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — resonator nonlinearity
+
+- Added Saturate, Hysteresis, Tension and Friction per resonator slot, with pre,
+  post and pickup positions, smoothed controls, and Drive/Amount modulation.
+- Added live input/output plots, a Tension pitch meter, waveform ADAA for
+  Saturate, and local energy limiting for Friction. Modal feedback uses
+  topology-specific processing described in [the guide](docs/NONLINEAR_LOOP.md).
+- Appended four Nonlinear demonstrator presets after all 42 existing factory
+  entries. Existing parameter indices and factory favorite IDs are preserved;
+  old states receive disabled nonlinear defaults in state version 4.
+- Basic build, rendering and DSP checks are recorded in the implementation
+  handoff. Full acceptance and CPU measurements remain with the testing agent.
+
+
 ## v3.3.0
 
 This release introduces an expanded Table Preset Browser overlay with instant search, category filtering, and one-click favorite starring, alongside an editable category selector for user preset creation.

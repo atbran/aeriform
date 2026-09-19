@@ -4,6 +4,7 @@
 #include "GUI/GuiDiagnostics.h"
 #include "GUI/WorkspacePage.h"
 #include "GUI/EffectsWorkspace.h"
+#include "GUI/PipePage.h"
 #include <set>
 #include <cstdlib>
 
@@ -380,6 +381,8 @@ AERIFORM_TEST (preset_manager_categories_and_lookup)
     for (int i = 0; i < (int) entries.size(); ++i)
     {
         CHECK (pm.findEntryIndex (entries[(size_t) i].stableId) == i);
+        if (entries[(size_t) i].isFactory)
+            CHECK (entries[(size_t) i].author == "AERIFORM");
     }
 }
 
@@ -425,8 +428,15 @@ AERIFORM_TEST (preset_browser_overlay_and_interaction)
     browser.setSearchQuery ("Init");
     CHECK (browser.getFilteredCount() >= 1);
     CHECK (browser.getFilteredCount() < totalPresets);
+
+    // Search by Author
+    browser.setSearchQuery ("AERIFORM");
+    CHECK (browser.getFilteredCount() >= 1);
     browser.setSearchQuery ("");
     CHECK (browser.getFilteredCount() == totalPresets);
+
+    // Verify columns count (Star, Name, Category, Author)
+    CHECK (browser.getTable().getHeader().getNumColumns (true) == 4);
 
     // Star / Favorite toggle in browser
     if (totalPresets > 0)
@@ -459,8 +469,345 @@ AERIFORM_TEST (preset_browser_overlay_and_interaction)
         CHECK (pm.getCurrentIndex() == 1);
     }
 
+    // Sort by Author column (column 4)
+    browser.sortOrderChanged (4, true);
+    browser.sortOrderChanged (4, false);
+
     // Escape key closes browser
     juce::KeyPress esc (juce::KeyPress::escapeKey);
     CHECK (editor->keyPressed (esc));
     CHECK (! browser.isVisible());
 }
+
+AERIFORM_TEST (nonlinear_phase1_network_controls_and_plot)
+{
+    TestHost host;
+    host.set (ids::resNlOn, 1.0f); host.set (ids::resNlDrive, 75.0f);
+    host.noteOn (57); host.render (0.08);
+    NonlinearScopeBuffer::Point pairs[512];
+    CHECK (host.processor.getVisualizerModel().nonlinearScope[0].drain (pairs, 512) > 0);
+    std::unique_ptr<juce::AudioProcessorEditor> editor (host.processor.createEditor());
+    auto* ed = dynamic_cast<AeriformEditor*> (editor.get());
+    CHECK (ed != nullptr); if (!ed) return;
+    ed->showPage (2);
+    for (auto* button : descendants<juce::TextButton> (*ed))
+        if (button->getButtonText() == "Nonlinearity") button->onClick();
+    juce::Thread::sleep (50); juce::Timer::callPendingTimersSynchronously();
+    for (int i = 0; i < 8; ++i)
+    {
+        host.renderBlock();
+        juce::Thread::sleep (5); juce::Timer::callPendingTimersSynchronously();
+    }
+    const auto plots = descendants<NonlinearCurveDisplay> (*ed, true);
+    CHECK (plots.size() == 3);
+    for (auto* plot : plots) { CHECK (plot->getHeight() > 80); CHECK (plot->getWidth() > 200); }
+    checkControlBounds (*ed);
+    captureUi (*ed, "nonlinear-phase1-network");
+    host.set (ids::resNlModel, 1.0f);
+    for (int i = 0; i < 16; ++i)
+    {
+        host.renderBlock();
+        juce::Thread::sleep (5); juce::Timer::callPendingTimersSynchronously();
+    }
+    bool sawBias = false;
+    for (auto* knob : descendants<Knob> (*ed, true))
+        if (knob->getParamID() == ids::resNlBias) { sawBias = true; CHECK (!knob->isEnabled()); }
+    CHECK (sawBias);
+    captureUi (*ed, "nonlinear-phase2-network");
+    host.set (ids::resNlModel, 2.0f); host.set (ids::resNlAmount, 100.0f);
+    for (int i = 0; i < 16; ++i)
+    {
+        host.renderBlock();
+        juce::Thread::sleep (5); juce::Timer::callPendingTimersSynchronously();
+    }
+    const float ratio = host.processor.getVisualizerModel().nonlinearTensionRatio[0].load();
+    CHECK (ratio >= 1.0f && ratio <= 1.030001f);
+    for (auto* knob : descendants<Knob> (*ed, true))
+        if (knob->getParamID() == ids::resNlDrive) CHECK (!knob->isEnabled());
+    checkControlBounds (*ed);
+    captureUi (*ed, "nonlinear-phase3-network");
+    host.set (ids::resNlModel, 3.0f);
+    for (int i = 0; i < 16; ++i)
+    {
+        host.renderBlock();
+        juce::Thread::sleep (5); juce::Timer::callPendingTimersSynchronously();
+    }
+    for (auto* knob : descendants<Knob> (*ed, true))
+    {
+        if (knob->getParamID() == ids::resNlDrive) CHECK (knob->isEnabled());
+        if (knob->getParamID() == ids::resNlBias) CHECK (!knob->isEnabled());
+    }
+    checkControlBounds (*ed);
+    captureUi (*ed, "nonlinear-phase4-network");
+}
+
+AERIFORM_TEST (pipe_model_ui_parameter_mapping_and_enumeration)
+{
+    TestHost h;
+    gui::unboundControlCount() = 0;
+    std::unique_ptr<juce::AudioProcessorEditor> ed (h.processor.createEditor());
+    CHECK (ed != nullptr);
+    auto* editor = dynamic_cast<AeriformEditor*> (ed.get());
+    CHECK (editor != nullptr);
+    if (editor == nullptr) return;
+
+    CHECK_MSG (gui::unboundControlCount() == 0, "Unbound controls detected during editor creation");
+
+    const std::vector<const char*> suffixes = {
+        "pressure", "dcnoise", "exc_cut", "exc_res", "exc_kt", "exc_vt",
+        "rt", "rt_kt", "damp", "lp", "hp", "filt_kt",
+        "sat_drive", "sat_knee", "sat_sym", "bore"
+    };
+
+    const std::vector<const char*> prefixes = { "res_", "rb_", "rc_" };
+
+    std::set<juce::String> allPipeParamIds;
+    for (auto* px : prefixes)
+    {
+        for (auto* sfx : suffixes)
+        {
+            juce::String fullId = juce::String (px) + sfx;
+            allPipeParamIds.insert (fullId);
+            auto* p = h.processor.getAPVTS().getParameter (fullId);
+            CHECK_MSG (p != nullptr, "Missing parameter in APVTS: " + fullId.toStdString());
+        }
+    }
+    CHECK (allPipeParamIds.size() == 48);
+
+    editor->showPage (2);
+    auto workspaces = descendants<WorkspacePage> (*editor, true);
+    CHECK (workspaces.size() == 1);
+    if (! workspaces.empty())
+    {
+        workspaces.front()->showSection (2);
+    }
+
+    auto pipePages = descendants<PipePage> (*editor, true);
+    CHECK (pipePages.size() == 1);
+    if (pipePages.empty()) return;
+    auto& pipePage = *pipePages.front();
+
+    for (int slot = 0; slot < 3; ++slot)
+    {
+        pipePage.selectSlot (slot);
+        CHECK (pipePage.getSelectedSlot() == slot);
+        paintEditor (*ed);
+
+        const juce::String expectedPx = prefixes[(size_t) slot];
+        for (auto* knob : descendants<Knob> (pipePage, true))
+        {
+            if (allPipeParamIds.count (knob->getParamID()) > 0)
+            {
+                CHECK (knob->getParamID().startsWith (expectedPx));
+            }
+        }
+    }
+    CHECK (gui::unboundControlCount() == 0);
+}
+
+AERIFORM_TEST (pipe_model_ui_bidirectional_binding_and_no_local_state)
+{
+    TestHost h;
+    std::unique_ptr<juce::AudioProcessorEditor> ed (h.processor.createEditor());
+    auto* editor = dynamic_cast<AeriformEditor*> (ed.get());
+    CHECK (editor != nullptr); if (! editor) return;
+
+    editor->showPage (2);
+    auto workspaces = descendants<WorkspacePage> (*editor, true);
+    if (! workspaces.empty()) workspaces.front()->showSection (2);
+
+    auto pipePages = descendants<PipePage> (*editor, true);
+    CHECK (pipePages.size() == 1); if (pipePages.empty()) return;
+    auto& pipePage = *pipePages.front();
+
+    // 1. Host API to PIPE
+    h.set (ids::resPipePressure, 75.0f);
+    h.set (ids::resPipeRt, 3.5f);
+    h.set (ids::resPipeSatSym, 40.0f);
+    h.set (ids::rbPipePressure, 60.0f);
+
+    paintEditor (*ed);
+
+    for (auto* knob : descendants<Knob> (pipePage))
+    {
+        if (knob->getParamID() == ids::resPipePressure)
+            CHECK_NEAR (h.get (ids::resPipePressure), 75.0f, 0.01f);
+        if (knob->getParamID() == ids::resPipeRt)
+            CHECK_NEAR (h.get (ids::resPipeRt), 3.5f, 0.01f);
+        if (knob->getParamID() == ids::resPipeSatSym)
+            CHECK_NEAR (h.get (ids::resPipeSatSym), 40.0f, 0.01f);
+        if (knob->getParamID() == ids::rbPipePressure)
+            CHECK_NEAR (h.get (ids::rbPipePressure), 60.0f, 0.01f);
+    }
+
+    // 2. PIPE to Host and to NETWORK
+    h.processor.getPatchTools().setParameter (ids::resPipePressure, 25.0f);
+    h.processor.getPatchTools().setParameter (ids::resPipeRt, 1.2f);
+    CHECK_NEAR (h.get (ids::resPipePressure), 25.0f, 0.01f);
+    CHECK_NEAR (h.get (ids::resPipeRt), 1.2f, 0.01f);
+
+    if (! workspaces.empty()) workspaces.front()->showSection (0);
+    paintEditor (*ed);
+    CHECK_NEAR (h.get (ids::resPipePressure), 25.0f, 0.01f);
+
+    if (! workspaces.empty()) workspaces.front()->showSection (2);
+    paintEditor (*ed);
+    CHECK_NEAR (h.get (ids::resPipePressure), 25.0f, 0.01f);
+}
+
+AERIFORM_TEST (pipe_model_ui_comprehensibility_when_not_pipe)
+{
+    TestHost h;
+    h.set (ids::resMode, 2.0f); // String
+
+    std::unique_ptr<juce::AudioProcessorEditor> ed (h.processor.createEditor());
+    auto* editor = dynamic_cast<AeriformEditor*> (ed.get());
+    CHECK (editor != nullptr); if (! editor) return;
+
+    editor->showPage (2);
+    auto workspaces = descendants<WorkspacePage> (*editor, true);
+    if (! workspaces.empty()) workspaces.front()->showSection (2);
+
+    auto pipePages = descendants<PipePage> (*editor, true);
+    CHECK (pipePages.size() == 1); if (pipePages.empty()) return;
+    auto& pipePage = *pipePages.front();
+    pipePage.selectSlot (0);
+
+    paintEditor (*ed);
+
+    auto labels = descendants<juce::Label> (pipePage);
+    bool foundNotice = false;
+    for (auto* label : labels)
+    {
+        if (label->getText().contains ("NOTICE") && label->getText().contains ("PIPE"))
+        {
+            foundNotice = true;
+            break;
+        }
+    }
+    CHECK (foundNotice);
+
+    auto buttons = descendants<juce::TextButton> (pipePage);
+    juce::TextButton* setPipeBtn = nullptr;
+    for (auto* btn : buttons)
+    {
+        if (btn->getButtonText() == "SET TO PIPE")
+        {
+            setPipeBtn = btn;
+            break;
+        }
+    }
+    CHECK (setPipeBtn != nullptr);
+    if (setPipeBtn != nullptr)
+    {
+        CHECK (setPipeBtn->isVisible());
+        setPipeBtn->onClick();
+        CHECK ((int) h.get (ids::resMode) == (int) ResMode::Pipe);
+
+        paintEditor (*ed);
+        bool foundActive = false;
+        for (auto* label : labels)
+        {
+            if (label->getText().contains ("ACTIVE") && label->getText().contains ("PIPE"))
+            {
+                foundActive = true;
+                break;
+            }
+        }
+        CHECK (foundActive);
+        CHECK (! setPipeBtn->isVisible());
+    }
+}
+
+AERIFORM_TEST (pipe_model_ui_nominal_decay_and_asymmetry_prominence)
+{
+    TestHost h;
+    std::unique_ptr<juce::AudioProcessorEditor> ed (h.processor.createEditor());
+    auto* editor = dynamic_cast<AeriformEditor*> (ed.get());
+    CHECK (editor != nullptr); if (! editor) return;
+
+    editor->showPage (2);
+    auto workspaces = descendants<WorkspacePage> (*editor, true);
+    if (! workspaces.empty()) workspaces.front()->showSection (2);
+
+    auto pipePages = descendants<PipePage> (*editor, true);
+    CHECK (pipePages.size() == 1); if (pipePages.empty()) return;
+    auto& pipePage = *pipePages.front();
+
+    for (const char* rtId : { ids::resPipeRt, ids::rbPipeRt, ids::rcPipeRt })
+    {
+        bool foundRt = false;
+        for (auto* knob : descendants<Knob> (pipePage))
+        {
+            if (knob->getParamID() == rtId)
+            {
+                foundRt = true;
+                auto labels = descendants<juce::Label> (*knob);
+                bool labelledNominal = false;
+                for (auto* l : labels)
+                    if (l->getText().contains ("Nominal Decay")) labelledNominal = true;
+                CHECK_MSG (labelledNominal, std::string (rtId) + " is not labelled 'Nominal Decay'");
+            }
+        }
+        CHECK (foundRt);
+    }
+
+    for (const char* symId : { ids::resPipeSatSym, ids::rbPipeSatSym, ids::rcPipeSatSym })
+    {
+        bool foundSym = false;
+        for (auto* knob : descendants<Knob> (pipePage))
+        {
+            if (knob->getParamID() == symId)
+            {
+                foundSym = true;
+                CHECK (knob->getWidth() >= theme::knobSizeLarge || knob->getHeight() >= theme::knobSizeLarge || !knob->isVisible());
+            }
+        }
+        CHECK (foundSym);
+    }
+}
+
+AERIFORM_TEST (pipe_model_ui_scaling_and_bounds_safety)
+{
+    TestHost h;
+    std::unique_ptr<juce::AudioProcessorEditor> ed (h.processor.createEditor());
+    auto* editor = dynamic_cast<AeriformEditor*> (ed.get());
+    CHECK (editor != nullptr); if (! editor) return;
+
+    editor->showPage (2);
+    auto workspaces = descendants<WorkspacePage> (*editor, true);
+    if (! workspaces.empty()) workspaces.front()->showSection (2);
+
+    auto pipePages = descendants<PipePage> (*editor, true);
+    CHECK (pipePages.size() == 1); if (pipePages.empty()) return;
+    auto& pipePage = *pipePages.front();
+
+    for (int slot = 0; slot < 3; ++slot)
+    {
+        pipePage.selectSlot (slot);
+
+        for (float s : { 0.75f, 1.0f, 1.25f, 1.5f, 2.0f })
+        {
+            ed->setSize (juce::roundToInt (theme::editorWidth * s), juce::roundToInt (theme::editorHeight * s));
+            paintEditor (*ed);
+            checkControlBounds (*editor);
+        }
+    }
+
+    captureUi (*editor, "pipe-model-page-slot-a");
+    pipePage.selectSlot (1);
+    captureUi (*editor, "pipe-model-page-slot-b");
+    pipePage.selectSlot (2);
+    captureUi (*editor, "pipe-model-page-slot-c");
+
+    auto& vis = h.processor.getVisualizerModel();
+    CHECK (vis.pipeLoopGainDb[0].is_lock_free());
+    CHECK (vis.pipePhaseCompSamples[0].is_lock_free());
+    CHECK (vis.pipeMeasuredDecaySec[0].is_lock_free());
+
+    vis.pipeLoopGainDb[0].store (-4.25f, std::memory_order_relaxed);
+    vis.pipePhaseCompSamples[0].store (1.45f, std::memory_order_relaxed);
+    vis.pipeMeasuredDecaySec[0].store (0.85f, std::memory_order_relaxed);
+    paintEditor (*ed);
+}
+

@@ -6,6 +6,76 @@ namespace aeriform
 {
 using namespace theme;
 
+NonlinearCurveDisplay::NonlinearCurveDisplay (AeriformProcessor& p, int s, juce::Colour c)
+    : processor (p), slot (s), colour (c)
+{
+    const juce::String prefix = s == 0 ? "res" : s == 1 ? "rb" : "rc";
+    auto& state = processor.getAPVTS();
+    enabled = state.getRawParameterValue (prefix+"_nl_on");
+    model = state.getRawParameterValue (prefix+"_nl_model");
+    position = state.getRawParameterValue (prefix+"_nl_pos");
+    resonatorModel = state.getRawParameterValue (s == 0 ? "res_mode" : prefix+"_type");
+    setComponentID (prefix+"_nl_scope");
+    setInterceptsMouseClicks (false, false);
+    startTimerHz (30);
+}
+void NonlinearCurveDisplay::timerCallback()
+{
+    if (biasControl) biasControl->setEnabled (model->load() < 0.5f);
+    if (driveControl) driveControl->setEnabled ((model->load() < 1.5f || model->load() > 2.5f));
+    const int fresh = processor.getVisualizerModel().nonlinearScope[(size_t) slot].drain (points.data(), (int) points.size());
+    if (fresh > 0) { count = fresh; idleFrames = 0; }
+    else if (++idleFrames > 6) count = 0;
+    if (isShowing()) repaint();
+}
+void NonlinearCurveDisplay::paint (juce::Graphics& g)
+{
+    auto bounds = getLocalBounds().toFloat();
+    g.setColour (theme::inset); g.fillRoundedRectangle (bounds, 4.0f);
+    g.setColour (theme::panelBorder); g.drawRoundedRectangle (bounds.reduced (0.5f), 4.0f, 1.0f);
+    g.setColour (theme::textSecondary); g.setFont (11.0f);
+    if (model->load() > 1.5f && model->load() < 2.5f)
+    {
+        g.drawText ("TENSION / PITCH OFFSET", bounds.removeFromTop (24), juce::Justification::centred);
+        const float ratio = count > 0 ? processor.getVisualizerModel().nonlinearTensionRatio[(size_t) slot].load (std::memory_order_relaxed) : 1.0f;
+        const float cents = 1200.0f*std::log2 (std::clamp (ratio, 1.0f, dsp::NonlinearElement::maxTensionRatio));
+        const juce::String label = position->load() > 1.5f ? "Select pre or post for Tension"
+            : enabled->load() < 0.5f ? "Off" : count == 0 ? "Play a note to see the pitch change" : "Newest voice / left side";
+        g.drawText (label, bounds.removeFromBottom (22), juce::Justification::centred);
+        auto meter = bounds.removeFromBottom (24).reduced (24, 8);
+        g.setColour (theme::grid); g.fillRoundedRectangle (meter, 3.0f);
+        g.setColour (colour); g.fillRoundedRectangle (meter.withWidth (meter.getWidth()*cents/51.18f), 3.0f);
+        g.setFont (32.0f); g.drawText ("+"+juce::String (cents, 1)+" cents", bounds, juce::Justification::centred);
+        return;
+    }
+    g.drawText ("LIVE INPUT / OUTPUT", bounds.removeFromTop (20), juce::Justification::centred);
+    const bool modal = resonatorModel->load() >= (float) ResMode::ModalBank && position->load() < 1.5f;
+    const juce::String label = enabled->load() < 0.5f ? "Off"
+        : model->load() > 2.5f ? (modal ? "Friction / radial loss" : "Friction / energy limited")
+        : count == 0 ? "Play a note to see the response"
+        : modal ? "First mode / state attenuation" : "Newest voice / left side";
+    g.drawText (label, bounds.removeFromBottom (18), juce::Justification::centred);
+    auto plot = bounds.reduced (10, 4);
+    g.setColour (theme::grid);
+    g.drawLine (plot.getX(), plot.getCentreY(), plot.getRight(), plot.getCentreY());
+    g.drawLine (plot.getCentreX(), plot.getY(), plot.getCentreX(), plot.getBottom());
+    g.setColour (theme::textDim.withAlpha (0.4f));
+    g.drawLine (plot.getX(), plot.getBottom(), plot.getRight(), plot.getY());
+    if (count < 2) return;
+    float peak = 0.001f;
+    for (int i = 0; i < count; ++i) peak = std::max (peak, std::max (std::abs (points[(size_t)i].x), std::abs (points[(size_t)i].y)));
+    juce::Path path;
+    for (int i = 0; i < count; ++i)
+    {
+        const auto point = points[(size_t)i];
+        const float x = plot.getCentreX()+point.x/peak*plot.getWidth()*0.46f;
+        const float y = plot.getCentreY()-point.y/peak*plot.getHeight()*0.46f;
+        if (i == 0) path.startNewSubPath (x,y); else path.lineTo (x,y);
+    }
+    g.setColour (colour); g.strokePath (path, juce::PathStrokeType (1.4f));
+}
+
+
 // ---------------------------------------------------------------------------
 ScopeDisplay::ScopeDisplay (const ScopeBuffer& b, const std::atomic<float>* lvl, juce::Colour c, juce::String text)
     : buffer (b), levelAtomic (lvl), colour (c), label (std::move (text))

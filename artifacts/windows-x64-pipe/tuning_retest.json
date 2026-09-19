@@ -1,0 +1,611 @@
+{
+  "dsp_rederivations": {
+    "primitive_derivative_max_error": 3.5104974482891294e-10,
+    "curve_magnitude_bound_excess": 0.0,
+    "hp_peak_magnitude": 1.0,
+    "t10_contractivity_max_violation": 0.0,
+    "t10_asym_h2_h3": {
+      "-1.0": 1.398961346864904,
+      "-0.8": -1.027087353431909,
+      "-0.6": -3.905538488863664,
+      "-0.4": -7.697295408766652,
+      "-0.2": -13.879042680484998,
+      "0.0": -195.80658996247678,
+      "0.2": -13.879042680728297,
+      "0.4": -7.697295408890311,
+      "0.6": -3.905538488948428,
+      "0.8": -1.0270873534980645,
+      "1.0": 1.3989613468091158
+    },
+    "t10_even_attenuation_at_zero_db": -217.7388522366579
+  },
+  "t5_tuning_retest": {
+    "total_probes": 72,
+    "before_max_abs_cents": 24.59814101697545,
+    "after_max_abs_cents": 0.006820626975085654,
+    "threshold_cents": 3.0,
+    "pass_contract_c4": true,
+    "missing_peaks": 0,
+    "extreme_grid_found": 396,
+    "extreme_grid_unavail": 576,
+    "repeat_reproducibility": "118/118",
+    "probe_comparisons": [
+      {
+        "name": "impulse-cone-44100-33-open",
+        "expected_hz": 55.0,
+        "before_cents": 0.4542008262358087,
+        "after_cents": 0.004111164790147245,
+        "spectral_vs_analytic_cents": 0.004111164790147245,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-33-closed",
+        "expected_hz": 55.0,
+        "before_cents": 9.242485459801323,
+        "after_cents": 0.0003304048692970345,
+        "spectral_vs_analytic_cents": 0.0003304048692970345,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-45-open",
+        "expected_hz": 110.0,
+        "before_cents": 0.043672775980726754,
+        "after_cents": -0.00011747319956106702,
+        "spectral_vs_analytic_cents": -0.00011747319956106702,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-45-closed",
+        "expected_hz": 110.0,
+        "before_cents": 8.766849441349967,
+        "after_cents": 4.062088887747071e-05,
+        "spectral_vs_analytic_cents": 4.062088887747071e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-57-open",
+        "expected_hz": 220.0,
+        "before_cents": 0.01809836222807409,
+        "after_cents": 1.0371084561716334e-05,
+        "spectral_vs_analytic_cents": 1.0371084561716334e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-57-closed",
+        "expected_hz": 220.0,
+        "before_cents": 8.53152215473374,
+        "after_cents": 6.98254575648642e-05,
+        "spectral_vs_analytic_cents": 6.98254575648642e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-69-open",
+        "expected_hz": 440.0,
+        "before_cents": 0.013842995129498274,
+        "after_cents": 8.336051377719324e-06,
+        "spectral_vs_analytic_cents": 8.336051377719324e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-69-closed",
+        "expected_hz": 440.0,
+        "before_cents": 8.421741937622082,
+        "after_cents": 8.207284396394253e-06,
+        "spectral_vs_analytic_cents": 8.207284396394253e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-81-open",
+        "expected_hz": 880.0,
+        "before_cents": 0.011225664417179261,
+        "after_cents": 1.1627141550891941e-05,
+        "spectral_vs_analytic_cents": 1.1627141550891941e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-81-closed",
+        "expected_hz": 880.0,
+        "before_cents": 8.29823086999149,
+        "after_cents": 2.797844418788521e-05,
+        "spectral_vs_analytic_cents": 2.797844418788521e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-93-open",
+        "expected_hz": 1760.0,
+        "before_cents": 0.0024380868900065215,
+        "after_cents": -1.175214557482013e-06,
+        "spectral_vs_analytic_cents": -1.175214557482013e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-44100-93-closed",
+        "expected_hz": 1760.0,
+        "before_cents": 8.092359507201717,
+        "after_cents": 1.26448175212489e-06,
+        "spectral_vs_analytic_cents": 1.26448175212489e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-33-open",
+        "expected_hz": 55.0,
+        "before_cents": 0.4548483752319078,
+        "after_cents": 0.003812495434843544,
+        "spectral_vs_analytic_cents": 0.003812495434843544,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-33-closed",
+        "expected_hz": 55.0,
+        "before_cents": 9.24200847238162,
+        "after_cents": 9.375659313776197e-05,
+        "spectral_vs_analytic_cents": 9.375659313776197e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-45-open",
+        "expected_hz": 110.0,
+        "before_cents": 0.0434661296481176,
+        "after_cents": -8.508829363586162e-05,
+        "spectral_vs_analytic_cents": -8.508829363586162e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-45-closed",
+        "expected_hz": 110.0,
+        "before_cents": 8.771934845546003,
+        "after_cents": 9.596945751445799e-05,
+        "spectral_vs_analytic_cents": 9.596945751445799e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-57-open",
+        "expected_hz": 220.0,
+        "before_cents": 0.018122301562937315,
+        "after_cents": 5.20028215088352e-06,
+        "spectral_vs_analytic_cents": 5.20028215088352e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-57-closed",
+        "expected_hz": 220.0,
+        "before_cents": 8.535697330484759,
+        "after_cents": -1.619322667957188e-05,
+        "spectral_vs_analytic_cents": -1.619322667957188e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-69-open",
+        "expected_hz": 440.0,
+        "before_cents": 0.013992366155229008,
+        "after_cents": 2.074987304567916e-05,
+        "spectral_vs_analytic_cents": 2.074987304567916e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-69-closed",
+        "expected_hz": 440.0,
+        "before_cents": 8.424355832365315,
+        "after_cents": 4.0543360448002156e-05,
+        "spectral_vs_analytic_cents": 4.0543360448002156e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-81-open",
+        "expected_hz": 880.0,
+        "before_cents": 0.011420502129948877,
+        "after_cents": -7.02778176631162e-06,
+        "spectral_vs_analytic_cents": -7.02778176631162e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-81-closed",
+        "expected_hz": 880.0,
+        "before_cents": 8.319796929460265,
+        "after_cents": -4.191958901432719e-05,
+        "spectral_vs_analytic_cents": -4.191958901432719e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-93-open",
+        "expected_hz": 1760.0,
+        "before_cents": 0.004905261202351216,
+        "after_cents": -4.858232389666591e-05,
+        "spectral_vs_analytic_cents": -4.858232389666591e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-48000-93-closed",
+        "expected_hz": 1760.0,
+        "before_cents": 8.1405384012718,
+        "after_cents": 3.676802257878368e-05,
+        "spectral_vs_analytic_cents": 3.676802257878368e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-33-open",
+        "expected_hz": 55.0,
+        "before_cents": 0.4558366023206529,
+        "after_cents": 0.006820626975085654,
+        "spectral_vs_analytic_cents": 0.006820626975085654,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-33-closed",
+        "expected_hz": 55.0,
+        "before_cents": 9.243554340650167,
+        "after_cents": 0.0014833138342335449,
+        "spectral_vs_analytic_cents": 0.0014833138342335449,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-45-open",
+        "expected_hz": 110.0,
+        "before_cents": 0.04405559338581125,
+        "after_cents": -0.00025667286745875435,
+        "spectral_vs_analytic_cents": -0.00025667286745875435,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-45-closed",
+        "expected_hz": 110.0,
+        "before_cents": 8.76979867011775,
+        "after_cents": 8.335042117794366e-05,
+        "spectral_vs_analytic_cents": 8.335042117794366e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-57-open",
+        "expected_hz": 220.0,
+        "before_cents": 0.018065211815192085,
+        "after_cents": 3.1335691871089246e-05,
+        "spectral_vs_analytic_cents": 3.1335691871089246e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-57-closed",
+        "expected_hz": 220.0,
+        "before_cents": 8.537869774266477,
+        "after_cents": 0.00011541933737725035,
+        "spectral_vs_analytic_cents": 0.00011541933737725035,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-69-open",
+        "expected_hz": 440.0,
+        "before_cents": 0.014163572388787607,
+        "after_cents": -1.1874429691141748e-05,
+        "spectral_vs_analytic_cents": -1.1874429691141748e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-69-closed",
+        "expected_hz": 440.0,
+        "before_cents": 8.424355829694766,
+        "after_cents": 3.7478864570519177e-05,
+        "spectral_vs_analytic_cents": 3.7478864570519177e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-81-open",
+        "expected_hz": 880.0,
+        "before_cents": 0.012073268478977849,
+        "after_cents": -4.531906863739077e-05,
+        "spectral_vs_analytic_cents": -4.531906863739077e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-81-closed",
+        "expected_hz": 880.0,
+        "before_cents": 8.33900210102793,
+        "after_cents": 5.386884141777531e-05,
+        "spectral_vs_analytic_cents": 5.386884141777531e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-93-open",
+        "expected_hz": 1760.0,
+        "before_cents": 0.010561992977142495,
+        "after_cents": 5.65362585971714e-05,
+        "spectral_vs_analytic_cents": 5.65362585971714e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cone-96000-93-closed",
+        "expected_hz": 1760.0,
+        "before_cents": 8.274984037486874,
+        "after_cents": 3.001489928572482e-05,
+        "spectral_vs_analytic_cents": 3.001489928572482e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-33-open",
+        "expected_hz": 55.0,
+        "before_cents": 1.188351263458451,
+        "after_cents": -0.000348341150999645,
+        "spectral_vs_analytic_cents": -0.000348341150999645,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-33-closed",
+        "expected_hz": 55.0,
+        "before_cents": 24.59814101697545,
+        "after_cents": 0.00029138022400936736,
+        "spectral_vs_analytic_cents": 0.00029138022400936736,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-45-open",
+        "expected_hz": 110.0,
+        "before_cents": 0.11501304457580043,
+        "after_cents": 7.491809746073802e-05,
+        "spectral_vs_analytic_cents": 7.491809746073802e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-45-closed",
+        "expected_hz": 110.0,
+        "before_cents": 23.959391080401385,
+        "after_cents": 6.1925265702892e-05,
+        "spectral_vs_analytic_cents": 6.1925265702892e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-57-open",
+        "expected_hz": 220.0,
+        "before_cents": 0.051559908140542676,
+        "after_cents": -4.910462275552927e-06,
+        "spectral_vs_analytic_cents": -4.910462275552927e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-57-closed",
+        "expected_hz": 220.0,
+        "before_cents": 23.628417564121403,
+        "after_cents": 2.453676711857192e-05,
+        "spectral_vs_analytic_cents": 2.453676711857192e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-69-open",
+        "expected_hz": 440.0,
+        "before_cents": 0.0439181684770239,
+        "after_cents": -2.2796634515816865e-05,
+        "spectral_vs_analytic_cents": -2.2796634515816865e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-69-closed",
+        "expected_hz": 440.0,
+        "before_cents": 23.47877862872535,
+        "after_cents": -2.658470480677201e-06,
+        "spectral_vs_analytic_cents": -2.658470480677201e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-81-open",
+        "expected_hz": 880.0,
+        "before_cents": 0.03812856808293354,
+        "after_cents": 5.6913101093549746e-05,
+        "spectral_vs_analytic_cents": 5.6913101093549746e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-81-closed",
+        "expected_hz": 880.0,
+        "before_cents": 23.220280910558184,
+        "after_cents": 6.379201658981256e-06,
+        "spectral_vs_analytic_cents": 6.379201658981256e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-93-open",
+        "expected_hz": 1760.0,
+        "before_cents": 0.008295139700947913,
+        "after_cents": 6.445672118003911e-06,
+        "spectral_vs_analytic_cents": 6.445672118003911e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-44100-93-closed",
+        "expected_hz": 1760.0,
+        "before_cents": 22.771219432128458,
+        "after_cents": -2.6440540608701042e-05,
+        "spectral_vs_analytic_cents": -2.6440540608701042e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-33-open",
+        "expected_hz": 55.0,
+        "before_cents": 1.1877139464040134,
+        "after_cents": -0.0005254826493504997,
+        "spectral_vs_analytic_cents": -0.0005254826493504997,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-33-closed",
+        "expected_hz": 55.0,
+        "before_cents": 24.587235711659414,
+        "after_cents": 0.00016425913294945422,
+        "spectral_vs_analytic_cents": 0.00016425913294945422,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-45-open",
+        "expected_hz": 110.0,
+        "before_cents": 0.11484880496378086,
+        "after_cents": 1.9976240556762105e-05,
+        "spectral_vs_analytic_cents": 1.9976240556762105e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-45-closed",
+        "expected_hz": 110.0,
+        "before_cents": 23.955690300857086,
+        "after_cents": 0.00012237156224991158,
+        "spectral_vs_analytic_cents": 0.00012237156224991158,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-57-open",
+        "expected_hz": 220.0,
+        "before_cents": 0.05164362882334653,
+        "after_cents": -2.0904238987505172e-05,
+        "spectral_vs_analytic_cents": -2.0904238987505172e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-57-closed",
+        "expected_hz": 220.0,
+        "before_cents": 23.647969219127006,
+        "after_cents": -4.108501540745443e-05,
+        "spectral_vs_analytic_cents": -4.108501540745443e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-69-open",
+        "expected_hz": 440.0,
+        "before_cents": 0.04404418714763982,
+        "after_cents": 5.263276999591171e-05,
+        "spectral_vs_analytic_cents": 5.263276999591171e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-69-closed",
+        "expected_hz": 440.0,
+        "before_cents": 23.444906797225343,
+        "after_cents": -2.7360250138404715e-05,
+        "spectral_vs_analytic_cents": -2.7360250138404715e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-81-open",
+        "expected_hz": 880.0,
+        "before_cents": 0.038577206249743395,
+        "after_cents": 3.1453600003865804e-05,
+        "spectral_vs_analytic_cents": 3.1453600003865804e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-81-closed",
+        "expected_hz": 880.0,
+        "before_cents": 23.267207638838343,
+        "after_cents": -6.563977505324443e-05,
+        "spectral_vs_analytic_cents": -6.563977505324443e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-93-open",
+        "expected_hz": 1760.0,
+        "before_cents": 0.017666523552388933,
+        "after_cents": -4.584833906478624e-06,
+        "spectral_vs_analytic_cents": -4.584833906478624e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-48000-93-closed",
+        "expected_hz": 1760.0,
+        "before_cents": 22.822879928300118,
+        "after_cents": 5.266517350309715e-06,
+        "spectral_vs_analytic_cents": 5.266517350309715e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-33-open",
+        "expected_hz": 55.0,
+        "before_cents": 1.1872577406531384,
+        "after_cents": 0.0015418725651237225,
+        "spectral_vs_analytic_cents": 0.0015418725651237225,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-33-closed",
+        "expected_hz": 55.0,
+        "before_cents": 24.59091476369232,
+        "after_cents": 0.001418169254490171,
+        "spectral_vs_analytic_cents": 0.001418169254490171,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-45-open",
+        "expected_hz": 110.0,
+        "before_cents": 0.11579761459989298,
+        "after_cents": -7.644029389154139e-05,
+        "spectral_vs_analytic_cents": -7.644029389154139e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-45-closed",
+        "expected_hz": 110.0,
+        "before_cents": 23.958616490312032,
+        "after_cents": 5.5814639646164206e-05,
+        "spectral_vs_analytic_cents": 5.5814639646164206e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-57-open",
+        "expected_hz": 220.0,
+        "before_cents": 0.051670426655264015,
+        "after_cents": -2.146170312704384e-06,
+        "spectral_vs_analytic_cents": -2.146170312704384e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-57-closed",
+        "expected_hz": 220.0,
+        "before_cents": 23.64479655083078,
+        "after_cents": 0.00015481996264368658,
+        "spectral_vs_analytic_cents": 0.00015481996264368658,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-69-open",
+        "expected_hz": 440.0,
+        "before_cents": 0.044451486411318714,
+        "after_cents": -1.193891351387349e-05,
+        "spectral_vs_analytic_cents": -1.193891351387349e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-69-closed",
+        "expected_hz": 440.0,
+        "before_cents": 23.48439301987736,
+        "after_cents": 5.254163917777346e-05,
+        "spectral_vs_analytic_cents": 5.254163917777346e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-81-open",
+        "expected_hz": 880.0,
+        "before_cents": 0.040535565761138904,
+        "after_cents": -2.0328760643676293e-05,
+        "spectral_vs_analytic_cents": -2.0328760643676293e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-81-closed",
+        "expected_hz": 880.0,
+        "before_cents": 23.356059497979988,
+        "after_cents": 8.405883444083227e-05,
+        "spectral_vs_analytic_cents": 8.405883444083227e-05,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-93-open",
+        "expected_hz": 1760.0,
+        "before_cents": 0.037073614461909724,
+        "after_cents": 5.513629541907571e-06,
+        "spectral_vs_analytic_cents": 5.513629541907571e-06,
+        "local_peak_detected": true
+      },
+      {
+        "name": "impulse-cyl-96000-93-closed",
+        "expected_hz": 1760.0,
+        "before_cents": 23.267207638838343,
+        "after_cents": 1.6835395585832677e-05,
+        "spectral_vs_analytic_cents": 1.6835395585832677e-05,
+        "local_peak_detected": true
+      }
+    ]
+  }
+}
