@@ -7,6 +7,7 @@ void Exciter::prepare (float sr, uint32_t seed)
     sampleRate = sr;
     smooth = 1 - std::exp(-1/(.02f*sr));
     f1Filter.setSampleRate(sr);f2Filter.setSampleRate(sr);f3Filter.setSampleRate(sr);edgeFilter.setSampleRate(sr);
+    coreLP.setCutoff (3500.0f, sr);
     rng.seed (seed);
     slowTurb.seed (seed * 7u + 1u);
     fastTurb.seed (seed * 13u + 5u);
@@ -24,6 +25,7 @@ void Exciter::prepare (float sr, uint32_t seed)
 void Exciter::reset()
 {
     pinkFilter.reset();
+    coreLP.reset();
     f1Filter.reset();f2Filter.reset();f3Filter.reset();edgeFilter.reset();onset=0;emphasis=1;shapeTick=0;mouthNow=mouthTarget;edgeNow=edgeTarget;airGainNow=0;contourNow=contourAmount;
     lpFilter.reset();
     hpFilter.reset();

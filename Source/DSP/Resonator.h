@@ -109,10 +109,13 @@ public:
         float x;
         if (reedAmount > 0.0f)
         {
+            // Reed valve: the reflection coefficient r scales the bore wave, and closes (r -> 1) as the
+            // pressure difference across the reed grows. (r used to scale the mouth side, which left the
+            // junction reflecting only ~30 % of the bore wave: too lossy for the reed ever to speak.)
             const float pMouth = pressureNow * 1.2f + in;
-            const float dp = pMouth - reflected;
+            const float dp = reflected - pMouth;
             const float r = std::clamp (0.7f - 0.3f * dp, -1.0f, 1.0f);
-            const float reedOut = reflected + dp * r;
+            const float reedOut = pMouth + dp * r;
             x = lerp (reflected + in, reedOut, reedAmount);
         }
         else

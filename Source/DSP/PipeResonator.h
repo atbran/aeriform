@@ -20,6 +20,11 @@ struct PipeParams
     float drive = 2.0f, hardness = 0.4f, asymmetry = 0.0f; // 1..32, 0..1, -1..1
     bool cylinder = false, adaa = true;
     float velocity = 0.8f;
+    /** How pressure drives the pipe. Linear adds pressure and noise into the loop (the original
+        PIPE); Jet and Reed are self-oscillating mouthpieces that turn steady pressure into tone. */
+    enum class Blow { Linear, Jet, Reed };
+    Blow blow = Blow::Linear;
+    float jet = 0.5f;                                // Jet: jet length; Reed: reed opening (0..1)
 };
 
 /**
@@ -34,6 +39,19 @@ struct PipeParams
 
     The DC part of the excitation is deliberately not blocked before the saturator: it
     biases the knee into asymmetric operation. The loop highpass follows the saturator.
+
+    Jet and Reed replace the additive excitation with a mouthpiece at the loop input:
+    - Jet (flue pipe): pressure sets the jet speed U = sqrt(P). The wave returning to the mouth
+      deflects the jet, which crosses the mouth in tau (shorter at higher pressure, so hard blowing
+      overblows) and splits on the edge through a saturating profile (Drive = jet gain, Hardness =
+      profile, Asymmetry = jet offset from the edge). The resulting flow, proportional to U, feeds the
+      bore. Turbulence deflects the jet and is radiated at the mouth, so breath noise is modulated by
+      the tone. A two-pole jet lowpass at 1.5 f0 keeps the fundamental regime stable.
+    - Reed: a pressure-controlled valve (reflection table offset - slope * pressure difference).
+    In both, the loop gain stays below one and the injected flow is bounded, so the loop energy is
+    bounded. The output is the radiated wave (bore end plus mouth) through a gentle one-zero
+    radiation highpass, normalised by the round-trip loss so decay time does not set loudness.
+    Tuning adds the steady-state phase of the jet path to the filter compensation.
 */
 class PipeResonator
 {
@@ -44,6 +62,7 @@ public:
     {
         fs = sampleRate;
         delay.prepare ((int) std::ceil (fs / kMinFreq * 1.5) + 64);
+        jetLine.prepare ((int) std::ceil (fs / kMinFreq * 1.6) + 64);
         lenSmooth = 1.0f - std::exp (-1.0f / (0.0025f * sampleRate));
         seedValue = seed != 0 ? seed : 1u;
         tuningCached = false;
@@ -58,6 +77,9 @@ public:
         rng = seedValue;
         energy = 0.0f; lastOut = 0.0f; loopMeanSquare = 0.0;
         delayLen = targetLen;
+        jetLine.clear();
+        jet1 = jet2 = radPrev = slowTurb = 0.0;
+        jetLen = jetBaseLen;
     }
 
     /** Control-rate update. freqHz is the slot's fundamental (tuning, bend and glide included). */
@@ -70,6 +92,13 @@ public:
         const double lpCut = std::clamp (p.lpHz * track, 20.0, fs * 0.45);
         const double hpCut = std::clamp (p.hpHz * track, 20.0, fs * 0.45);
         aLP = pole (lpCut); aHP = pole (hpCut); bHP = 0.5 * (1.0 + aHP);
+        if (p.blow != PipeParams::Blow::Linear)
+        {
+            // A mouthpiece locks the harmonics together, so a highpass leading the fundamental much more
+            // than the overtones makes the tone multiphonic on low notes: keep it below f0 / 8.
+            aHP = std::exp (-2.0 * kPiD * std::clamp (std::min (hpCut, f0 / 8.0), 2.0, fs * 0.45) / fs);
+            bHP = 0.5 * (1.0 + aHP);
+        }
 
         const double rt = std::clamp ((double) p.rtSec * std::exp2 (-p.rtKeyTrack * (note - 60.0) / 12.0) * (1.0 - std::clamp (p.damp, 0.0f, 1.0f)), 0.001, 30.0);
         roundTrip = fs / (f0 * (p.cylinder ? 2.0 : 1.0));
@@ -77,7 +106,35 @@ public:
 
         const double w = 2.0 * kPiD * f0 / fs;
         const double filters = -(std::arg (lpResponse (aLP, w)) + std::arg (hpResponse (aHP, w))) / w;
-        const double base = roundTrip - filters - (p.adaa ? 0.5 : 0.0);
+        const bool mouthpiece = p.blow != PipeParams::Blow::Linear;
+        // loss per round trip at the fundamental: sets the output normalisation and the jet's steady state
+        const double loopMag = gain * std::abs (lpResponse (aLP, w) * hpResponse (aHP, w));
+        outNorm = std::clamp (1.0 - loopMag, 0.004, 1.0);
+        double jetDelay = 0.0;
+        if (p.blow == PipeParams::Blow::Jet)
+        {
+            const double period = fs / f0;
+            const double target = std::max (0.04, (double) p.pressure);   // the embouchure follows the target pressure
+            jetRatio = std::clamp ((0.42 + 0.5 * ((double) p.jet - 0.5)) * std::pow (0.5 / target, 0.3), 0.08, 1.2);
+            jetBaseLen = std::clamp (jetRatio * period, 1.0, (double) jetLine.getMaxDelay() / 1.3 - 2.0) + 1.0;
+            jetA = 1.0 - std::exp (-2.0 * kPiD * std::min (1.5 * f0, fs * 0.4) / fs);
+            // steady state: the jet path gain settles where |R| * loopMag = 1, with R = 1 + A e^{j theta}
+            const Complex lp1 = jetA / (1.0 - (1.0 - jetA) * std::polar (1.0, -w));
+            const double theta = kPiD - w * (jetBaseLen - 1.0) + 2.0 * std::arg (lp1);
+            const double M = 1.0 / std::max (loopMag, 1.0e-6), c = std::cos (theta);
+            const double A = -c + std::sqrt (std::max (0.0, c * c + M * M - 1.0));
+            jetDelay = -std::atan2 (A * std::sin (theta), 1.0 + A * c) / w + harmonicPull (0.04, w, filters, p.cylinder);
+            jetOffset = 0.3 + 0.6 * std::clamp ((double) p.asymmetry, -1.0, 1.0);
+            jetRest = jetCurve (jetOffset, std::clamp ((double) p.hardness, 0.0, 1.0));
+        }
+        else if (p.blow == PipeParams::Blow::Reed)
+        {
+            reedOffset = 0.45 + 0.45 * std::clamp ((double) p.jet, 0.0, 1.0);
+            reedSlope = 0.1 + 0.1 * std::clamp ((double) p.drive, 1.0, 32.0);
+            reedClose = (1.0 - reedOffset) / reedSlope;
+            jetDelay = harmonicPull (0.1, w, filters, p.cylinder);
+        }
+        const double base = roundTrip - filters - (mouthpiece ? jetDelay : (p.adaa ? 0.5 : 0.0));
         double length = base;
         for (int i = 0; i < 12; ++i)
         {
@@ -85,7 +142,13 @@ public:
             length = base - (-std::arg (lagrangeFraction (fraction, w)) / w - fraction);
         }
         const double maxDelay = (double) delay.getMaxDelay();
-        if (! tuningCached || w != cachedW || aLP != cachedLP || aHP != cachedHP || gain != cachedGain
+        if (mouthpiece)
+        {
+            // the small-signal peak search models the linear loop only
+            tuned = { std::clamp (length, 4.0, maxDelay), false };
+            tuningCached = false;
+        }
+        else if (! tuningCached || w != cachedW || aLP != cachedLP || aHP != cachedHP || gain != cachedGain
             || p.cylinder != cachedCylinder || p.adaa != cachedAdaa)
         {
             tuned = tuneMagnitudePeak (length, w, maxDelay);
@@ -122,6 +185,8 @@ public:
 
         rng ^= rng << 13; rng ^= rng >> 17; rng ^= rng << 5;
         const double noise = 2.0 * ((double) rng / 4294967295.0) - 1.0;
+        if (params.blow != PipeParams::Blow::Linear)
+            return nextMouthpiece (in, env, noise);
         const double m = std::clamp ((double) params.dcNoise, 0.0, 1.0);
         const double blow = params.pressure * env * ((1.0 - m) + m * noise);
         const double exc = b0 * blow + excZ1;
@@ -149,6 +214,7 @@ public:
     }
 
     float getEnergy() const noexcept { return energy; }
+    float getJetRatio() const noexcept { return (float) jetRatio; }
     double getLoopMeanSquare() const noexcept { return loopMeanSquare; }
     bool isFinite() const noexcept { return std::isfinite (lastOut) && std::isfinite (delayLen); }
     const Telemetry& getTelemetry() const noexcept { return telemetry; }
@@ -188,6 +254,89 @@ private:
     using Complex = std::complex<double>;
     static constexpr double kPiD = 3.14159265358979323846;
     static constexpr float kMinFreq = 16.0f;
+    static constexpr double kRadiation = 0.65;      // one-zero radiation highpass, unity gain at DC
+    static constexpr double kMouthpieceLevel = 1.0, kReedLevel = 0.45;
+
+    /** A mouthpiece locks its harmonics to the fundamental, and the loop filters leave the upper
+        resonances flat, so the tone is pulled flat. The correction tunes against a phase delay weighted
+        towards the first overtone (second harmonic for the cone, third for the cylinder). */
+    double harmonicPull (double weight, double w, double filters, bool cylinder) const noexcept
+    {
+        const double wh = w * (cylinder ? 3.0 : 2.0);
+        if (wh >= kPiD * 0.9) return 0.0;
+        const double upper = -(std::arg (lpResponse (aLP, wh)) + std::arg (hpResponse (aHP, wh))) / wh;
+        return weight * (upper - filters);
+    }
+
+    /** Jet velocity profile at the edge: algebraic (soft) -> tanh (hardness 0.4) -> hard clip (1). */
+    static double jetCurve (double u, double h) noexcept
+    {
+        const double t = std::tanh (u);
+        if (h < 0.4) { const double a = u / std::sqrt (1.0 + u * u); return a + (t - a) * (h / 0.4); }
+        return t + (std::clamp (u, -1.0, 1.0) - t) * ((h - 0.4) / 0.6);
+    }
+
+    inline float nextMouthpiece (float in, float env, double noise) noexcept
+    {
+        // turbulence, coloured by the exciter lowpass; never fully silent so the jet can start
+        const double turb = b0 * noise + excZ1;
+        excZ1 = b1 * noise - a1 * turb + excZ2;
+        excZ2 = b2 * noise - a2 * turb;
+        slowTurb += 0.0005 * (noise - slowTurb);
+        const double m = std::min (1.0, 0.03 + std::clamp ((double) params.dcNoise, 0.0, 1.0));
+        const double e = std::clamp ((double) env, 0.0, 1.5);
+        const double P = std::max (0.0, (double) params.pressure * e);
+        const double rootP = std::sqrt (P);
+        const double pm = params.cylinder ? -feedback : feedback;   // wave arriving at the mouth
+
+        double x, mouth = 0.0;
+        if (params.blow == PipeParams::Blow::Jet)
+        {
+            // the jet is slower while the pressure is still building: a softer, airier onset
+            const double target = jetBaseLen + (jetBaseLen - 1.0) * 0.25 * (1.0 - std::min (e, 1.0));
+            jetLen += (target - jetLen) * 0.002;
+            jetLine.push ((float) (-pm + m * 0.6 * turb * rootP));
+            const double jr = jetLine.readLagrange ((float) jetLen);
+            jet1 += jetA * (jr - jet1);
+            jet2 += jetA * (jet1 - jet2);
+            const double h = std::clamp ((double) params.hardness, 0.0, 1.0);
+            const double U = rootP * (1.0 - 0.6 * m);
+            const double flow = U * (jetCurve (std::clamp ((double) params.drive, 1.0, 32.0) * jet2 + jetOffset + 0.03 * slowTurb, h) - jetRest);
+            const double breath = m * 0.2 * rootP * turb;
+            x = pm + 0.6 * flow + breath + in;
+            mouth = 0.6 * flow + 2.0 * breath;
+        }
+        else
+        {
+            // Pressure spans 45 % .. 95 % of the pressure that shuts the reed, whatever its stiffness and
+            // opening: from just below the speaking threshold to just short of choking.
+            const double breath = std::min (e, 1.0) * reedClose * (0.45 + 0.5 * (double) params.pressure) * (1.0 + m * 0.5 * turb);
+            const double pd = pm - breath;
+            const double r = std::clamp (reedOffset - reedSlope * pd, -1.0, 1.0);
+            x = breath + pd * r + in;
+        }
+
+        delay.push ((float) x);
+        const double d = delay.readLagrange (delayLen);
+        const double high = bHP * (d - hpX) + aHP * hpY; hpX = d; hpY = high;
+        const double low = (1.0 - aLP) * high + aLP * lpY; lpY = low;
+        feedback = gain * low;
+        if (! std::isfinite (low) || ! std::isfinite (jet2))
+        {
+            delay.clear(); jetLine.clear(); sat = {};
+            feedback = hpX = hpY = lpY = excZ1 = excZ2 = jet1 = jet2 = radPrev = 0.0;
+            lastOut = 0.0f;
+            return 0.0f;
+        }
+        loopMeanSquare = low * low;
+        // a jet's amplitude grows with the loop's resonance (1 / loss); a reed valve's is set by the breath
+        const double radiated = params.blow == PipeParams::Blow::Jet ? (low + 1.2 * mouth) * outNorm : low * kReedLevel;
+        const double y = (radiated - kRadiation * radPrev) / (1.0 - kRadiation);
+        radPrev = radiated;
+        lastOut = (float) (y * kMouthpieceLevel);
+        energy += 0.002f * (std::fabs (lastOut) - energy);
+        return lastOut;
+    }
 
     struct Saturator
     {
@@ -271,7 +420,7 @@ private:
         return result;
     }
 
-    FractionalDelay delay;
+    FractionalDelay delay, jetLine;
     Saturator sat;
     PipeParams params;
     Telemetry telemetry;
@@ -285,5 +434,9 @@ private:
     float delayLen = 100.0f, targetLen = 100.0f, lenSmooth = 0.01f;
     float energy = 0.0f, lastOut = 0.0f;
     double loopMeanSquare = 0.0;
+    // mouthpiece state
+    double jetLen = 50.0, jetBaseLen = 50.0, jetRatio = 0.45, jetA = 0.1, jet1 = 0.0, jet2 = 0.0;
+    double jetOffset = 0.3, jetRest = 0.0, reedOffset = 0.7, reedSlope = 0.3, reedClose = 1.0;
+    double outNorm = 1.0, radPrev = 0.0, slowTurb = 0.0;
 };
 } // namespace aeriform::dsp

@@ -62,12 +62,14 @@ public:
             f3Filter.set (std::clamp (f3Hz * drift, 200.0f, sampleRate * 0.45f), 3.0f);
             edgeFilter.set (std::clamp (edgeHz, 300.0f, sampleRate * 0.45f), 2.0f);
         }
-        // Resonant vocal tract formant coloration plus embouchure/edge air band.
+        // Broadband turbulence coloured by the vocal-tract formants, plus the embouchure/edge air band.
+        // The broadband core matters: formants alone leave nothing below ~500 Hz, which starves the
+        // fundamental of every note under about C5 and makes the tube sound thin and nasal.
         const float f1 = f1Filter.bandpass (breathNoise);
         const float f2 = f2Filter.bandpass (breathNoise);
         const float f3 = f3Filter.bandpass (breathNoise);
         const float edgeBand = edgeFilter.bandpass (white);
-        breathNoise = 0.9f * f1 + 0.7f * f2 + 0.4f * f3 + (edgeNow * 0.6f) * edgeBand;
+        breathNoise = kBroadband * coreLP.process (breathNoise) + kFormants * (0.9f * f1 + 0.7f * f2 + 0.4f * f3) + (edgeNow * 0.6f) * edgeBand;
         onset += onsetRate*(1-onset);
         emphasis *= settleRate;
         contourNow += smooth*(contourAmount-contourNow);
@@ -114,11 +116,13 @@ public:
     bool hasPendingTransient() const noexcept { return pluckRemaining > 0 || clickRemaining > 0 || puffRemaining > 0; }
 
 private:
+    static constexpr float kBroadband = 1.2f, kFormants = 0.46f;
     float sampleRate = 44100.0f;
     Noise rng;
     PinkFilter pinkFilter;
     SlowRandom slowTurb, fastTurb, slowDrift;
     SVF lpFilter, hpFilter, f1Filter, f2Filter, f3Filter, edgeFilter;
+    OnePole coreLP;   // turbulence rolls off above a few kHz
     float smooth=.001f,mouthNow=.35f,mouthTarget=.35f,edgeNow=0,edgeTarget=0;
     float onset=0,emphasis=1,onsetRate=.001f,settleRate=.999f,contourAmount=.4f;
     unsigned shapeTick=0; float contourNow=.4f,airGainNow=0;

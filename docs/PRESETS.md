@@ -20,6 +20,11 @@
 - **v3.0.0 demonstration presets**: Reed in a Small Room (the shared coupled
   room's audible return), Modal Echo Pluck (the resonant delay's modal
   colouring).
+- **Blown PIPE presets** (appended; see [BLOWN_PIPE.md](BLOWN_PIPE.md)): Steam
+  Flute, Pan Pipes (stopped pipe), Steam Calliope, Flue Organ 8', Steam Whistle
+  (scoops up to pitch as the pressure builds), Shakuhachi Air, Reed Clarinet,
+  Reed Sax. All use steady pressure only, with aftertouch and the mod wheel on
+  Pressure.
 - **User presets**: `Documents\Aeriform\Presets\*.aerpreset` (portable XML with
   a `version` attribute, name and category). Unknown parameters are ignored
   and missing ones take their defaults, so files stay forward and backward

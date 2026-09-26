@@ -106,23 +106,31 @@ PipePage::SteamPanel::SteamPanel (AeriformProcessor& p, int slot)
 {
     const juce::String px = slot == 0 ? "res_" : (slot == 1 ? "rb_" : "rc_");
 
+    blow     = control<ChoiceBox> (processor, px + "blow", "Blow");
     pressure = knob (px + "pressure", "Pressure", {}, knobSize);
+    jet      = knob (px + "jet", "Jet / Reed", {}, knobSize);
     dcNoise  = knob (px + "dcnoise", "DC / Noise", {}, knobSize);
     excCut   = knob (px + "exc_cut", "Exc Cutoff", {}, knobSize);
     excRes   = knob (px + "exc_res", "Exc Res", {}, knobSize);
     excKt    = knob (px + "exc_kt", "Key Track", {}, knobSize);
     excVt    = knob (px + "exc_vt", "Vel Track", {}, knobSize);
 
-    for (auto* k : { pressure, dcNoise, excCut, excRes, excKt, excVt })
+    for (auto* k : { pressure, jet, dcNoise, excCut, excRes, excKt, excVt })
         k->setAccentColour (getAccent());
+    jet->setAccentColour (amber);
 }
 
 void PipePage::SteamPanel::resized()
 {
     auto r = getContentArea().reduced (4, 4);
-    knobRow (r.removeFromTop (88), { pressure, dcNoise, excCut }, 4);
+    blow->setBounds (r.removeFromTop (44).reduced (4, 2));
+    r.removeFromTop (8);
+    knobRow (r.removeFromTop (88), { pressure, jet, dcNoise }, 4);
     r.removeFromTop (14);
-    knobRow (r.removeFromTop (88), { excRes, excKt, excVt }, 4);
+    knobRow (r.removeFromTop (88), { excCut, excRes, excKt }, 4);
+    r.removeFromTop (14);
+    auto last = r.removeFromTop (88);
+    excVt->setBounds (last.removeFromLeft (last.getWidth() / 3).reduced (2, 0));
 }
 
 // ===========================================================================

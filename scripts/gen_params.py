@@ -402,8 +402,8 @@ B('nlAdaa', 'nl_adaa', 'Nonlinear ADAA', 'Network', True, 'ADAA for Saturate in 
 for prefix, label in [('res', 'Res A'), ('rb', 'Res B'), ('rc', 'Res C')]:
  def pipe_float(field, suffix, name, lo, hi, default, unit, fmt, tip, centre=None):
   F(prefix+'Pipe'+field, prefix+'_'+suffix, label+' PIPE '+name, 'Network', lo, hi, default, unit, fmt, 'PIPE only. '+tip, centre=centre)
- pipe_float('Pressure', 'pressure', 'Pressure', 0, 100, 50, '%', 'Plain', 'Exciter amplitude; timing uses the shared voice envelope. This is physical pressure, not a performance macro.')
- pipe_float('DcNoise', 'dcnoise', 'DC/Noise', 0, 100, 50, '%', 'Plain', 'Excitation mix: 0 is DC, 100 is white noise.')
+ pipe_float('Pressure', 'pressure', 'Pressure', 0, 100, 50, '%', 'Plain', 'Blowing pressure; timing uses the shared voice envelope. Jet/Reed: below a threshold the pipe only breathes, harder blowing brightens and raises the pitch slightly, and a jet overblows near the top. Linear: exciter amplitude.')
+ pipe_float('DcNoise', 'dcnoise', 'DC/Noise', 0, 100, 50, '%', 'Plain', 'Steady air versus turbulence: 0 is a pure steady stream, 100 is white noise. Jet/Reed: turbulence modulates the jet and is heard as breath.')
  pipe_float('ExcCut', 'exc_cut', 'Exciter Cutoff', 20, 20000, 2000, 'Hz', 'Hz', 'Two-pole excitation lowpass cutoff before key and velocity tracking.', centre=2000)
  pipe_float('ExcRes', 'exc_res', 'Exciter Resonance', 0.5, 8, 0.7, 'Q', 'Plain', 'Q of the two-pole excitation lowpass.', centre=1.2)
  pipe_float('ExcKt', 'exc_kt', 'Exciter Key Track', 0, 150, 50, '%', 'Plain', 'Exciter cutoff tracking referenced to MIDI note 60; 100 means one octave per octave.')
@@ -414,10 +414,16 @@ for prefix, label in [('res', 'Res A'), ('rb', 'Res B'), ('rc', 'Res C')]:
  pipe_float('Lp', 'lp', 'Loop Lowpass', 20, 20000, 4000, 'Hz', 'Hz', 'Loop lowpass pole frequency before key tracking.', centre=2000)
  pipe_float('Hp', 'hp', 'Loop Highpass', 20, 2000, 40, 'Hz', 'Hz', 'Normalized loop highpass pole frequency before key tracking.', centre=200)
  pipe_float('FiltKt', 'filt_kt', 'Loop Filter Key Track', 0, 150, 100, '%', 'Plain', 'Tracks both loop filter frequencies from MIDI note 60.')
- pipe_float('SatDrive', 'sat_drive', 'Drive', 1, 32, 2, 'x', 'Ratio', 'In-loop saturation drive with inverse-drive output compensation.', centre=4)
- pipe_float('SatKnee', 'sat_knee', 'Hardness', 0, 100, 40, '%', 'Plain', '0 is soft, 100 is hard; internal knee position is 0.9 times normalized hardness.')
- pipe_float('SatSym', 'sat_sym', 'Asymmetry', -100, 100, 0, '%', 'Plain', 'Positive/negative knee asymmetry. Zero is symmetric; separate from legacy nonlinear bias.')
+ pipe_float('SatDrive', 'sat_drive', 'Drive', 1, 32, 2, 'x', 'Ratio', 'Linear: in-loop saturation drive with inverse-drive output compensation. Jet: jet gain (how hard the jet drives the pipe). Reed: reed stiffness.', centre=4)
+ pipe_float('SatKnee', 'sat_knee', 'Hardness', 0, 100, 40, '%', 'Plain', 'Linear: 0 is soft, 100 is hard; internal knee position is 0.9 times normalized hardness. Jet: jet profile at the edge, from soft to hard-edged.')
+ pipe_float('SatSym', 'sat_sym', 'Asymmetry', -100, 100, 0, '%', 'Plain', 'Linear: positive/negative knee asymmetry, separate from legacy nonlinear bias. Jet: how far the jet sits off the edge; off-centre jets add even harmonics.')
  C(prefix+'PipeBore', prefix+'_bore', label+' PIPE Bore', 'Network', 'PipeBores', 0, 'PIPE only. Cone uses non-inverting feedback; cylinder uses inverting feedback with half-period nominal delay.')
+
+# PIPE blowing mechanism (appended after all 48 PIPE controls). Jet and Reed turn steady
+# pressure into self-sustained oscillation; Linear keeps the original additive excitation.
+for prefix, label in [('res', 'Res A'), ('rb', 'Res B'), ('rc', 'Res C')]:
+ C(prefix+'PipeBlow', prefix+'_blow', label+' PIPE Blow', 'Network', 'PipeBlows', 1, 'PIPE only. Jet: an air jet across an edge makes the pipe speak by itself (flute, organ flue pipe, whistle). Reed: a pressure-controlled valve (clarinet with Cylinder, sax/oboe with Cone). Linear: pressure and noise are simply added into the loop, which only rings.')
+ F(prefix+'PipeJet', prefix+'_jet', label+' PIPE Jet', 'Network', 0, 100, 50, '%', 'Plain', 'PIPE Jet/Reed only. Jet: jet length (lip to edge). Short is pure and dark, long is rich and breathy, extremes overblow to upper harmonics. Reed: reed opening, from pinched and buzzy to open and round.')
 
 ids = [r['id'] for r in rows]
 enums = [r['enum'] for r in rows]

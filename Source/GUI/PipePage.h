@@ -32,7 +32,8 @@ private:
 /** PIPE Model GUI Page:
     - Slot selector (Resonator A, B, C) and prominent model selector with status banner (Spec 1.1)
     - No page-local parameter storage (Spec 1.2)
-    - STEAM Panel: Pressure, DC/Noise, Exciter Cutoff, Exciter Resonance, Key Track, Vel Track (Spec 1.3)
+    - STEAM Panel: Blow mechanism (Jet / Reed / Linear), Pressure, Jet, DC/Noise, Exciter Cutoff,
+                   Exciter Resonance, Key Track, Vel Track (Spec 1.3)
     - PIPE Panel: Nominal Decay (Spec 1.4), Decay KT, Damp, Loop LP, Loop HP, Filter KT, Drive, Hardness,
                   prominently sized Asymmetry (Spec 1.6), Bore, and Telemetry display (Spec 1.6)
     - SPACE Panel: Voiced Room & Reverb controls (Spec 1.3)
@@ -57,7 +58,8 @@ public:
     public:
         SteamPanel (AeriformProcessor&, int slot);
         void resized() override;
-        Knob *pressure, *dcNoise, *excCut, *excRes, *excKt, *excVt;
+        ChoiceBox* blow;
+        Knob *pressure, *jet, *dcNoise, *excCut, *excRes, *excKt, *excVt;
     };
 
     /** PIPE Resonator panel owning the 10 acoustic loop parameters and telemetry display. */

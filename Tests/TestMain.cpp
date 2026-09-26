@@ -36,6 +36,8 @@ static int dumpParameterReference()
 
 // Smoke tests are registered with names starting with "smoke_" and are only run
 // when --smoke is passed (they render several seconds of audio at three sample rates).
+namespace aeriform::test { int runRender (const char* outDir); }
+
 int main (int argc, char** argv)
 {
     bool runSmoke = false, runUnit = true;
@@ -43,6 +45,7 @@ int main (int argc, char** argv)
     for (int i = 1; i < argc; ++i)
     {
         if (std::strcmp (argv[i], "--params") == 0) { juce::ScopedJuceInitialiser_GUI init; return dumpParameterReference(); }
+        if (std::strncmp (argv[i], "--render=", 9) == 0) { juce::ScopedJuceInitialiser_GUI init; return aeriform::test::runRender (argv[i] + 9); }
         if (std::strcmp (argv[i], "--smoke") == 0) { runSmoke = true; runUnit = false; }
         else if (std::strcmp (argv[i], "--all") == 0) { runSmoke = true; runUnit = true; }
         else if (std::strncmp (argv[i], "--filter=", 9) == 0) { filter = argv[i] + 9; runSmoke = true; runUnit = true; }

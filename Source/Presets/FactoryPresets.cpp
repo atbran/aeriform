@@ -590,6 +590,69 @@ const std::vector<FactoryPreset>& factoryPresets()
             .env (30.0f, 300.0f, 0.8f, 450.0f)
             .tube (0.97f, 0.2f, 0.8f, ResMode::OpenPipe, 0.3f, 0.0f).v });
 
+        // Blown PIPE instruments (appended). Resonator A runs PIPE with a self-oscillating Jet or
+        // Reed mouthpiece; the legacy exciters are off, so every sound comes from steady pressure.
+        const auto blownPipe = [] (PipeBlow blow, bool cylinder)
+        {
+            return Build().p (resMode, (float) ResMode::Pipe)
+                .p (exaModel, (float) ExciterModel::Off).p (exbModel, (float) ExciterModel::Off)
+                .p (wfOn, 0.0f).p (rbOn, 0.0f).p (rcOn, 0.0f).p (netMode, (float) NetMode::Single)
+                .p (resPipeBlow, (float) blow).p (resPipeBore, cylinder ? 1.0f : 0.0f)
+                .p (artInstability, 0.04f).p (artVariation, 0.15f).p (artFlowPitch, 0.0f)
+                .mod (3, ModSource::Aftertouch, ModDest::Pressure, 0.35f)
+                .mod (4, ModSource::ModWheel, ModDest::Pressure, 0.4f);
+        };
+        list.push_back ({ "Steam Flute", "Winds", blownPipe (PipeBlow::Jet, false)
+            .p (resPipePressure, 55.0f).p (resPipeDcNoise, 28.0f).p (resPipeJet, 55.0f).p (resPipeExcCut, 3500.0f)
+            .p (resPipeRt, 0.45f).p (resPipeLp, 5000.0f).p (resPipeSatDrive, 3.0f)
+            .env (45.0f, 300.0f, 0.9f, 160.0f)
+            .vibrato (5.0f, 450.0f, 0.006f)
+            .space (0.0f, 0.1f, 0.3f).delay (d1_8D, 0.2f).reverb (0.6f, 0.55f, 0.45f).v });
+        list.push_back ({ "Pan Pipes", "Winds", blownPipe (PipeBlow::Jet, true)
+            .p (resPipePressure, 50.0f).p (resPipeDcNoise, 48.0f).p (resPipeJet, 50.0f).p (resPipeExcCut, 2800.0f)
+            .p (resPipeRt, 0.35f).p (resPipeLp, 4500.0f).p (resPipeSatDrive, 2.5f)
+            .env (30.0f, 250.0f, 0.85f, 140.0f).p (artFlowPitch, 0.12f)
+            .space (0.0f, 0.0f, 0.35f).reverb (0.7f, 0.6f, 0.4f).v });
+        list.push_back ({ "Steam Calliope", "Organ", blownPipe (PipeBlow::Jet, false)
+            .p (resPipePressure, 85.0f).p (resPipeDcNoise, 15.0f).p (resPipeJet, 45.0f).p (resPipeExcCut, 5000.0f)
+            .p (resPipeRt, 0.6f).p (resPipeLp, 7000.0f).p (resPipeSatDrive, 6.0f).p (resPipeSatSym, 20.0f)
+            .env (20.0f, 200.0f, 1.0f, 110.0f)
+            .unison (2, 9.0f, 0.4f)
+            .vibrato (6.5f, 0.0f, 0.01f)
+            .space (0.2f, 0.0f, 0.25f).p (chorusRate, 0.9f).reverb (0.5f, 0.45f, 0.5f).v });
+        list.push_back ({ "Flue Organ 8'", "Organ", blownPipe (PipeBlow::Jet, false)
+            .p (resPipePressure, 45.0f).p (resPipeDcNoise, 8.0f).p (resPipeJet, 40.0f).p (resPipeExcCut, 4000.0f)
+            .p (resPipeRt, 0.8f).p (resPipeLp, 6000.0f).p (resPipeSatDrive, 3.0f)
+            .p (artVariation, 0.08f).env (40.0f, 150.0f, 1.0f, 180.0f)
+            .mod (4, ModSource::ModWheel, ModDest::Pressure, 0.0f)
+            .space (0.0f, 0.0f, 0.45f).reverb (0.9f, 0.75f, 0.4f, 25.0f).v });
+        list.push_back ({ "Steam Whistle", "Experimental", blownPipe (PipeBlow::Jet, true)
+            .p (resPipePressure, 90.0f).p (resPipeDcNoise, 38.0f).p (resPipeJet, 30.0f).p (resPipeExcCut, 6000.0f)
+            .p (resPipeRt, 0.5f).p (resPipeLp, 9000.0f).p (resPipeSatDrive, 8.0f).p (resPipeSatSym, 35.0f)
+            .env (60.0f, 300.0f, 1.0f, 350.0f)
+            // pressure builds in the chest: the whistle scoops up to pitch
+            .p (menvAttack, 0.5f).p (menvDecay, 450.0f).p (menvSustain, 0.0f).mod (1, ModSource::ModEnv, ModDest::Pitch, -0.03f)
+            .space (0.0f, 0.2f, 0.35f).delay (d1_4D, 0.3f).reverb (0.8f, 0.7f, 0.5f).v });
+        list.push_back ({ "Shakuhachi Air", "Winds", blownPipe (PipeBlow::Jet, false)
+            .p (resPipePressure, 64.0f).p (resPipeDcNoise, 70.0f).p (resPipeJet, 52.0f).p (resPipeExcCut, 2500.0f)
+            .p (resPipeRt, 0.4f).p (resPipeLp, 4000.0f).p (resPipeSatDrive, 2.5f)
+            .env (70.0f, 400.0f, 0.9f, 250.0f).p (artFlowPitch, 0.08f).p (artInstability, 0.08f)
+            .vibrato (4.5f, 700.0f, 0.007f)
+            .space (0.0f, 0.15f, 0.4f).delay (d1_4, 0.25f).reverb (0.75f, 0.65f, 0.45f).v });
+        list.push_back ({ "Reed Clarinet", "Reeds", blownPipe (PipeBlow::Reed, true)
+            .p (resPipePressure, 60.0f).p (resPipeDcNoise, 10.0f).p (resPipeJet, 50.0f).p (resPipeExcCut, 3000.0f)
+            .p (resPipeRt, 0.5f).p (resPipeLp, 5500.0f).p (resPipeSatDrive, 2.0f)
+            .env (35.0f, 200.0f, 0.9f, 150.0f)
+            .vibrato (5.0f, 600.0f, 0.003f)
+            .space (0.0f, 0.0f, 0.25f).reverb (0.55f, 0.5f, 0.45f).v });
+        list.push_back ({ "Reed Sax", "Reeds", blownPipe (PipeBlow::Reed, false)
+            .p (resPipePressure, 78.0f).p (resPipeDcNoise, 18.0f).p (resPipeJet, 62.0f).p (resPipeExcCut, 3500.0f)
+            .p (resPipeRt, 0.4f).p (resPipeLp, 4500.0f).p (resPipeSatDrive, 3.0f)
+            .env (30.0f, 250.0f, 0.9f, 170.0f)
+            .body (1400.0f, 0.35f, 0.3f)
+            .vibrato (5.5f, 450.0f, 0.005f)
+            .space (0.0f, 0.1f, 0.25f).delay (d1_8D, 0.15f).reverb (0.55f, 0.5f, 0.4f).v });
+
         return list;
     }();
     return presets;

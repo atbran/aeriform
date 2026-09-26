@@ -840,6 +840,12 @@ enum class P : int
     rcPipeSatKnee,
     rcPipeSatSym,
     rcPipeBore,
+    resPipeBlow,
+    resPipeJet,
+    rbPipeBlow,
+    rbPipeJet,
+    rcPipeBlow,
+    rcPipeJet,
     Count
 };
 
@@ -1681,6 +1687,12 @@ inline constexpr const char* rcPipeSatDrive = "rc_sat_drive";
 inline constexpr const char* rcPipeSatKnee = "rc_sat_knee";
 inline constexpr const char* rcPipeSatSym = "rc_sat_sym";
 inline constexpr const char* rcPipeBore = "rc_bore";
+inline constexpr const char* resPipeBlow = "res_blow";
+inline constexpr const char* resPipeJet = "res_jet";
+inline constexpr const char* rbPipeBlow = "rb_blow";
+inline constexpr const char* rbPipeJet = "rb_jet";
+inline constexpr const char* rcPipeBlow = "rc_blow";
+inline constexpr const char* rcPipeJet = "rc_jet";
 
 inline constexpr const char* const all[kNumParams] = {
     "exc_noise",
@@ -2516,6 +2528,12 @@ inline constexpr const char* const all[kNumParams] = {
     "rc_sat_knee",
     "rc_sat_sym",
     "rc_bore",
+    "res_blow",
+    "res_jet",
+    "rb_blow",
+    "rb_jet",
+    "rc_blow",
+    "rc_jet",
 };
 
 inline constexpr const char* id (P p) noexcept { return all[(int) p]; }

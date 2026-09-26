@@ -24,6 +24,8 @@ VoiceParams pipeVoiceParams()
     // PIPE's own blown excitation only: the legacy exciters are switched off
     p.v[(size_t) P::exaModel] = (float) ExciterModel::Off;
     p.v[(size_t) P::exbModel] = (float) ExciterModel::Off;
+    // these checks document the original additive (Linear) PIPE; Jet and Reed: PipeMouthpieceTests.cpp
+    p.v[(size_t) P::resPipeBlow] = (float) PipeBlow::Linear;
     return p;
 }
 

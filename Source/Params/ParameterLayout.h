@@ -19,6 +19,7 @@ enum class NonlinearPosition { Pre, Post, Pickup, Count };
 
 enum class ResMode   { OpenPipe, ClosedPipe, String, Comb, DispersiveTube, ModalBank, MetallicBar, Membrane, FormantBody, Pipe, Count };
 enum class PipeBore  { Cone, Cylinder, Count };
+enum class PipeBlow  { Linear, Jet, Reed, Count };
 static_assert (static_cast<int> (ResMode::Pipe) == 9);
 
 enum class ExciterModel
@@ -165,7 +166,7 @@ enum class ChoiceList
     None, LfoShapes, LfoModes, SyncDivs, ResTypes, VoiceModes, ModSources, ModDests, ExciterModels, RetrigModes,
     InteractionModes, PreFilterTypes, ShaperOrders, FoldModes, Polarities, InjectPoints, OutputTaps, LoopSources,
     LoopDests, NetModes, QualityModes, MorphModes, FilterPositions, FilterModels, FilterSlopes, FilterVowels, ContactNodes, PhysicalStereoModes, SympatheticTunings, DelayResTypes, SaturationModels, RackTypes, NonlinearModels, NonlinearPositions,
-    ChorusTypes, ReverbTypes, PipeBores
+    ChorusTypes, ReverbTypes, PipeBores, PipeBlows
 };
 
 /** One row of the generated parameter table. */

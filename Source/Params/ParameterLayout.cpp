@@ -199,6 +199,7 @@ const juce::StringArray& choiceStrings (ChoiceList list)
         case ChoiceList::NonlinearModels: { static const juce::StringArray v { "Saturate", "Hysteresis", "Tension", "Friction" }; return v; }
         case ChoiceList::NonlinearPositions: { static const juce::StringArray v { "pre", "post", "pickup" }; return v; }
         case ChoiceList::PipeBores: { static const juce::StringArray v { "Cone", "Cylinder" }; return v; }
+        case ChoiceList::PipeBlows: { static const juce::StringArray v { "Linear", "Jet", "Reed" }; return v; }
         case ChoiceList::None:
         default:
         {

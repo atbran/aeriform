@@ -446,6 +446,13 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
         pp.cylinder       = p.getEnum (offsetP (base, (int) P::resPipeBore - (int) P::resPipePressure), PipeBore::Count) == PipeBore::Cylinder;
         pp.adaa           = p.getb (P::nlAdaa);
         pp.velocity       = velocity;
+        // blowing mechanism: appended pairs (blow, jet) per slot
+        static_assert ((int) P::rbPipeBlow - (int) P::resPipeBlow == 2 && (int) P::rcPipeBlow - (int) P::resPipeBlow == 4);
+        const P blowP = offsetP (P::resPipeBlow, slot * 2);
+        pp.blow = (PipeParams::Blow) (int) p.getEnum (blowP, PipeBlow::Count);
+        pp.jet  = p.get (offsetP (blowP, 1)) * 0.01f;
+        // the performance Pressure destination (aftertouch, breath controller) blows harder
+        pp.pressure = clamp01 (pp.pressure + mod (ModDest::Pressure));
     }
 }
 

@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — blown pipes (Jet / Reed mouthpieces)
+
+- PIPE can now **speak by itself**. A new per-slot **Blow** control selects a
+  flue-pipe **Jet** (the default), a **Reed** valve, or the original **Linear**
+  excitation. Steady pressure becomes a sustained, in-tune tone with breath
+  noise that moves with the tone, overblowing at high pressure and a radiated
+  output. See [docs/BLOWN_PIPE.md](docs/BLOWN_PIPE.md).
+- New per-slot **Jet** control: jet length for the Jet, reed opening for the Reed.
+  It sits on the PIPE page's STEAM panel with Blow.
+- The Pressure modulation destination (aftertouch, mod wheel, breath) now also
+  drives PIPE pressure.
+- Eight appended factory presets built on the blown PIPE: Steam Flute, Pan Pipes,
+  Steam Calliope, Flue Organ 8', Steam Whistle, Shakuhachi Air, Reed Clarinet,
+  Reed Sax.
+- **Breath exciter:** a broadband turbulence core under the vowel formants
+  restores the fundamental that the formant-only spectrum starved on notes
+  below about C5.
+- **Legacy reed junction fix:** the reflection coefficient now scales the bore
+  wave (the standard reed model), so reed presets self-oscillate instead of
+  producing noise.
+- Offline audition renderer (`AeriformTests --render=<dir>`) and
+  `scripts/audition_analyze.py` for before/after listening and measurement.
+
 ## Unreleased — resonator nonlinearity
 
 - Added Saturate, Hysteresis, Tension and Friction per resonator slot, with pre,
