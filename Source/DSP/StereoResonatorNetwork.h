@@ -30,7 +30,7 @@ public:
             // audible in each channel with the existing second-tap width mechanism.
             a.width3[i]=std::max(a.width3[i],current.pickupSpread*blend);b.width3[i]=std::max(b.width3[i],current.pickupSpread*blend);
             a.res[i].damping=clamp01(a.res[i].damping-current.dampingDivergence*.5f*blend);b.res[i].damping=clamp01(b.res[i].damping+current.dampingDivergence*.5f*blend);
-            const float loss=ResonatorSlot::isModalType(a.res[i].type)?.1f:std::max(.002f,.3f*(1-clamp01(a.res[i].feedback)));
+            const float loss=ResonatorSlot::isModalType(a.res[i].type)?.1f:std::max(.002f,1-ResonatorSlot::couplingLoopGain(a.res[i]));
             crossGain=std::min(crossGain,loss*.05f);
         }
         crossGain*=current.coupling;left.update(a,snap);if(rightRunning)right.update(b,snap);
@@ -61,6 +61,9 @@ public:
     float loopReturn() const noexcept {return rightRunning?lerp(left.loopReturn(),.5f*(left.loopReturn()+right.loopReturn()),blend):left.loopReturn();}
     NonlinearElement::Sample nonlinearSample(int i) const noexcept {return left.nonlinearSample(i);}
     float tensionRatio(int i) const noexcept {return left.tensionRatio(i);}
+    void setBlowEnvelope(float env) noexcept {left.setBlowEnvelope(env);right.setBlowEnvelope(env);}
+    bool slotIsPipe(int i) const noexcept {return left.slotIsPipe(i);}
+    const PipeResonator::Telemetry& pipeTelemetry(int i) const noexcept {return left.pipeTelemetry(i);}
     float energy(int i) const noexcept {return rightRunning?.5f*(left.energy(i)+right.energy(i)):left.energy(i);}
     float netEnergy() const noexcept {return rightRunning?.5f*(left.netEnergy()+right.netEnergy()):left.netEnergy();}
     float governor() const noexcept {return rightRunning?std::min(left.governor(),right.governor()):left.governor();}

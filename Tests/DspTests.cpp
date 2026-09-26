@@ -416,7 +416,8 @@ AERIFORM_TEST (nonlinear_phase3_tension_envelope_and_delay_slew)
 
 AERIFORM_TEST (nonlinear_phase3_tension_modal_and_network_smoke)
 {
-    for (int type = 0; type < (int) ResMode::Count; ++type)
+    // PIPE (index 9) owns its in-loop saturator and does not host the nonlinear loop element.
+    for (int type = 0; type < (int) ResMode::Pipe; ++type)
     {
         ResonatorSlot slot; slot.prepare (48000.0f);
         ResonatorParams p; p.type = (ResMode) type; p.freqHz = 220.0f; p.feedback = 0.5f;

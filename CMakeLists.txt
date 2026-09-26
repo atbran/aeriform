@@ -234,7 +234,8 @@ if(AERIFORM_BUILD_TESTS)
         Tests/CollisionTests.cpp
         Tests/ModularFilterTests.cpp
         Tests/SmokeTests.cpp
-        Tests/SpaceEffectsTests.cpp)
+        Tests/SpaceEffectsTests.cpp
+        Tests/PipeTests.cpp)
     target_include_directories(AeriformTests PRIVATE
         Source Tests
         $<TARGET_PROPERTY:Aeriform,INCLUDE_DIRECTORIES>)

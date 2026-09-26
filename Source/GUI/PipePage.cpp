@@ -93,7 +93,7 @@ void PipeTelemetryDisplay::paint (juce::Graphics& g)
     g.setColour (textPrimary);
     g.setFont (monoFont (10.0f));
     if (measuredDecay > 0.001f)
-        g.drawText (juce::String::formatted ("Nominal: %.2f s | Measured: %.2f s", nominalRt, measuredDecay), decayArea, juce::Justification::centredLeft);
+        g.drawText (juce::String::formatted ("Nominal: %.2f s | Loop at f0: %.2f s", nominalRt, measuredDecay), decayArea, juce::Justification::centredLeft);
     else
         g.drawText (juce::String::formatted ("Nominal: %.2f s (lossless g law)", nominalRt), decayArea, juce::Justification::centredLeft);
 }

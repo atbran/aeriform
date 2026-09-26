@@ -419,6 +419,34 @@ void Voice::buildNetworkParams (const VoiceParams& p, float baseNote)
         nl.position = p.getEnum (offsetP (base, 5), NonlinearPosition::Count);
         nl.adaa = p.getb (P::nlAdaa);
     }
+    // PIPE model (index 9): 16 contiguous parameters per slot; percentages become 0..1.
+    static_assert ((int) P::rbPipeBore - (int) P::rbPipePressure == (int) P::resPipeBore - (int) P::resPipePressure);
+    static_assert ((int) P::rcPipeBore - (int) P::rcPipePressure == (int) P::resPipeBore - (int) P::resPipePressure);
+    constexpr P pipeBases[] { P::resPipePressure, P::rbPipePressure, P::rcPipePressure };
+    for (int slot = 0; slot < 3; ++slot)
+    {
+        const P base = pipeBases[slot];
+        auto g = [&] (P id) { return p.get (offsetP (base, (int) id - (int) P::resPipePressure)); };
+        auto& pp = n.res[slot].pipe;
+        pp.pressure       = g (P::resPipePressure) * 0.01f;
+        pp.dcNoise        = g (P::resPipeDcNoise) * 0.01f;
+        pp.excCutHz       = g (P::resPipeExcCut);
+        pp.excQ           = g (P::resPipeExcRes);
+        pp.excKeyTrack    = g (P::resPipeExcKt) * 0.01f;
+        pp.excVelTrack    = g (P::resPipeExcVt) * 0.01f;
+        pp.rtSec          = g (P::resPipeRt);
+        pp.rtKeyTrack     = g (P::resPipeRtKt) * 0.01f;
+        pp.damp           = g (P::resPipeDamp) * 0.01f;
+        pp.lpHz           = g (P::resPipeLp);
+        pp.hpHz           = g (P::resPipeHp);
+        pp.filterKeyTrack = g (P::resPipeFiltKt) * 0.01f;
+        pp.drive          = g (P::resPipeSatDrive);
+        pp.hardness       = g (P::resPipeSatKnee) * 0.01f;
+        pp.asymmetry      = g (P::resPipeSatSym) * 0.01f;
+        pp.cylinder       = p.getEnum (offsetP (base, (int) P::resPipeBore - (int) P::resPipePressure), PipeBore::Count) == PipeBore::Cylinder;
+        pp.adaa           = p.getb (P::nlAdaa);
+        pp.velocity       = velocity;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -719,6 +747,7 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
             float l, r;
             const float loopNet = (netParams.loopOn && loopDest == LoopDest::NetworkIn) ? loopRet : 0.0f;
             const float roomInput=roomReturn?roomCoupling.next(roomReturn[pos+i],freshSourcePower):0;
+            network.setBlowEnvelope (env);
             network.next (x + couplingIn+roomInput, loopNet, pressureNow, l, r);
             loopRet = network.loopReturn();
             if (scope != nullptr)
@@ -727,6 +756,13 @@ void Voice::render (float* left, float* right, int numSamples, const VoiceParams
                     const auto pair = network.nonlinearSample (slot);
                     scope->nonlinearScope[(size_t) slot].push (pair.x, pair.y);
                     scope->nonlinearTensionRatio[(size_t) slot].store (network.tensionRatio (slot), std::memory_order_relaxed);
+                    if (i == 0 && network.slotIsPipe (slot))
+                    {
+                        const auto& t = network.pipeTelemetry (slot);
+                        scope->pipeLoopGainDb[(size_t) slot].store (t.loopGainDb, std::memory_order_relaxed);
+                        scope->pipePhaseCompSamples[(size_t) slot].store (t.phaseCompSamples, std::memory_order_relaxed);
+                        scope->pipeMeasuredDecaySec[(size_t) slot].store (t.effectiveDecaySec, std::memory_order_relaxed);
+                    }
                 }
 
             // ---- body / formant filter ------------------------------------------------------

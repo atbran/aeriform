@@ -4,6 +4,7 @@
 #include "FractionalDelay.h"
 #include "ModalResonator.h"
 #include "NonlinearElement.h"
+#include "PipeResonator.h"
 #include "ModularFilters.h"
 #include "../Params/ParameterLayout.h"
 
@@ -12,6 +13,7 @@ namespace aeriform::dsp
 struct ResonatorParams
 {
     NonlinearParams nonlinear;
+    PipeParams pipe;             // used only when type == ResMode::Pipe
     ResMode type = ResMode::OpenPipe;
     float freqHz = 440.0f;       // target fundamental (already includes tuning, bend, glide, modulation)
     float feedback = 0.9f;       // 0..1
@@ -176,7 +178,7 @@ private:
 class ResonatorSlot
 {
 public:
-    void prepare (float sampleRate);
+    void prepare (float sampleRate, uint32_t noiseSeed = 0x9E3779B9u);
     void reset();
     void update (const ResonatorParams& p, bool snapLength);
 
@@ -195,24 +197,46 @@ public:
         {
             fadeGain = std::min (1.0f, fadeGain + fadeStep);
         }
-        if(modal&&loopFilter)in=loopFilter->at(loopPosition,in,filterLane);
-        float y = modal ? bank.next (in, tap2) : waveguide.next (in, pressureNow, tap2);
-        loopEnergy.observe (modal ? bank.getLoopMeanSquare() : waveguide.getLoopMeanSquare());
+        if((modal||pipeMode)&&loopFilter)in=loopFilter->at(loopPosition,in,filterLane);
+        float y;
+        if (pipeMode)
+        {
+            // PIPE has its own continuous blown excitation, scaled by the shared amp envelope.
+            y = pipe.next (in, blowEnv);
+            tap2 = y;
+            loopEnergy.observe (pipe.getLoopMeanSquare());
+        }
+        else
+        {
+            y = modal ? bank.next (in, tap2) : waveguide.next (in, pressureNow, tap2);
+            loopEnergy.observe (modal ? bank.getLoopMeanSquare() : waveguide.getLoopMeanSquare());
+        }
         nonlinear.endSample();
         if (fadeGain < 1.0f) { y *= fadeGain; tap2 *= fadeGain; }
         return y;
     }
 
-    float getTensionRatio() const noexcept { return modal ? bank.getTensionRatio() : waveguide.getTensionRatio(); }
+    /** Shared voice amp-envelope level for the PIPE model's blown excitation (per sample). */
+    void setBlowEnvelope (float env) noexcept { blowEnv = env; }
+    bool isPipe() const noexcept { return pipeMode; }
+    const PipeResonator::Telemetry& getPipeTelemetry() const noexcept { return pipe.getTelemetry(); }
+    float getTensionRatio() const noexcept { return pipeMode ? 1.0f : (modal ? bank.getTensionRatio() : waveguide.getTensionRatio()); }
     float getLoopEnergyRms() const noexcept { return loopEnergy.rms(); }
     const NonlinearElement& getNonlinearElement() const noexcept { return nonlinear; }
-    float getEnergy() const noexcept { return modal ? bank.getEnergy() : waveguide.getEnergy(); }
-    bool  isFinite() const noexcept { return modal ? bank.isFinite() : waveguide.isFinite(); }
+    float getEnergy() const noexcept { return pipeMode ? pipe.getEnergy() : (modal ? bank.getEnergy() : waveguide.getEnergy()); }
+    bool  isFinite() const noexcept { return pipeMode ? pipe.isFinite() : (modal ? bank.isFinite() : waveguide.isFinite()); }
     bool  isModal() const noexcept { return modal; }
 
     static bool isModalType (ResMode t) noexcept
     {
         return t == ResMode::ModalBank || t == ResMode::MetallicBar || t == ResMode::Membrane || t == ResMode::FormantBody;
+    }
+
+    /** Linear loop gain used by the network to normalise coupling into this slot. */
+    static float couplingLoopGain (const ResonatorParams& r) noexcept
+    {
+        return r.type == ResMode::Pipe ? PipeResonator::nominalLoopGain (r.pipe, r.freqHz)
+                                       : 0.7f + 0.3f * clamp01 (r.feedback);
     }
 
 private:
@@ -224,7 +248,9 @@ private:
     LoopEnergyProbe loopEnergy;
     Resonator waveguide;
     ModalBank bank;
-    bool modal = false;
+    PipeResonator pipe;
+    bool modal = false, pipeMode = false;
+    float blowEnv = 0.0f;
     ResMode lastType = ResMode::OpenPipe;
     bool pending = false;
     ResonatorParams pendingParams;

@@ -15,7 +15,7 @@ void ResonatorNetwork::prepare (float sr)
 {
     sampleRate = sr;contact.prepare(sr);
     gSmooth = 1.0f - std::exp (-1.0f / (0.004f * sr));
-    for (auto& s : slots) s.prepare (sr);
+    for (int i = 0; i < 3; ++i) slots[(size_t) i].prepare (sr, 0x9E3779B9u + 0x632BE5ABu * (uint32_t) i);
     const int maxRoute = (int) (0.05f * sr) + 16;
     for (auto& d : routeDelay) d.prepare (maxRoute);
     for (auto& f : routeLP) f.setCutoff (6000.0f, sr);
@@ -155,13 +155,13 @@ void ResonatorNetwork::update (const NetworkParams& p, bool snapLength)
     {
         const auto& r = p.res[i];
         if (ResonatorSlot::isModalType (r.type)) couple[i] = 0.15f;
-        else couple[i] = std::clamp (1.0f - (0.7f + 0.3f * clamp01 (r.feedback)), 0.05f, 1.0f);
+        else couple[i] = std::clamp (1.0f - ResonatorSlot::couplingLoopGain (r), 0.05f, 1.0f);
     }
 
     auto cp=p.contact;
     cp.enabled=cp.enabled&&wantRunning[std::clamp(cp.source,0,2)]&&wantRunning[std::clamp(cp.destination,0,2)];
     contact.update(cp);
-    for(int i=0;i<3;++i)contactLoss[i]=.9f*(ResonatorSlot::isModalType(p.res[i].type)?.1f:std::max(.002f,.3f*(1-clamp01(p.res[i].feedback))));
+    for(int i=0;i<3;++i)contactLoss[i]=.9f*(ResonatorSlot::isModalType(p.res[i].type)?.1f:std::max(.002f,1-ResonatorSlot::couplingLoopGain(p.res[i])));
 
     // ---- gain targets ------------------------------------------------------------------------
     gTarget[G_injA] = injA; gTarget[G_injB] = injB; gTarget[G_injC] = injC;

@@ -135,7 +135,7 @@ void Resonator::update (const ResonatorParams& p, bool snapLength)
 }
 
 // ---------------------------------------------------------------------------
-void ResonatorSlot::prepare (float sampleRate)
+void ResonatorSlot::prepare (float sampleRate, uint32_t noiseSeed)
 {
     nonlinear.prepare (sampleRate, 0);
     loopEnergy.prepare (sampleRate);
@@ -143,7 +143,8 @@ void ResonatorSlot::prepare (float sampleRate)
     bank.setNonlinearElement (&nonlinear);
     waveguide.prepare (sampleRate);
     bank.prepare (sampleRate);
-    modal = false;
+    pipe.prepare (sampleRate, noiseSeed);
+    modal = false; pipeMode = false;
     lastType = ResMode::OpenPipe;
     pending = false;
     fadeGain = 1.0f;
@@ -156,6 +157,7 @@ void ResonatorSlot::reset()
     loopEnergy.reset();
     waveguide.reset();
     bank.reset();
+    pipe.reset();
     if (pending) applyPending();
     fadeGain = 1.0f;
 }
@@ -178,19 +180,25 @@ void ResonatorSlot::update (const ResonatorParams& p, bool snapLength)
 void ResonatorSlot::applyPending()
 {
     pending = false;
-    const bool wantModal = isModalType (pendingParams.type);
-    if (wantModal != modal)
+    const bool wantPipe = pendingParams.type == ResMode::Pipe;
+    const bool wantModal = ! wantPipe && isModalType (pendingParams.type);
+    if (wantModal != modal || wantPipe != pipeMode)
     {
         // clear the engine we are switching to; the old one is simply abandoned
-        if (wantModal) bank.reset(); else waveguide.reset();
+        if (wantPipe) pipe.reset(); else if (wantModal) bank.reset(); else waveguide.reset();
         modal = wantModal;
+        pipeMode = wantPipe;
     }
     applyParams (pendingParams, true);
 }
 
 void ResonatorSlot::applyParams (const ResonatorParams& p, bool snapLength)
 {
-    if (modal)
+    if (pipeMode)
+    {
+        pipe.update (p.pipe, p.freqHz, snapLength);
+    }
+    else if (modal)
     {
         ModalBank::Params m;
         m.type = p.type; m.freqHz = p.freqHz; m.feedback = p.feedback; m.damping = clamp01 (p.damping + p.variationDamping);
